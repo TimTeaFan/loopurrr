@@ -1,15 +1,23 @@
 Package: loopurrr
-Title: What the Package Does (One Line, Title Case)
+Title: Tranlate functional
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Tim",
+           family = "Tiefenbach",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+           email = "mailme@tim-tiefenbach.de",
+           comment = c(ORCID = "0000-0001-9443-2434"))
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Imports: 
+    purrr,
+    rlang,
+    dplyr,
+    utils
