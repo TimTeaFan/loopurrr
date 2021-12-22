@@ -157,6 +157,6 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", action = c("clipboard",
     str_eval <- paste0(str_out, '\n', output_nm)
     eval(parse(text = str_eval, keep.source = FALSE), envir = q_env)
   } else {
-    writeClipboard(str_out)
+    utils::writeClipboard(str_out)
   }
 }
