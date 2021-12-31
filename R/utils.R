@@ -16,6 +16,95 @@ find_calls <- function(x) {
   }
 }
 
+get_output_fn <- function(output) {
+
+  is_rstudio <- rstudioapi::isAvailable()
+  has_clipr <- clipr::clipr_available()
+
+  out_fn <- NULL
+
+  for (i in seq_along(output)) {
+
+    if (output[i] == "rstudio" && is_rstudio) {
+      out_fn <- rstudioapi::insertText
+      break
+    } else if (output[i] == "clipboard" && has_clipr) {
+      out_fn <- function(x) clipr::write_clip(content = x,
+                                              object_type = "character")
+      break
+    } else {
+      out_fn <- base::cat
+      break
+    }
+  }
+
+  if (is.null(out_fn)) {
+
+    err_msg <- if (length(output) == 2L) {
+      "'rstudio' and (read: or) 'clipboard' were specified as output argument. Unfortunately you are neither in RStudio nor is the clipr package available."
+    } else {
+      if (output == "rstudio") {
+        "'rstudio' was specified as `output` argument, but you are not in RStudio."
+      } else {
+        "'clipboard' was specified as output argument, but the clipr package is not available."
+      }
+    }
+
+    rlang::abort(
+      c("Problem with `as_loop()` input `output`.",
+        i = "The specified output option is not supported.",
+        x = err_msg,
+        i = "Please refrain from specifying the output argument or set it to 'console' to make `as_loop` work.")
+    )
+  }
+
+  out_fn
+}
+
+# get_supported_fns <- function() {
+#   require(purrr)
+#   all_purrr_fns <- purrr::map_chr(lsf.str("package:purrr"), `[`)
+#   purrr_map_fns <- grep("(map2)|(modify)|(walk)|(map_)|(map)$", all_purrr_fns, value = TRUE)
+#   invoke_fns <- grepl("^invoke_", purrr_map_fns)
+#   call_or_depth_fns <- grepl("(_call)|(_depth)$", purrr_map_fns)
+#   sel_map_fns <- purrr::set_names(purrr_map_fns[!(invoke_fns | call_or_depth_fns)])
+#
+#   not_include <- c("modify_in", "list_modify", "lmap_if")
+#
+#   sel_map_fns[! sel_map_fns %in% not_include]
+# }
+#
+# datapasta::vector_paste(get_supported_fns())
+
+is_supported <- function(map_fn) {
+
+  supported_fns <- c("imap", "imap_chr", "imap_dbl", "imap_dfc", "imap_dfr", "imap_int", "imap_lgl",
+                     "imap_raw", "imodify", "iwalk", "lmap", "lmap_at", "map", "map_at", "map_chr",
+                     "map_dbl", "map_df", "map_dfc", "map_dfr", "map_if", "map_int", "map_lgl",
+                     "map_raw", "map2", "map2_chr", "map2_dbl", "map2_df", "map2_dfc", "map2_dfr",
+                     "map2_int", "map2_lgl", "map2_raw", "modify", "modify_at", "modify_if",
+                     "modify2", "pmap", "pmap_chr", "pmap_dbl", "pmap_df", "pmap_dfc", "pmap_dfr",
+                     "pmap_int", "pmap_lgl", "pmap_raw", "pwalk", "walk", "walk2")
+
+  if (!any(purrr::map_lgl(findFunction(map_fn), ~rlang::env_name(.x) == "package:purrr"))) {
+    rlang::abort(
+      c("Problem with `as_loop()` input `.expr`.",
+        i = "`as_loop` only works with `map` and similar functions from the purrr package.",
+        x = paste0("`", map_fn, "` is not located in the namespace of `package:purrr`."),
+        i = "For an overview of all currently supported purrr functions see the documentation `?as_loop`.")
+    )
+  }
+
+  if (!map_fn %in% supported_fns) {
+    rlang::abort(
+      c("Problem with `as_loop()` input `.expr`.",
+        i = "Currently `as_loop` does only support certain purrr function.",
+        x = paste0("`", map_fn, "` is not supported yet."),
+        i = "For an overview of all currently supported purrr functions see the documentation `?as_loop`.")
+    )
+  }
+
+}
 
 check_magrittr_pipe <- function() {
   sc <- sys.calls()
@@ -36,10 +125,6 @@ names_or_idx <- function(obj, obj_nms) {
   } else {
     paste0("names(", obj, ")")
   }
-}
-
-capture_fn_expr <- function(x) {
-  capture.output(print(x))
 }
 
 create_inp_objs <- function(obj_ls) {
@@ -163,25 +248,10 @@ create_out_obj <- function(map_fn, obj, output_nm) {
                 "lgl" = "logical",
                 "raw" = "raw",
                 "list")
-  # "dfr" = ,
-  # "dfc" = ,
-  # "at"  = ,
-  # "if"  = "list",
-  # "")
 
   if (!is.null(mde)) {
     vec <- paste0('vector("', mde ,'", length = length(', obj, '))')
     return(paste0(output_nm, ' <- ', vec, '\n\n'))
-  }
-}
-
-
-peal_fn <- function(fn) {
-
-  if (as.character(body(fn)[[1]]) == "{") {
-    return(body(fn)[[2]])
-  } else {
-    return(body(fn))
   }
 }
 
@@ -235,7 +305,6 @@ call2chr <- function(expr) {
     del_cl <- paste0(dep_cl, collapse = "\n")
   }
   dep_cl
-
 }
 
 
@@ -443,14 +512,14 @@ add_selection_old <- function(map_fn, obj, obj_nms, output_nm, idx, fn_env, at =
   }
 }
 
-rewrite_fn <- function(fn_expr, .inp_objs, .idx, .brk = NULL, .dot_args = NULL) {
+rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr, .brk = NULL, .dot_args = NULL) {
 
   if (is.null(.brk)) {
     .brk <- list(o = '[[',
                  c = ']]')
   }
 
-  fn <- eval(fn_expr)
+  fn <- eval(fn_expr, envir = fn_env)
 
   # if fn is formula change to normal function
   if (purrr::is_formula(fn)) {
@@ -465,7 +534,18 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, .brk = NULL, .dot_args = NULL) 
   # if fn is purrr lambda or anonymous function
 
   if (is_lambda || is_anonym) {
-    # fn_bdy <- capture.output(print(peal_fn(fn)))
+
+    if (length(.dot_args) != 0) {
+      rlang::abort(
+        c("Problem with `as_loop()` input `.expr`.",
+          i = "`as_loop` does not support argument forwarding to anonymous or purrr-style lambda functions.",
+          x = paste0("Additonal arguments have been supplied to the eclipsis `...` in the following call:\n",
+                     cl_chr,
+                     "\nalthough `.f` is ", if (is_lambda) {"a purrr-style lambda function."} else {"an anonymous function."} ),
+          i = "If you want to forward additional arguments in the eclipse `...` of a `map` or similar call, please use a named function, e.g. `mean`, to make it work with `as_loop`.")
+      )
+    }
+
     fn_bdy <- trimws(deparse(body(fn)))
 
     # Still needed?
@@ -484,7 +564,17 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, .brk = NULL, .dot_args = NULL) 
   } else if (is_anonym) {
 
     fn_fmls <- rlang::fn_fmls_names(fn)
-    stopifnot(!"..." %in% fn_fmls)
+
+    if ("..." %in% fn_fmls) {
+      rlang::abort(
+        c("Problem with `as_loop()` input `.expr`.",
+          x = "`as_loop` does not support anonymous functions in `map` or similar calls that use the eclipsis `...` as argument."
+          )
+      )
+    }
+
+    # TODO: check if this stop is still needed:
+    # probably the initial check regarding argument forwarding in anonymous functions makes this stop superflous
     stopifnot(length(fn_fmls) == length(.inp_objs))
 
     for (i in seq_along(.inp_objs)) {
@@ -502,7 +592,6 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, .brk = NULL, .dot_args = NULL) 
       dots <- paste0(', ',
                      paste(
                        imap(.dot_args, ~ paste0(if (nchar(.y) > 0) paste0(.y, ' = '),
-                                                # if (nchar(.y) > 0) ' = ',
                                                 .x)),
                        collapse = ", "
                      )
@@ -515,6 +604,11 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, .brk = NULL, .dot_args = NULL) 
     return(paste0(as.character(fn_expr),'(', objs, dots,')'))
     # all other cases
   } else {
-    stop("Not able to rewrite function.")
+    rlang::abort(
+      c("Problem with `as_loop()` input `.expr`.",
+        i = "`as_loop` does not yet support lists, character vectors or numeric vectors supplied as `.f` argument in `map` or similar calls.",
+        x = paste0("An object of class <", class(fn), "> was supplied to the `.f` argument in:\n ",cl_chr , "."),
+        i = "`as_loop` will work with any function or purrr-style formula in `.f`.")
+    )
   }
 }
