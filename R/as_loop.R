@@ -1,19 +1,25 @@
 
 # TODO:
 # lmap at/if
-# fix to work with custom function created in global env
 # reduce
 # accumulate
 # modify at/if
-# map_depth !! <- exclude
-as_loop <- function(.expr, output_nm = "out", idx = "i", action = c("clipboard", "eval")) {
+
+as_loop <- function(.expr, output_nm = "out", idx = "i", output = c("rstudio", "clipboard", "console"), eval = FALSE) {
 
   # checks
   check_magrittr_pipe()
   # TODO: Add check
   # error: output_nm may not be `.at` or `.sel` or `.inp`
   # warn: output_nm and `.at`, `.sel` `.inp` should not exist in global environment
-  action <- match.arg(action)
+
+  output <- match.arg(output, several.ok = TRUE)
+
+  if (eval) {
+    output_fn <- NULL
+  } else {
+    output_fn <- get_output_fn(output)
+  }
 
   # basic setup
   q <- rlang::enquo(.expr)
@@ -26,6 +32,8 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", action = c("clipboard",
   q_env <- rlang::quo_get_env(q)
 
   map_fn_chr <- as.character(expr_ls[[1]])
+  is_supported(map_fn_chr)
+
 
   # call dependent setup ---
 
@@ -51,8 +59,12 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", action = c("clipboard",
   obj_nms <- get_obj_names(inp_objs[1], q_env)
   obj <- names(inp_objs)[1]
 
+  is_lmap <- grepl("^lmap", map_fn_chr, perl = TRUE)
+  is_walk <- grepl("^(walk|iwalk)", map_fn_chr, perl = TRUE)
+  is_i <- grepl("(^imap)|(^iwalk)", map_fn_chr, perl = TRUE)
+
   # if imap
-  if (grepl("(^imap)|(^iwalk)", map_fn_chr, perl = TRUE)) {
+  if (is_i) {
     inp_objs <- append(inp_objs,
                        list(.idx = names_or_idx(obj, obj_nms)))
   }
@@ -60,7 +72,6 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", action = c("clipboard",
   custom_inp_objs <- inp_objs[names(inp_objs) != inp_objs]
   maybe_custom_inpts <- create_custom_inpts(custom_inp_objs)
 
-  is_lmap <- grepl("^lmap", map_fn_chr, perl = TRUE)
 
   if (is_lmap) {
     brk <- list(o = '[',
@@ -71,7 +82,7 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", action = c("clipboard",
   }
 
   # call dependent implementation
-  apply_fn <- rewrite_fn(expr_ls[[".f"]], names(inp_objs), idx, brk, dot_args)
+  apply_fn <- rewrite_fn(expr_ls[[".f"]], names(inp_objs), idx, q_env, cl_chr, brk, dot_args)
   at_idx   <- expr_ls[[".at"]]
   p_fn     <- expr_ls[[".p"]]
   else_fn  <- expr_ls[[".else"]]
@@ -83,9 +94,10 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", action = c("clipboard",
     maybe_assign <-
     maybe_bind_rows_cols <-
     maybe_name_obj <-
-    maybe_flatten_tbl <- NULL
+    maybe_flatten_tbl <-
+    maybe_lmap_stop <- NULL
 
-  if (!grepl("^(walk|iwalk)", map_fn_chr, perl = TRUE)) {
+  if (!is_walk) {
 
     maybe_at <- add_at(map_fn  = map_fn_chr,
                        obj     = obj,
@@ -151,12 +163,12 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", action = c("clipboard",
                     maybe_name_obj,
                     maybe_bind_rows_cols,
                     maybe_flatten_tbl,
-                    '# --- end loop --- #')
+                    '# --- end loop --- #\n')
 
-  if (action == "eval") {
-    str_eval <- paste0(str_out, '\n', output_nm)
+  if (eval) {
+    str_eval <- paste0(str_out, if(!is_walk) {paste0('\n', output_nm)})
     eval(parse(text = str_eval, keep.source = FALSE), envir = q_env)
   } else {
-    utils::writeClipboard(str_out)
+    output_fn(str_out)
   }
 }
