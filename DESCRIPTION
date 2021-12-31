@@ -20,4 +20,6 @@ Imports:
     purrr,
     rlang,
     dplyr,
-    utils
+    utils,
+    clipr,
+    rstudioapi
