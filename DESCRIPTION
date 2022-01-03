@@ -1,5 +1,5 @@
 Package: loopurrr
-Title: Tranlate functional
+Title: Tranlate map and other purrr functions to regular for-loops
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Tim",
@@ -14,12 +14,12 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Suggests: 
+    clipr,
+    rstudioapi,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
     purrr,
     rlang,
     dplyr,
-    utils,
-    clipr,
-    rstudioapi
+    utils
