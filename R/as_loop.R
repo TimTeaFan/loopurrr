@@ -5,7 +5,7 @@
 # accumulate
 # modify at/if
 
-as_loop <- function(.expr, output_nm = "out", idx = "i", output = c("rstudio", "clipboard", "console"), eval = FALSE) {
+as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", output_nm = "out") {
 
   # checks
   check_magrittr_pipe()
@@ -46,7 +46,6 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", output = c("rstudio", "
   }
 
 
-
   # function and arguments
   map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
   map_fn_fmls <- rlang::fn_fmls_names(map_fn)
@@ -59,9 +58,11 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", output = c("rstudio", "
   obj_nms <- get_obj_names(inp_objs[1], q_env)
   obj <- names(inp_objs)[1]
 
+  # put these calls in a setup function
   is_lmap <- grepl("^lmap", map_fn_chr, perl = TRUE)
-  is_walk <- grepl("^(walk|iwalk)", map_fn_chr, perl = TRUE)
+  is_walk <- grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE)
   is_i <- grepl("(^imap)|(^iwalk)", map_fn_chr, perl = TRUE)
+  is_modify <- grepl("modify", map_fn_chr, perl = TRUE)
 
   # if imap
   if (is_i) {
@@ -97,8 +98,6 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", output = c("rstudio", "
     maybe_flatten_tbl <-
     maybe_lmap_stop <- NULL
 
-  if (!is_walk) {
-
     maybe_at <- add_at(map_fn  = map_fn_chr,
                        obj     = obj,
                        # obj_nms = obj_nms,
@@ -114,17 +113,17 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", output = c("rstudio", "
                        idx     = idx,
                        p_fn    = p_fn,
                        else_fn = else_fn,
-                       brk     = brk
-                       # fn_env  = q_env,
+                       brk     = brk,
+                       fn_env  = q_env
                        )
 
     maybe_output <- create_out_obj(map_fn_chr, obj, output_nm)
 
-    maybe_assign <- paste0(output_nm, '[[', idx, ']] <- ')
+    maybe_assign <- create_assign(map_fn_chr, output_nm, obj, idx)
 
     maybe_bind_rows_cols <- bind_rows_cols(map_fn_chr, output_nm, id_arg)
 
-    maybe_name_obj <- if (!is.null(obj_nms) && !is_lmap) {
+    maybe_name_obj <- if (!is.null(obj_nms) && !is_lmap && !is_modify && !is_walk) {
       paste0('\nnames(', output_nm, ') <- names(', obj, ')\n')
     }
 
@@ -142,7 +141,6 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", output = c("rstudio", "
     maybe_lmap_stop <- if (is_lmap) {
       paste0('stopifnot(is.list(', output_nm,'[[', idx, ']]))\n')
       } else NULL
-  }
 
 
   str_out <- paste0('# --- convert: ', cl_chr, ' as loop --- #\n',
@@ -167,7 +165,7 @@ as_loop <- function(.expr, output_nm = "out", idx = "i", output = c("rstudio", "
 
   if (eval) {
     str_eval <- paste0(str_out, if(!is_walk) {paste0('\n', output_nm)})
-    eval(parse(text = str_eval, keep.source = FALSE), envir = q_env)
+    eval(parse(text = str_eval, keep.source = FALSE), envir = rlang::new_environment(parent = q_env))
   } else {
     output_fn(str_out)
   }
