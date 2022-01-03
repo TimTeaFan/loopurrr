@@ -18,35 +18,56 @@ find_calls <- function(x) {
 
 get_output_fn <- function(output) {
 
-  is_rstudio <- rstudioapi::isAvailable()
-  has_clipr <- clipr::clipr_available()
+  has_rstudioapi <- requireNamespace("rstudioapi", quietly = TRUE)
+  has_clipr <- requireNamespace("clipr", quietly = TRUE)
+
+  is_rstudio <- is_clipr <- NULL
 
   out_fn <- NULL
 
   for (i in seq_along(output)) {
 
-    if (output[i] == "rstudio" && is_rstudio) {
-      out_fn <- rstudioapi::insertText
+    if (output[i] == "rstudio" && has_rstudioapi) {
+
+      is_rstudio <- rstudioapi::isAvailable()
+      if (is_rstudio) out_fn <- rstudioapi::insertText
       break
+
     } else if (output[i] == "clipboard" && has_clipr) {
-      out_fn <- function(x) clipr::write_clip(content = x,
+
+      is_clipr <- clipr::clipr_available()
+      if (is_clipr) out_fn <- function(x) clipr::write_clip(content = x,
                                               object_type = "character")
       break
+
     } else {
       out_fn <- base::cat
       break
     }
   }
 
+  # create a meaningful error message:
   if (is.null(out_fn)) {
 
+    rstudio_msg <- if (!has_rstudioapi) {
+      "the rstudioapi package is not installed."
+    } else if (!is_rstudio) {
+      "your are not in RStudio."
+    }
+
+    clipr_msg <- if (!has_clipr) {
+      "the clipr package is not installed."
+    } else if (!is_clipr) {
+        "the system clipboard is not accessable."
+      }
+
     err_msg <- if (length(output) == 2L) {
-      "'rstudio' and (read: or) 'clipboard' were specified as output argument. Unfortunately you are neither in RStudio nor is the clipr package available."
+      paste0("'rstudio' and 'clipboard' were specified as output argument. Unfortunately, ", rstudio_msg, "and ", clipr_msg)
     } else {
       if (output == "rstudio") {
-        "'rstudio' was specified as `output` argument, but you are not in RStudio."
+        paste0("'rstudio' was specified as `output` argument, but ", rstudio_msg)
       } else {
-        "'clipboard' was specified as output argument, but the clipr package is not available."
+        paste0("'clipboard' was specified as output argument, but ", clipr_msg)
       }
     }
 
@@ -118,6 +139,14 @@ check_magrittr_pipe <- function() {
   }
 }
 
+
+default_output <- function() {
+  out_opt <- getOption("loopurrr.output", default = c("rstudio", "clipboard"))
+  if(!"console" %in% out_opt) {
+    out_opt <- c(out_opt, "console")
+  }
+  out_opt
+}
 
 names_or_idx <- function(obj, obj_nms) {
   if(is.null(obj_nms)) {
@@ -239,7 +268,11 @@ deparse_expr <- function(call) {
 
 create_out_obj <- function(map_fn, obj, output_nm) {
 
-  map_fn <- gsub("^(imap|pmap|map)2{0,1}_{0,1}", "", map_fn, perl = TRUE)
+  if (grepl("modify", map_fn) | grepl("walk", map_fn)) {
+    return(NULL)
+  }
+
+  map_fn <- gsub("^p{0,1}map2{0,1}_{0,1}", "", map_fn, perl = TRUE)
 
   mde <- switch(map_fn,
                 "chr" = "character",
@@ -253,6 +286,18 @@ create_out_obj <- function(map_fn, obj, output_nm) {
     vec <- paste0('vector("', mde ,'", length = length(', obj, '))')
     return(paste0(output_nm, ' <- ', vec, '\n\n'))
   }
+}
+
+create_assign <- function(map_fn, output_nm, obj, idx) {
+
+  if(grepl("walk", map_fn)) {
+    return(NULL)
+  }
+  if(grepl("modify", map_fn)) {
+    output_nm <- obj
+  }
+  paste0(output_nm, '[[', idx, ']] <- ')
+
 }
 
 call_as_chr <- function(expr) {
@@ -270,8 +315,12 @@ call_as_chr <- function(expr) {
 bind_rows_cols <- function(map_fn, output_nm, id_arg) {
 
   do_cl <- switch(map_fn,
-                  "map_dfr" = "bind_rows",
-                  "map_dfc" = "bind_cols",
+                  "map2_dfr" = ,
+                  "pmap_dfr" = ,
+                  "map_dfr"  = "bind_rows",
+                  "map2_dfc" = ,
+                  "pamp_dfc" = ,
+                  "map_dfc"  = "bind_cols",
                   return(NULL))
 
   paste0("\n ", output_nm," <- dplyr::", do_cl, "(", output_nm,
@@ -380,7 +429,7 @@ add_at <- function(map_fn, obj, output_nm, idx, at) {
   if (is_char) {
 
     # map_at
-    if (map_fn == "map_at") {
+    if (map_fn %in% c("map_at", "modify_at")) {
       return(
         paste0('.at <- ', call2chr(at), '\n',
                '.sel <- which(names(', obj,') %in% .at)\n')
@@ -394,7 +443,7 @@ add_at <- function(map_fn, obj, output_nm, idx, at) {
     # os numeric
   } else {
     # map_at
-    if (map_fn == "map_at") {
+    if (map_fn %in% c("map_at", "modify_at")) {
       return(paste0('.sel <- ', call2chr(at), '\n'))
       # lmap_at
     } else {
@@ -404,17 +453,17 @@ add_at <- function(map_fn, obj, output_nm, idx, at) {
 }
 
 
-add_if <- function(map_fn, obj, output_nm, idx, p_fn, else_fn, brk) {
+add_if <- function(map_fn, obj, output_nm, idx, p_fn, else_fn, brk, fn_env) {
 
   if (is.null(p_fn)) {
     return(NULL)
   }
 
-  fn_str <- rewrite_fn(p_fn, obj, idx)
+  fn_str <- rewrite_fn(p_fn, obj, idx, fn_env)
   add_else <- NULL
 
   if (!is.null(else_fn)) {
-    add_else <- rewrite_fn(else_fn, obj, idx, .brk = brk)
+    add_else <- rewrite_fn(else_fn, obj, idx, fn_env, .brk = brk)
     else_str <- paste0(output_nm, '[[', idx, ']] <- ', add_else, '\n')
   } else {
     else_str <- if (map_fn == "lmap_if") {
