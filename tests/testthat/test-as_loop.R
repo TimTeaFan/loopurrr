@@ -152,6 +152,33 @@ test_that("as_loop works with typed versions of map", {
 })
 
 
+test_that("as_loop works with map_at and map_if", {
+
+  x <- list(a = c(1,2), b = c("a","b"), c = c(3,4))
+
+  expect_equal(map_at(x, "a", sum),
+               as_loop(map_at(x, "a", sum),
+                       eval = TRUE)
+  )
+
+  expect_equal(map_at(x, c(1, 3), sum),
+               as_loop(map_at(x, c(1, 3), sum),
+                       eval = TRUE)
+  )
+
+  expect_equal(map_if(x, is.numeric, sum),
+               as_loop(map_if(x, is.numeric, sum),
+                       eval = TRUE)
+  )
+
+  expect_equal(map_if(x, is.numeric, sum, .else = ~ paste(.x, collapse = ", ")),
+               as_loop(map_if(x, is.numeric, sum, .else = ~ paste(.x, collapse = ", ")),
+                       eval = TRUE)
+  )
+
+})
+
+
 # walk
 test_that("as_loop works with walk", {
 
@@ -308,16 +335,79 @@ test_that("as_loop works with walk2", {
 })
 
 
-# pmap
 
-# typed versions of pmap
+# pmap
+test_that("as_loop works with pmap", {
+
+  a <- 1:10
+  b <- 10:1
+  c <- rep(5, 10)
+
+  expect_equal(pmap(list(a, b, c), sum),
+               as_loop(pmap(list(a, b, c), sum),
+                       eval = TRUE)
+  )
+
+  d <- set_names(1:10, letters[1:10])
+
+  expect_equal(pmap(list(d, b, c), sum),
+               as_loop(pmap(list(d, b, c), sum),
+                       eval = TRUE)
+  )
+
+})
+
 
 # pwalk
+test_that("as_loop works with pwalk", {
+
+  a <- 1:10
+  b <- letters[10:1]
+  c <- rep(5, 10)
+
+  output_asloop <- capture.output(
+    as_loop(pwalk(list(a, b, c), ~ print(paste(..1, ..2, ..3))),
+            eval = TRUE)
+  )
+
+  output_pwalk <- capture.output(
+    pwalk(list(a, b, c), ~ print(paste(..1, ..2, ..3)))
+  )
+
+  expect_equal(output_asloop, output_pwalk)
+
+})
+
 
 # lmap_at (lmap_if)
 
+test_that("as_loop works with lmap and lmap_at", {
+
+  list_rep <- function(x) {
+
+    out <- rep_len(x, 2)
+    if (length(out) > 0) {
+      names(out) <- paste0(names(x), seq_len(2))
+    }
+    out
+  }
+
+  y <- list(a = 1, b = "a", c = 3)
+
+  expect_equal(lmap(y,  list_rep),
+               as_loop(lmap(y,  list_rep),
+                       eval = TRUE)
+  )
+
+  expect_equal(lmap_at(y, c(1,3), list_rep),
+               as_loop(lmap_at(y, c(1,3), list_rep),
+                       eval = TRUE)
+  )
+
+})
 
 
+# modify
 
 # modify_at / modify_if
 
