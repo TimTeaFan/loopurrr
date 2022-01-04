@@ -1,9 +1,7 @@
 
 # TODO:
-# lmap at/if
 # reduce
 # accumulate
-# modify at/if
 
 as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", output_nm = "out") {
 
@@ -18,7 +16,7 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
   if (eval) {
     output_fn <- NULL
   } else {
-    output_fn <- get_output_fn(output)
+    output_fn <- create_output_fn(output)
   }
 
   # basic setup
@@ -54,15 +52,20 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
   all_args <- expr_ls[-1]
   dot_args <- all_args[!names(all_args) %in% non_dot_args]
 
-  inp_objs <- create_inp_objs(inp_ls)
-  obj_nms <- get_obj_names(inp_objs[1], q_env)
-  obj <- names(inp_objs)[1]
-
   # put these calls in a setup function
   is_lmap <- grepl("^lmap", map_fn_chr, perl = TRUE)
   is_walk <- grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE)
-  is_i <- grepl("(^imap)|(^iwalk)", map_fn_chr, perl = TRUE)
+  is_i <- grepl("(^imap)|(^iwalk)|(^imodify)", map_fn_chr, perl = TRUE)
   is_modify <- grepl("modify", map_fn_chr, perl = TRUE)
+
+  # object and input object calls and names
+  inp_objs <- create_inp_objs(inp_ls)
+  # FIXME: Will this work with modify2 ???!
+  if (!is.null(inp_objs) && is_modify) {
+    names(inp_objs)[1] <- output_nm
+  }
+  obj_nms <- get_obj_names(inp_objs[1], q_env)
+  obj <- names(inp_objs)[1]
 
   # if imap
   if (is_i) {
