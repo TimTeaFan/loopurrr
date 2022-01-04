@@ -16,7 +16,7 @@ find_calls <- function(x) {
   }
 }
 
-get_output_fn <- function(output) {
+create_output_fn <- function(output) {
 
   has_rstudioapi <- requireNamespace("rstudioapi", quietly = TRUE)
   has_clipr <- requireNamespace("clipr", quietly = TRUE)
@@ -30,14 +30,25 @@ get_output_fn <- function(output) {
     if (output[i] == "rstudio" && has_rstudioapi) {
 
       is_rstudio <- rstudioapi::isAvailable()
-      if (is_rstudio) out_fn <- rstudioapi::insertText
+      if (is_rstudio) {
+        out_fn <- function(x) {
+          if (requireNamespace("styler", quietly = TRUE)) {
+            x <- styler::style_text(x, indent_by = 2)
+          }
+          rstudioapi::insertText(text = append(x, "\n"))
+          }
+        }
       break
 
     } else if (output[i] == "clipboard" && has_clipr) {
 
       is_clipr <- clipr::clipr_available()
-      if (is_clipr) out_fn <- function(x) clipr::write_clip(content = x,
-                                              object_type = "character")
+      if (is_clipr) {
+        out_fn <- function(x) {
+          clipr::write_clip(content = x, object_type = "character")
+          rlang::inform("The translated function was copied to the clipboard.")
+        }
+      }
       break
 
     } else {
@@ -50,15 +61,15 @@ get_output_fn <- function(output) {
   if (is.null(out_fn)) {
 
     rstudio_msg <- if (!has_rstudioapi) {
-      "the rstudioapi package is not installed."
+      "the {rstudioapi} package is not installed."
     } else if (!is_rstudio) {
       "your are not in RStudio."
     }
 
     clipr_msg <- if (!has_clipr) {
-      "the clipr package is not installed."
+      "the {clipr} package is not installed."
     } else if (!is_clipr) {
-        "the system clipboard is not accessable."
+        "the system clipboard is not accessible."
       }
 
     err_msg <- if (length(output) == 2L) {
@@ -73,7 +84,7 @@ get_output_fn <- function(output) {
 
     rlang::abort(
       c("Problem with `as_loop()` input `output`.",
-        i = "The specified output option is not supported.",
+        i = paste0("The specified output ", if(length(output) == 1L) "option is" else "options are", " not supported."),
         x = err_msg,
         i = "Please refrain from specifying the output argument or set it to 'console' to make `as_loop` work.")
     )
@@ -139,9 +150,25 @@ check_magrittr_pipe <- function() {
   }
 }
 
+get_output_opt <- function(default = NULL) {
+  getOption("loopurrr.output", default = default)
+}
+
+set_output_opt <- function(x = list("rstudio", "clipboard", "console", NULL)) {
+  match.arg(x, several.ok = TRUE)
+  quoted_option <- bquote(options("loopurrr.output" = .(x)))
+  option_chr <- gsub('"', "'", deparse(quoted_option))
+  x_chr <- gsub('"', "'", deparse(x))
+  eval(quoted_option)
+  rlang::inform(paste0('{loopurrr}s output option has been temporarily set to: ', x_chr, '.',
+                       if(all(!is.null(x))) {
+                         paste0('\nTo set this option permanently add `', option_chr, '` to your .Rprofile.')
+                         })
+                )
+}
 
 default_output <- function() {
-  out_opt <- getOption("loopurrr.output", default = c("rstudio", "clipboard"))
+  out_opt <- get_output_opt(default = c("rstudio", "clipboard"))
   if(!"console" %in% out_opt) {
     out_opt <- c(out_opt, "console")
   }
@@ -268,8 +295,12 @@ deparse_expr <- function(call) {
 
 create_out_obj <- function(map_fn, obj, output_nm) {
 
-  if (grepl("modify", map_fn) | grepl("walk", map_fn)) {
+  if (grepl("walk", map_fn)) {
     return(NULL)
+  }
+
+  if (grepl("modify", map_fn)) {
+    return(NULL) # return(paste0(output_nm, ' <- ', obj, '\n\n'))
   }
 
   map_fn <- gsub("^p{0,1}map2{0,1}_{0,1}", "", map_fn, perl = TRUE)
@@ -293,9 +324,9 @@ create_assign <- function(map_fn, output_nm, obj, idx) {
   if(grepl("walk", map_fn)) {
     return(NULL)
   }
-  if(grepl("modify", map_fn)) {
-    output_nm <- obj
-  }
+  # if(grepl("modify", map_fn)) {
+  #   output_nm <- obj
+  # }
   paste0(output_nm, '[[', idx, ']] <- ')
 
 }
