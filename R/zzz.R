@@ -2,7 +2,7 @@
 
   # check if in RStudio and if rstudioapi is available
   is_rstudio <- .Platform$GUI == "RStudio"
-  has_rstudioapi <- requireNamespace("rstudioaapi", quietly = TRUE)
+  has_rstudioapi <- requireNamespace("rstudioapi", quietly = TRUE)
   is_linux <- Sys.info()["sysname"] == "Linux"
   has_clipr <- requireNamespace("clipr", quietly = TRUE)
 
