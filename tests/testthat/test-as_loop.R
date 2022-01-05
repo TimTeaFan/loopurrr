@@ -426,7 +426,7 @@ test_that("as_loop throws an error when called with non-purrr or non-supported f
   )
 
   expect_error(as_loop(lmap_if(x, sum), eval = TRUE),
-               "does only support certain purrr function"
+               "does only support certain"
   )
 
 })
