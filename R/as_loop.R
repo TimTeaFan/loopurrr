@@ -23,13 +23,15 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
   q <- rlang::enquo(.expr)
   q_expr <- rlang::quo_get_expr(q)
   cl_chr <- call_as_chr(q_expr)
+  map_fn_chr <- as.character(q_expr[[1]])
+  map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
 
-  q_ex_std <- rlang::call_standardise(q_expr)
+  q_ex_std <- rlang::call_match(call = q_expr, fn = map_fn)
   expr_ls <- as.list(q_ex_std)
 
   q_env <- rlang::quo_get_env(q)
 
-  map_fn_chr <- as.character(expr_ls[[1]])
+
   is_supported(map_fn_chr)
 
   # put these calls in a setup function
@@ -51,7 +53,7 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
 
 
   # function and arguments
-  map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
+
   map_fn_fmls <- rlang::fn_fmls_names(map_fn)
   non_dot_args <- map_fn_fmls[map_fn_fmls != "..."]
 
@@ -96,6 +98,7 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
   p_fn     <- expr_ls[[".p"]]
   else_fn  <- expr_ls[[".else"]]
   id_arg   <- expr_ls[[".id"]]
+  dir      <- expr_ls[[".dir"]]
 
 
   maybe_lmap_stop <- NULL
