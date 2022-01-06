@@ -116,7 +116,8 @@ is_supported <- function(map_fn) {
                      "map_raw", "map2", "map2_chr", "map2_dbl", "map2_df", "map2_dfc", "map2_dfr",
                      "map2_int", "map2_lgl", "map2_raw", "modify", "modify_at", "modify_if",
                      "modify2", "pmap", "pmap_chr", "pmap_dbl", "pmap_df", "pmap_dfc", "pmap_dfr",
-                     "pmap_int", "pmap_lgl", "pmap_raw", "pwalk", "walk", "walk2", "accumulate")
+                     "pmap_int", "pmap_lgl", "pmap_raw", "pwalk", "walk", "walk2", "accumulate",
+                     "accumulate2")
 
   if (!any(purrr::map_lgl(findFunction(map_fn), ~rlang::env_name(.x) == "package:purrr"))) {
     rlang::abort(
@@ -228,15 +229,18 @@ check_arg <- function(fn_bdy, arg) {
         perl = TRUE)
 }
 
-replace_arg <- function(fn_bdy, old_arg, replace_arg, .idx, .brk, minus_one = FALSE) {
+replace_arg <- function(fn_bdy, old_arg, replace_arg, .idx, .brk, idx_suf = 0) {
   gsub(paste0("(?<![^(,\\s])", old_arg, "(?![^)\\s,])"),
        paste0(replace_arg, .brk$o, .idx,
-              if(minus_one) "-1L", .brk$c),
+              if(idx_suf != 0L) {
+                paste0(if (idx_suf == 1L) "+", idx_suf)
+                },
+              .brk$c),
        fn_bdy,
        perl = TRUE)
 }
 
-loop_replace_args <- function(fn_bdy, old_args, inp, .idx, .brk, minus_one = FALSE) {
+loop_replace_args <- function(fn_bdy, old_args, inp, .idx, .brk, idx_suf = 0L) {
 
   for (j in seq_along(old_args)) {
 
@@ -247,12 +251,12 @@ loop_replace_args <- function(fn_bdy, old_args, inp, .idx, .brk, minus_one = FAL
                          inp,
                          .idx,
                          .brk,
-                         minus_one))
+                         idx_suf))
     } # clase if
   } # close loop
 }
 
-replace_lambda_args <- function(fn_bdy, inp_ls, .idx, .brk, minus_one) {
+replace_lambda_args <- function(fn_bdy, inp_ls, .idx, .brk, idx_suf) {
 
   lamda_fst_arg <- c(".x", "..1", ".")
   lamda_scnd_arg <- c(".y", "..2")
@@ -265,7 +269,7 @@ replace_lambda_args <- function(fn_bdy, inp_ls, .idx, .brk, minus_one) {
                                   inp_ls[[i]],
                                   .idx,
                                   .brk,
-                                  minus_one = minus_one)
+                                  idx_suf = idx_suf)
 
     } else if (i == 2L) {
 
@@ -339,44 +343,57 @@ create_init <- function(init, has_init) {
   }
 }
 
-prep_accu_out <- function(map_fn_chr, obj, output_nm, init, has_init) {
+prep_accu_out <- function(map_fn_chr, obj, output_nm, init, has_init, is_back) {
 
   if (!grepl("reduce|accumulate", map_fn_chr)) {
     return(NULL)
   }
+
+  idx <- if (is_back) paste0('length(', obj, ')') else '1'
+  idx_suf <- if (has_init && is_back) "+1" else NULL
+
+  first_or_last <- paste0('[[', idx, idx_suf,']]')
+
   if (has_init) {
     .init <- if (is.name(init)) {
       as.character(init)
     } else {
       deparse_expr(init)
     }
-    return(paste0(output_nm, '[[1]]', ' <- ', .init, '\n'))
+    return(paste0(output_nm, first_or_last, ' <- ', .init, '\n'))
   } else {
-  paste0(output_nm, '[[1]]', ' <- ', obj, '[[1]]', '\n')
+  paste0(output_nm, first_or_last, ' <- ', obj, '[[', idx, ']]', '\n')
   }
 }
 
-create_assign <- function(map_fn, output_nm, obj, idx, is_accu, has_init) {
+create_assign <- function(map_fn, output_nm, obj, idx, is_accu, has_init, is_back) {
 
   if(grepl("walk", map_fn)) {
     return(NULL)
   }
-  # if(grepl("modify", map_fn)) {
-  #   output_nm <- obj
-  # }
+
   paste0(output_nm, '[[', idx,
-         if (is_accu && has_init) '+1L', ']] <- ')
+         if (is_accu && has_init && !is_back) '+1L', ']] <- ')
 
 }
 
-create_obj_names <- function(obj, output_nm, obj_nms, is_lmap, is_modify, is_walk, is_accu, has_init) {
+create_obj_names <- function(obj, output_nm, obj_nms, is_lmap, is_modify, is_walk, is_accu, has_init, is_back) {
+
   if (is.null(obj_nms) || is_lmap || is_modify || is_walk) {
     return(NULL)
   }
+
   nms <- paste0('names(', obj, ')')
-  if (is_accu && has_init) {
-    nms <- paste0('c(".init",', nms, ')')
+
+  if (is_accu && is_back) {
+    nms <- paste0('rev(', nms, ')')
+    if (has_init) {
+      nms <- paste0('c(', nms, ', ".init")')
+    }
+  } else if (is_accu && has_init) {
+    nms <- paste0('c(".init", ', nms, ')')
   }
+
   paste0('\nnames(', output_nm, ') <- ', nms, '\n')
 }
 
@@ -642,7 +659,7 @@ add_selection_old <- function(map_fn, obj, obj_nms, output_nm, idx, fn_env, at =
 }
 
 rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
-                       .brk = NULL, .dot_args = NULL, is_accu = FALSE, has_init = FALSE) {
+                       .brk = NULL, .dot_args = NULL, is_accu = FALSE, has_init = FALSE, is_back = FALSE) {
 
   if (is.null(.brk)) {
     .brk <- list(o = '[[',
@@ -687,8 +704,9 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
   }
 
   if (is_lambda) {
+    idx_suf <- if(is_accu && is_back) 1L else if (is_accu && !has_init) -1L else 0L
 
-    fn_bdy <- replace_lambda_args(fn_bdy, .inp_objs, .idx, .brk, minus_one = is_accu && !has_init)
+    fn_bdy <- replace_lambda_args(fn_bdy, .inp_objs, .idx, .brk, idx_suf)
     return(fn_bdy)
 
   } else if (is_anonym) {
@@ -711,7 +729,11 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
 
       fn_bdy <- gsub(paste0("(?<!\\w)", fn_fmls[[i]], "(?!\\w)"),
                      paste0(.inp_objs[[i]], .brk$o, .idx,
-                            if(is_accu && !has_init && i == 1L) "-1L",#
+                            if (i == 1L && is_accu && is_back) {
+                              "+1"
+                            } else if (i == 1L && is_accu && !has_init) {
+                              "-1"
+                            },
                             .brk$c),
                      fn_bdy,
                      perl = TRUE)
@@ -723,8 +745,8 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
     if (!length(.dot_args) == 0) {
       dots <- paste0(', ',
                      paste(
-                       imap(.dot_args, ~ paste0(if (nchar(.y) > 0) paste0(.y, ' = '),
-                                                .x)),
+                       purrr::imap(.dot_args,
+                                   ~ paste0(if (nchar(.y) > 0) paste0(.y, ' = '), .x)),
                        collapse = ", "
                      )
       )
@@ -735,7 +757,11 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
     objs_vec <- vector("character", length = length(.inp_objs))
     for (i in seq_along(.inp_objs)) {
       objs_vec[i] <- paste0(.inp_objs[[i]], .brk$o, .idx,
-                            if(is_accu && !has_init && i == 1L) "-1L",
+                            if(i == 1L && is_accu && is_back) {
+                                "+1"
+                              } else if (i == 1L && is_accu && !has_init) {
+                                "-1"
+                              },
                             .brk$c)
     }
     objs <- paste0(objs_vec, collapse = ", ")

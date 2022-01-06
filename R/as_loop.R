@@ -93,12 +93,14 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
   # call dependent implementation
   init     <- expr_ls[[".init"]]
   has_init <- !is.null(init)
-  apply_fn <- rewrite_fn(expr_ls[[".f"]], names(inp_objs), idx, q_env, cl_chr, brk, dot_args, is_accu, has_init)
   at_idx   <- expr_ls[[".at"]]
   p_fn     <- expr_ls[[".p"]]
   else_fn  <- expr_ls[[".else"]]
   id_arg   <- expr_ls[[".id"]]
   dir      <- expr_ls[[".dir"]]
+  is_back  <- !is.null(dir) && dir == "backward"
+
+  apply_fn <- rewrite_fn(expr_ls[[".f"]], names(inp_objs), idx, q_env, cl_chr, brk, dot_args, is_accu, has_init, is_back)
 
 
   maybe_lmap_stop <- NULL
@@ -124,13 +126,13 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
 
   maybe_output <- create_out_obj(map_fn_chr, obj, output_nm, has_init)
 
-  maybe_accu_redu <- prep_accu_out(map_fn_chr, obj, output_nm, init, has_init)
+  maybe_accu_redu <- prep_accu_out(map_fn_chr, obj, output_nm, init, has_init, is_back)
 
-  maybe_assign <- create_assign(map_fn_chr, output_nm, obj, idx, is_accu, has_init)
+  maybe_assign <- create_assign(map_fn_chr, output_nm, obj, idx, is_accu, has_init, is_back)
 
   maybe_bind_rows_cols <- bind_rows_cols(map_fn_chr, output_nm, id_arg)
 
-  maybe_name_obj <- create_obj_names(obj, output_nm, obj_nms, is_lmap, is_modify, is_walk, is_accu, has_init)
+  maybe_name_obj <- create_obj_names(obj, output_nm, obj_nms, is_lmap, is_modify, is_walk, is_accu, has_init, is_back)
 
   maybe_flatten_tbl <- finish_lmap(is_lmap, obj, q_env, output_nm)
 
@@ -155,7 +157,7 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
                     # maybe_init,
                     maybe_output,
                     maybe_accu_redu,
-                    paste0('\nfor (',idx,' in seq_along(', obj,')'),
+                    paste0('\nfor (',idx,' in ', if(is_back) 'rev(', 'seq_along(', obj, ')', if(is_back) ')'),
                     if (!is.null(maybe_at) && !is_lmap) '[.sel]',
                     if (is_accu && !has_init) '[-1]',
                     ') {\n',
