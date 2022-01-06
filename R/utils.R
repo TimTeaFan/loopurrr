@@ -285,7 +285,8 @@ replace_lambda_args <- function(fn_bdy, inp_ls, .idx, .brk, idx_suf) {
                             paste0("..", i),
                             inp_ls[[i]],
                             .idx,
-                            .brk)
+                            .brk,
+                            idx_suf = idx_suf)
 
     } # close if else
   } # close for loop
@@ -320,9 +321,9 @@ create_out_obj <- function(map_fn, obj, output_nm, has_init) {
                 "raw" = "raw",
                 "list")
 
-  if (grepl("(reduce|accumulate)", map_fn)) {
+  if (grepl("(reduce|^accumulate$)", map_fn)) {
     mde <- paste0("mode(", obj, ")")
-    lng <- paste0("length(", obj, if (has_init) "+1L", ")")
+    lng <- paste0("length(", obj, ")", if (has_init) "+1L")
   } else {
     mde <- paste0('"', mde ,'"')
     lng <- paste0("length(", obj, ")")
@@ -731,7 +732,7 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
                      paste0(.inp_objs[[i]], .brk$o, .idx,
                             if (i == 1L && is_accu && is_back) {
                               "+1"
-                            } else if (i == 1L && is_accu && !has_init) {
+                            } else if (i != 2L && is_accu && !has_init) {
                               "-1"
                             },
                             .brk$c),
@@ -759,7 +760,7 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
       objs_vec[i] <- paste0(.inp_objs[[i]], .brk$o, .idx,
                             if(i == 1L && is_accu && is_back) {
                                 "+1"
-                              } else if (i == 1L && is_accu && !has_init) {
+                              } else if (i != 2L && is_accu && !has_init) {
                                 "-1"
                               },
                             .brk$c)
