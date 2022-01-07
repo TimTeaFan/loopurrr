@@ -5,8 +5,21 @@
 
 as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", output_nm = "out") {
 
+  q <- rlang::enquo(.expr)
+
   # checks
-  check_magrittr_pipe()
+  new_expr <- check_and_unpipe(sys.calls())
+  if (!is.null(new_expr)) {
+    q <- rlang::quo_set_expr(q, new_expr)
+  }
+
+  # basic setup
+
+  q_expr <- rlang::quo_get_expr(q)
+  cl_chr <- call_as_chr(q_expr)
+  map_fn_chr <- as.character(q_expr[[1]])
+  map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
+
   # TODO: Add check
   # error: output_nm may not be `.at` or `.sel` or `.inp`
   # warn: output_nm and `.at`, `.sel` `.inp` should not exist in global environment
@@ -18,13 +31,6 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
   } else {
     output_fn <- create_output_fn(output)
   }
-
-  # basic setup
-  q <- rlang::enquo(.expr)
-  q_expr <- rlang::quo_get_expr(q)
-  cl_chr <- call_as_chr(q_expr)
-  map_fn_chr <- as.character(q_expr[[1]])
-  map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
 
   q_ex_std <- rlang::call_match(call = q_expr, fn = map_fn)
   expr_ls <- as.list(q_ex_std)
@@ -40,6 +46,7 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
   is_i <- grepl("(^imap)|(^iwalk)|(^imodify)", map_fn_chr, perl = TRUE)
   is_modify <- grepl("modify", map_fn_chr, perl = TRUE)
   is_accu <- grepl("accumulate", map_fn_chr, perl = TRUE)
+  is_redu <- grepl("reduce", map_fn_chr, perl = TRUE)
 
   # call dependent setup ---
 
@@ -74,7 +81,7 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
     inp_objs <- append(inp_objs,
                        list(.idx = names_or_idx(obj, obj_nms)))
   }
-  if (is_accu) {
+  if (is_accu || is_redu) {
     inp_objs <- purrr::prepend(inp_objs,
                                rlang::list2("{output_nm}" := output_nm))
   }
@@ -100,7 +107,17 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
   dir      <- expr_ls[[".dir"]]
   is_back  <- !is.null(dir) && dir == "backward"
 
-  apply_fn <- rewrite_fn(expr_ls[[".f"]], names(inp_objs), idx, q_env, cl_chr, brk, dot_args, is_accu, has_init, is_back)
+  apply_fn <- rewrite_fn(expr_ls[[".f"]],
+                         names(inp_objs),
+                         idx,
+                         q_env,
+                         cl_chr,
+                         brk,
+                         dot_args,
+                         is_accu,
+                         has_init,
+                         is_back,
+                         is_redu)
 
 
   maybe_lmap_stop <- NULL
@@ -124,11 +141,11 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
                      fn_env  = q_env
                      )
 
-  maybe_output <- create_out_obj(map_fn_chr, obj, output_nm, has_init)
+  maybe_output <- create_out_obj(map_fn_chr, obj, output_nm, has_init, init)
 
-  maybe_accu_redu <- prep_accu_out(map_fn_chr, obj, output_nm, init, has_init, is_back)
+  maybe_accu <- prep_accu_out(map_fn_chr, obj, output_nm, init, has_init, is_back)
 
-  maybe_assign <- create_assign(map_fn_chr, output_nm, obj, idx, is_accu, has_init, is_back)
+  maybe_assign <- create_assign(map_fn_chr, output_nm, obj, idx, is_accu, has_init, is_back, is_redu)
 
   maybe_bind_rows_cols <- bind_rows_cols(map_fn_chr, output_nm, id_arg)
 
@@ -156,10 +173,10 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
                     if (!is.null(maybe_if) && is.null(else_fn) && !is_lmap) paste0('.sel <- vector("logical", length = length(', obj,'))\n'),
                     # maybe_init,
                     maybe_output,
-                    maybe_accu_redu,
+                    maybe_accu,
                     paste0('\nfor (',idx,' in ', if(is_back) 'rev(', 'seq_along(', obj, ')', if(is_back) ')'),
                     if (!is.null(maybe_at) && !is_lmap) '[.sel]',
-                    if (is_accu && !has_init) '[-1]',
+                    if ((is_redu || is_accu) && !has_init) '[-1]',
                     ') {\n',
                     maybe_if,
                     maybe_assign,
