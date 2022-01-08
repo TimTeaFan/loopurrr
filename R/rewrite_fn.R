@@ -74,7 +74,7 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
                               paste0(.brk$o, .idx,
                                      if (is_accu && ((!is_back && i == 1L) || (is_back && i == 2L))) {
                                        "+1"
-                                     } else if (i != 2L && is_accu && !has_init) {
+                                     } else if (i != 2L && (is_accu || is_redu) && !has_init) {
                                        "-1"
                                      },
                                      .brk$c)
@@ -106,7 +106,7 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
                               paste0(.brk$o, .idx,
                                      if (is_accu && is_back && i == 2L) {
                                        "+1"
-                                     } else if (i != 2L && is_accu && !has_init && !is_back) {
+                                     } else if (i != 2L && (is_accu || is_redu) && !has_init && !is_back) {
                                        "-1"
                                      },
                                      .brk$c)
