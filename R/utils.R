@@ -58,7 +58,7 @@ is_supported <- function(map_fn) {
                      "map2_int", "map2_lgl", "map2_raw", "modify", "modify_at", "modify_if",
                      "modify2", "pmap", "pmap_chr", "pmap_dbl", "pmap_df", "pmap_dfc", "pmap_dfr",
                      "pmap_int", "pmap_lgl", "pmap_raw", "pwalk", "walk", "walk2", "accumulate",
-                     "accumulate2", "reduce")
+                     "accumulate2", "reduce", "reduce2")
 
   not_supported_fns <- c("apply", "lapply", "vapply", "sapply", "rapply", "Map", "mapply", "tapply")
 

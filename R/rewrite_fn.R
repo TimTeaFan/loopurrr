@@ -45,7 +45,7 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
   }
 
   if (is_lambda) {
-    idx_suf <- if(is_accu && is_back) 1L else if (is_accu && !has_init) -1L else 0L
+    idx_suf <- if(is_accu && is_back) 1L else if (!has_init && (is_accu || is_redu)) -1L else 0L
 
     fn_bdy <- replace_lambda_args(fn_bdy, .inp_objs, .idx, .brk, idx_suf, is_redu, is_back)
     return(fn_bdy)
@@ -100,6 +100,7 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
     }
 
     objs_vec <- vector("character", length = length(.inp_objs))
+
     for (i in seq_along(.inp_objs)) {
       objs_vec[i] <- paste0(.inp_objs[[i]],
                             if(!(is_redu && !is_back && i == 1L) && !(is_redu && is_back && i == 2L)) {
@@ -146,7 +147,7 @@ replace_arg <- function(fn_bdy, old_arg, replace_arg, .idx, .brk, idx_suf = 0, i
        paste0(replace_arg,
               if(!(is_redu && !is_back && i == 1L) && !(is_redu && is_back && i == 2L)) {
                 paste0(.brk$o, .idx,
-                       if(idx_suf != 0L && ((!is_back && i == 1L) || (is_back && i == 2L))) {
+                       if(idx_suf != 0L && ((!is_back && i != 2L) || (is_back && i == 2L))) { # here before i == 1L
                           paste0(if (idx_suf == 1L) "+", idx_suf)
                          },
                        .brk$c)
