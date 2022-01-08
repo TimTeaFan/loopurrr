@@ -7,18 +7,19 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
 
   q <- rlang::enquo(.expr)
 
-  # checks
+  # check: magrittr pipe expression
   new_expr <- check_and_unpipe(sys.calls())
   if (!is.null(new_expr)) {
     q <- rlang::quo_set_expr(q, new_expr)
   }
 
   # basic setup
-
   q_expr <- rlang::quo_get_expr(q)
   cl_chr <- call_as_chr(q_expr)
   map_fn_chr <- as.character(q_expr[[1]])
+  is_supported(map_fn_chr)
   map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
+
 
   # TODO: Add check
   # error: output_nm may not be `.at` or `.sel` or `.inp`
@@ -37,16 +38,22 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
 
   q_env <- rlang::quo_get_env(q)
 
-
-  is_supported(map_fn_chr)
-
   # put these calls in a setup function
-  is_lmap <- grepl("^lmap", map_fn_chr, perl = TRUE)
-  is_walk <- grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE)
-  is_i <- grepl("(^imap)|(^iwalk)|(^imodify)", map_fn_chr, perl = TRUE)
+  is_lmap   <- grepl("^lmap", map_fn_chr, perl = TRUE)
+  is_walk   <- grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE)
+  is_i      <- grepl("(^imap)|(^iwalk)|(^imodify)", map_fn_chr, perl = TRUE)
   is_modify <- grepl("modify", map_fn_chr, perl = TRUE)
-  is_accu <- grepl("accumulate", map_fn_chr, perl = TRUE)
-  is_redu <- grepl("reduce", map_fn_chr, perl = TRUE)
+  is_accu   <- grepl("accumulate", map_fn_chr, perl = TRUE)
+  is_redu   <- grepl("reduce", map_fn_chr, perl = TRUE)
+
+  init      <- expr_ls[[".init"]]
+  has_init  <- !is.null(init)
+  at_idx    <- expr_ls[[".at"]]
+  p_fn      <- expr_ls[[".p"]]
+  else_fn   <- expr_ls[[".else"]]
+  id_arg    <- expr_ls[[".id"]]
+  dir       <- expr_ls[[".dir"]]
+  is_back   <- !is.null(dir) && dir == "backward"
 
   # call dependent setup ---
 
@@ -82,8 +89,14 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
                        list(.idx = names_or_idx(obj, obj_nms)))
   }
   if (is_accu || is_redu) {
-    inp_objs <- purrr::prepend(inp_objs,
-                               rlang::list2("{output_nm}" := output_nm))
+    inp_objs <- if(!is_back) {
+      purrr::prepend(inp_objs,
+                     rlang::list2("{output_nm}" := output_nm))
+    } else {
+      append(inp_objs,
+             rlang::list2("{output_nm}" := output_nm),
+             after = 1)
+    }
   }
 
   custom_inp_objs <- inp_objs[names(inp_objs) != inp_objs]
@@ -96,16 +109,6 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
     brk <- list(o = '[[',
                 c = ']]')
   }
-
-  # call dependent implementation
-  init     <- expr_ls[[".init"]]
-  has_init <- !is.null(init)
-  at_idx   <- expr_ls[[".at"]]
-  p_fn     <- expr_ls[[".p"]]
-  else_fn  <- expr_ls[[".else"]]
-  id_arg   <- expr_ls[[".id"]]
-  dir      <- expr_ls[[".dir"]]
-  is_back  <- !is.null(dir) && dir == "backward"
 
   apply_fn <- rewrite_fn(expr_ls[[".f"]],
                          names(inp_objs),
@@ -141,7 +144,7 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
                      fn_env  = q_env
                      )
 
-  maybe_output <- create_out_obj(map_fn_chr, obj, output_nm, has_init, init)
+  maybe_output <- create_out_obj(map_fn_chr, obj, output_nm, has_init, init, is_back)
 
   maybe_accu <- prep_accu_out(map_fn_chr, obj, output_nm, init, has_init, is_back)
 

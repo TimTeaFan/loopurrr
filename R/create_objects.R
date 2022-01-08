@@ -45,14 +45,30 @@ get_obj_names <- function(obj, fn_env) {
 }
 
 
-create_out_obj <- function(map_fn, obj, output_nm, has_init, init) {
+create_out_obj <- function(map_fn, obj, output_nm, has_init, init, is_back) {
 
   if (grepl("walk", map_fn)) {
     return(NULL)
   }
 
   if (grepl("modify", map_fn)) {
-    return(NULL) # return(paste0(output_nm, ' <- ', obj, '\n\n'))
+    return(NULL)
+  }
+
+  # when reduce
+  if (grepl("reduce", map_fn)) {
+    if (has_init) {
+      idx <- NULL
+      vec <- if (is.name(init)) {
+        as.character(init)
+      } else {
+        deparse_expr(init)
+      }
+    } else {
+      idx <- if(!is_back) "[[1]]" else paste0("[[length(", obj, ")]]")
+      vec <- obj
+    }
+    return(paste0(output_nm, ' <- ', vec, idx, '\n'))
   }
 
   map_fn <- gsub("^p{0,1}map2{0,1}_{0,1}", "", map_fn, perl = TRUE)
@@ -65,29 +81,17 @@ create_out_obj <- function(map_fn, obj, output_nm, has_init, init) {
                 "raw" = "raw",
                 "list")
 
+  # when accumulate
   if (grepl("^accumulate$", map_fn)) {
-    mde <- paste0("mode(", obj, ")")
+    # mde <- paste0("mode(", obj, ")")
     lng <- paste0("length(", obj, ")", if (has_init) "+1L")
   } else {
-    mde <- paste0('"', mde ,'"')
+    # mde <- paste0('"', mde ,'"')
     lng <- paste0("length(", obj, ")")
   }
 
-  if (grepl("reduce", map_fn)) {
-    vec <- if (has_init) {
-      if (is.name(init)) {
-        as.character(init)
-      } else {
-        deparse_expr(init)
-      }
-    } else {
-      obj
-    }
-    return(paste0(output_nm, ' <- ', vec, '[[1]]', '\n'))
-  }
-
   if (!is.null(mde)) {
-    vec <- paste0('vector(', mde,', length = ', lng, ')')
+    vec <- paste0('vector(', '"', mde, '"',', length = ', lng, ')')
     return(paste0(output_nm, ' <- ', vec, '\n'))
   }
 }

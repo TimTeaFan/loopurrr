@@ -17,6 +17,7 @@
 #   }
 # }
 
+
 deparse_expr <- function(call) {
   deparse(call,
           width.cutoff = 500L,
@@ -59,12 +60,23 @@ is_supported <- function(map_fn) {
                      "pmap_int", "pmap_lgl", "pmap_raw", "pwalk", "walk", "walk2", "accumulate",
                      "accumulate2", "reduce")
 
+  not_supported_fns <- c("apply", "lapply", "vapply", "sapply", "rapply", "Map", "mapply", "tapply")
+
+  if (map_fn %in% not_supported_fns) {
+    rlang::abort(
+      c("Problem with `as_loop()` input `.expr`.",
+        i = "Currently `as_loop` doesn't support functions from base R's apply family.",
+        x = paste0("`", map_fn, "` is a function from base R's apply family."),
+        i = "For an overview of all currently supported {purrr} functions see the documentation `?as_loop`.")
+    )
+  }
+
   if (!any(purrr::map_lgl(findFunction(map_fn), ~rlang::env_name(.x) == "package:purrr"))) {
     rlang::abort(
       c("Problem with `as_loop()` input `.expr`.",
         i = "`as_loop` only works with `map` and similar functions from the purrr package.",
         x = paste0("`", map_fn, "` is not located in the namespace of `package:purrr`."),
-        i = "For an overview of all currently supported purrr functions see the documentation `?as_loop`.")
+        i = "For an overview of all currently supported {purrr} functions see the documentation `?as_loop`.")
     )
   }
 
@@ -73,11 +85,12 @@ is_supported <- function(map_fn) {
       c("Problem with `as_loop()` input `.expr`.",
         i = "Currently `as_loop` does only support certain {purrr} functions.",
         x = paste0("`", map_fn, "` is not supported yet."),
-        i = "For an overview of all currently supported purrr functions see the documentation `?as_loop`.")
+        i = "For an overview of all currently supported {purrr} functions see the documentation `?as_loop`.")
     )
   }
 
 }
 
-
-
+check_syntactical_nm <- function(x) {
+  grepl("(^(\\p{L}|(\\.(\\p{L}|\\.|\\_)))(\\d|\\p{L}|\\.|\\_)*$)|(^\\.$)", x, perl = TRUE)
+}

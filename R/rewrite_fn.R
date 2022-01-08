@@ -47,7 +47,7 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
   if (is_lambda) {
     idx_suf <- if(is_accu && is_back) 1L else if (is_accu && !has_init) -1L else 0L
 
-    fn_bdy <- replace_lambda_args(fn_bdy, .inp_objs, .idx, .brk, idx_suf)
+    fn_bdy <- replace_lambda_args(fn_bdy, .inp_objs, .idx, .brk, idx_suf, is_redu, is_back)
     return(fn_bdy)
 
   } else if (is_anonym) {
@@ -70,9 +70,9 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
 
       fn_bdy <- gsub(paste0("(?<!\\w)", fn_fmls[[i]], "(?!\\w)"),
                      paste0(.inp_objs[[i]],
-                            if(!(is_redu && i == 1L)) {
+                            if(!(is_redu && !is_back && i == 1L) && !(is_redu && is_back && i == 2L)) {
                               paste0(.brk$o, .idx,
-                                     if (i == 1L && is_accu && is_back) {
+                                     if (is_accu && ((!is_back && i == 1L) || (is_back && i == 2L))) {
                                        "+1"
                                      } else if (i != 2L && is_accu && !has_init) {
                                        "-1"
@@ -102,11 +102,11 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
     objs_vec <- vector("character", length = length(.inp_objs))
     for (i in seq_along(.inp_objs)) {
       objs_vec[i] <- paste0(.inp_objs[[i]],
-                            if(!(is_redu && i == 1L)) {
+                            if(!(is_redu && !is_back && i == 1L) && !(is_redu && is_back && i == 2L)) {
                               paste0(.brk$o, .idx,
-                                     if(i == 1L && is_accu && is_back) {
+                                     if (is_accu && is_back && i == 2L) {
                                        "+1"
-                                     } else if (i != 2L && is_accu && !has_init) {
+                                     } else if (i != 2L && is_accu && !has_init && !is_back) {
                                        "-1"
                                      },
                                      .brk$c)
@@ -114,7 +114,11 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
     }
     objs <- paste0(objs_vec, collapse = ", ")
     # objs <- paste0(.inp_objs, .brk$o, .idx, .brk$c, collapse = ", ")
-    return(paste0(as.character(fn_expr),'(', objs, dots,')'))
+    flag <- !check_syntactical_nm(fn_expr)
+    return(paste0(
+      if(flag) "`", as.character(fn_expr), if(flag) "`",
+      '(', objs, dots,')')
+      )
     # all other cases
   } else {
     rlang::abort(
@@ -137,18 +141,21 @@ check_arg <- function(fn_bdy, arg) {
         perl = TRUE)
 }
 
-replace_arg <- function(fn_bdy, old_arg, replace_arg, .idx, .brk, idx_suf = 0) {
+replace_arg <- function(fn_bdy, old_arg, replace_arg, .idx, .brk, idx_suf = 0, is_redu = FALSE, is_back = FALSE, i) {
   gsub(paste0("(?<![^(,\\s])", old_arg, "(?![^)\\s,])"),
-       paste0(replace_arg, .brk$o, .idx,
-              if(idx_suf != 0L) {
-                paste0(if (idx_suf == 1L) "+", idx_suf)
-              },
-              .brk$c),
+       paste0(replace_arg,
+              if(!(is_redu && !is_back && i == 1L) && !(is_redu && is_back && i == 2L)) {
+                paste0(.brk$o, .idx,
+                       if(idx_suf != 0L && ((!is_back && i == 1L) || (is_back && i == 2L))) {
+                          paste0(if (idx_suf == 1L) "+", idx_suf)
+                         },
+                       .brk$c)
+                }),
        fn_bdy,
        perl = TRUE)
 }
 
-loop_replace_args <- function(fn_bdy, old_args, inp, .idx, .brk, idx_suf = 0L) {
+loop_replace_args <- function(fn_bdy, old_args, inp, .idx, .brk, idx_suf = 0L, is_redu = FALSE, is_back = FALSE, i) {
 
   for (j in seq_along(old_args)) {
 
@@ -159,12 +166,15 @@ loop_replace_args <- function(fn_bdy, old_args, inp, .idx, .brk, idx_suf = 0L) {
                          inp,
                          .idx,
                          .brk,
-                         idx_suf))
+                         idx_suf,
+                         is_redu,
+                         is_back,
+                         i = i))
     } # clase if
   } # close loop
 }
 
-replace_lambda_args <- function(fn_bdy, inp_ls, .idx, .brk, idx_suf) {
+replace_lambda_args <- function(fn_bdy, inp_ls, .idx, .brk, idx_suf, is_redu, is_back) {
 
   lamda_fst_arg <- c(".x", "..1", ".")
   lamda_scnd_arg <- c(".y", "..2")
@@ -177,7 +187,10 @@ replace_lambda_args <- function(fn_bdy, inp_ls, .idx, .brk, idx_suf) {
                                   inp_ls[[i]],
                                   .idx,
                                   .brk,
-                                  idx_suf = idx_suf)
+                                  idx_suf = idx_suf,
+                                  is_redu = is_redu,
+                                  is_back = is_back,
+                                  i = i)
 
     } else if (i == 2L) {
 
@@ -185,7 +198,11 @@ replace_lambda_args <- function(fn_bdy, inp_ls, .idx, .brk, idx_suf) {
                                   lamda_scnd_arg,
                                   inp_ls[[i]],
                                   .idx,
-                                  .brk)
+                                  .brk,
+                                  idx_suf = idx_suf,
+                                  is_redu = is_redu,
+                                  is_back = is_back,
+                                  i = i)
 
     } else {
 
@@ -194,7 +211,8 @@ replace_lambda_args <- function(fn_bdy, inp_ls, .idx, .brk, idx_suf) {
                             inp_ls[[i]],
                             .idx,
                             .brk,
-                            idx_suf = idx_suf)
+                            idx_suf = idx_suf,
+                            i = i)
 
     } # close if else
   } # close for loop
