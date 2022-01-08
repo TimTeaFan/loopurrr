@@ -197,11 +197,9 @@ bind_rows_cols <- function(map_fn, output_nm, id_arg) {
 
 }
 
-finish_lmap <- function(is_lmap, obj, fn_env, output_nm) {
+post_process <- function(obj, fn_env, output_nm, is_lmap, is_accu, is_accu2) {
 
-  if(!is_lmap) {
-    return(NULL)
-  } else {
+  if(is_lmap) {
 
     flat <- paste0('flatten(', output_nm, ')')
 
@@ -210,7 +208,13 @@ finish_lmap <- function(is_lmap, obj, fn_env, output_nm) {
     } else {
       return(paste0('\n', output_nm, ' <- ', flat, '\n'))
     }
-  }
+
+  } else if (is_accu && !is_accu2) {
+
+    return(paste0('if (all(lengths(', output_nm, ') == 1L)) unlist(', output_nm, ')\n'))
+
+  } else NULL
+
 }
 
 

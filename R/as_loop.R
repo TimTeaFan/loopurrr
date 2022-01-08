@@ -44,6 +44,7 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
   is_i      <- grepl("(^imap)|(^iwalk)|(^imodify)", map_fn_chr, perl = TRUE)
   is_modify <- grepl("modify", map_fn_chr, perl = TRUE)
   is_accu   <- grepl("accumulate", map_fn_chr, perl = TRUE)
+  is_accu2  <- grepl("^accumulate2$", map_fn_chr, perl = TRUE)
   is_redu   <- grepl("reduce", map_fn_chr, perl = TRUE)
 
   init      <- expr_ls[[".init"]]
@@ -154,7 +155,7 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
 
   maybe_name_obj <- create_obj_names(obj, output_nm, obj_nms, is_lmap, is_modify, is_walk, is_accu, has_init, is_back)
 
-  maybe_flatten_tbl <- finish_lmap(is_lmap, obj, q_env, output_nm)
+  maybe_post_process <- post_process(obj, q_env, output_nm, is_lmap, is_accu, is_accu2)
 
   # FIXME: add this to rewrite_fn
   if (is_lmap && !is.null(maybe_at)) {
@@ -190,7 +191,7 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
                     if (!is.null(maybe_if) && is.null(else_fn) && !is_lmap) paste0('\n', output_nm, '[.sel] <- ', obj,'[.sel]\n'),
                     maybe_name_obj,
                     maybe_bind_rows_cols,
-                    maybe_flatten_tbl,
+                    maybe_post_process,
                     '# --- end loop --- #\n')
 
   if (eval) {
