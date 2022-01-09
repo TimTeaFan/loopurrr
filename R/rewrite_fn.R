@@ -137,13 +137,13 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
 
 check_arg <- function(fn_bdy, arg) {
 
-  grepl(paste0("(?<![^(,\\s])", arg, "(?![^)\\s,])"),
+  grepl(paste0("(?<![^(,\\s])", arg, "(?![^)\\[\\s,])"),
         fn_bdy,
         perl = TRUE)
 }
 
 replace_arg <- function(fn_bdy, old_arg, replace_arg, .idx, .brk, idx_suf = 0, is_redu = FALSE, is_back = FALSE, i) {
-  gsub(paste0("(?<![^(,\\s])", old_arg, "(?![^)\\s,])"),
+  gsub(paste0("(?<![^(,\\s])", old_arg, "(?![^)\\[\\s,])"),
        paste0(replace_arg,
               if(!(is_redu && !is_back && i == 1L) && !(is_redu && is_back && i == 2L)) {
                 paste0(.brk$o, .idx,
