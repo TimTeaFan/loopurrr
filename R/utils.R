@@ -94,3 +94,11 @@ is_supported <- function(map_fn) {
 check_syntactical_nm <- function(x) {
   grepl("(^(\\p{L}|(\\.(\\p{L}|\\.|\\_)))(\\d|\\p{L}|\\.|\\_)*$)|(^\\.$)", x, perl = TRUE)
 }
+
+
+# return_wo_print <- function(fn_call) {
+#   sink("/dev/null")
+#   res <- fn_call
+#   sink()
+#   res
+# }

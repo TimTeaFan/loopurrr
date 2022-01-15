@@ -1,8 +1,4 @@
-
-# TODO:
-# reduce
-# accumulate
-
+# TODO: Documentation
 as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", output_nm = "out") {
 
   q <- rlang::enquo(.expr)
@@ -55,6 +51,16 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
   id_arg    <- expr_ls[[".id"]]
   dir       <- expr_ls[[".dir"]]
   is_back   <- !is.null(dir) && dir == "backward"
+
+  # TODO: add tryCatch if map call throws error and let user know
+
+  returns_null <- FALSE
+
+  # not so sure if this is a good idea:
+  if(!is_walk) {
+  res <- rlang::eval_tidy(q)
+  returns_null <- any(purrr::map_lgl(res, is.null))
+  }
 
   # call dependent setup ---
 
@@ -175,7 +181,6 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
                     maybe_custom_inpts,
                     maybe_at,
                     if (!is.null(maybe_if) && is.null(else_fn) && !is_lmap) paste0('.sel <- vector("logical", length = length(', obj,'))\n'),
-                    # maybe_init,
                     maybe_output,
                     maybe_accu,
                     paste0('\nfor (',idx,' in ', if(is_back) 'rev(', 'seq_along(', obj, ')', if(is_back) ')'),
@@ -183,8 +188,9 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
                     if ((is_redu || is_accu) && !has_init) '[-1]',
                     ') {\n',
                     maybe_if,
-                    maybe_assign,
+                    if(returns_null && !is_redu && !is_lmap) '.tmp <-' else maybe_assign,
                     apply_fn, '\n',
+                    if(returns_null && !is_redu %% !is_lmap) paste0('if (!is.null(.tmp)) ', maybe_assign, ' .tmp'),
                     maybe_lmap_stop,
                     '}\n',
                     if (!is.null(maybe_at) && !is_lmap) paste0('\n', output_nm, '[-.sel] <- ', obj,'[-.sel]\n'),
