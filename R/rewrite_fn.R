@@ -62,6 +62,8 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
       )
     }
 
+    fn_fmls <- sub("\\.", "\\\\.", fn_fmls)
+
     # TODO: check if this stop is still needed:
     # probably the initial check regarding argument forwarding in anonymous functions makes this stop superflous
     stopifnot(length(fn_fmls) == length(.inp_objs))
@@ -172,13 +174,14 @@ loop_replace_args <- function(fn_bdy, old_args, inp, .idx, .brk, idx_suf = 0L, i
                          is_back,
                          i = i))
     } # clase if
+    fn_bdy
   } # close loop
 }
 
 replace_lambda_args <- function(fn_bdy, inp_ls, .idx, .brk, idx_suf, is_redu, is_back) {
 
-  lamda_fst_arg <- c(".x", "..1", ".")
-  lamda_scnd_arg <- c(".y", "..2")
+  lamda_fst_arg <- c("\\.x", "\\.\\.1", "\\.")
+  lamda_scnd_arg <- c("\\.y", "\\.\\.2")
 
   for (i in seq_along(inp_ls)) {
 
