@@ -122,13 +122,23 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
       if(flag) "`", as.character(fn_expr), if(flag) "`",
       '(', objs, dots,')')
       )
+    # extractor function with numeric or character vectors:
+  } else if (is.numeric(fn) || is.character(fn)) {
+    stopifnot(length(.inp_objs) == 2)
+
+    extr_str <- paste0('tryCatch({',
+      .inp_objs[[1]], .brk$o, .idx, .brk$c, '[[', .inp_objs[[2]], ']]\n',
+    '}, error = function(e) {})')
+
+    return(extr_str)
+
     # all other cases
   } else {
     rlang::abort(
       c("Problem with `as_loop()` input `.expr`.",
-        i = "`as_loop` does not yet support lists, character vectors or numeric vectors supplied as `.f` argument in `map` or similar calls.",
+        i = "`as_loop` does not yet support lists when supplied as `.f` argument in `map` or similar calls.",
         x = paste0("An object of class <", class(fn), "> was supplied to the `.f` argument in:\n ",cl_chr , "."),
-        i = "`as_loop` will work with any function or purrr-style formula in `.f`.")
+        i = "`as_loop` will work with any function, purrr-style formula, numeric or character vectors in `.f`.")
     )
   }
 }

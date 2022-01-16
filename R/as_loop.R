@@ -40,25 +40,27 @@ as_loop <- function(.expr,
   q_env <- rlang::quo_get_env(q)
 
   # put these calls in a setup function
-  is_lmap   <- grepl("^lmap", map_fn_chr, perl = TRUE)
-  is_walk   <- grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE)
-  is_i      <- grepl("(^imap)|(^iwalk)|(^imodify)", map_fn_chr, perl = TRUE)
-  is_modify <- grepl("modify", map_fn_chr, perl = TRUE)
-  is_accu   <- grepl("accumulate", map_fn_chr, perl = TRUE)
-  is_accu2  <- grepl("^accumulate2$", map_fn_chr, perl = TRUE)
-  is_redu   <- grepl("reduce", map_fn_chr, perl = TRUE)
-
+  fn_expr   <- expr_ls[[".f"]]
   init      <- expr_ls[[".init"]]
-  has_init  <- !is.null(init)
   at_idx    <- expr_ls[[".at"]]
   p_fn      <- expr_ls[[".p"]]
   else_fn   <- expr_ls[[".else"]]
   id_arg    <- expr_ls[[".id"]]
   dir       <- expr_ls[[".dir"]]
-  is_back   <- !is.null(dir) && dir == "backward"
   def       <- expr_ls[[".default"]]
 
-  returns_null <- FALSE
+  has_init   <- !is.null(init)
+  is_back    <- !is.null(dir) && dir == "backward"
+  is_lmap    <- grepl("^lmap", map_fn_chr, perl = TRUE)
+  is_walk    <- grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE)
+  is_i       <- grepl("(^imap)|(^iwalk)|(^imodify)", map_fn_chr, perl = TRUE)
+  is_modify  <- grepl("modify", map_fn_chr, perl = TRUE)
+  is_accu    <- grepl("accumulate", map_fn_chr, perl = TRUE)
+  is_accu2   <- grepl("^accumulate2$", map_fn_chr, perl = TRUE)
+  is_redu    <- grepl("reduce", map_fn_chr, perl = TRUE)
+  is_extr_fn <- check_extr_fn(fn_expr, q_env)
+
+  returns_null <- if(is_extr_fn) TRUE else FALSE
 
   # try purrr call, hide print output, check if result contains NULL:
   if (simplify) {
@@ -82,6 +84,9 @@ as_loop <- function(.expr,
   # define input list
   if (!is.null(expr_ls[[".l"]])) {
     inp_ls <- as.list(expr_ls[[".l"]][-1])
+  } else if (is_extr_fn) {
+    inp_ls <- list(.x = expr_ls[[".x"]],
+                   .y = fn_expr)
   } else {
     inp_ls <- list(.x = expr_ls[[".x"]],
                    .y = expr_ls[[".y"]])
@@ -132,7 +137,7 @@ as_loop <- function(.expr,
                 c = ']]')
   }
 
-  apply_fn <- rewrite_fn(expr_ls[[".f"]],
+  apply_fn <- rewrite_fn(fn_expr,
                          names(inp_objs),
                          idx,
                          q_env,
@@ -203,9 +208,12 @@ as_loop <- function(.expr,
                     if ((is_redu || is_accu) && !has_init) '[-1]',
                     ') {\n',
                     maybe_if,
-                    if(returns_null && !is_redu && !is_lmap) '.tmp <-' else maybe_assign,
+                    if((returns_null && !is_redu && !is_lmap) || is_extr_fn) '.tmp <-' else maybe_assign,
                     apply_fn, '\n',
-                    if(returns_null && !is_redu %% !is_lmap) paste0('if (!is.null(.tmp)) ', maybe_assign, ' .tmp'),
+                    if((returns_null && !is_redu && !is_lmap) || is_extr_fn) {
+                      paste0('if (!is.null(.tmp)) ', maybe_assign, ' .tmp',
+                             if(is_extr_fn && !is.null(def)) paste0(' else ', def))
+                      },
                     maybe_lmap_stop,
                     '}\n',
                     if (!is.null(maybe_at) && !is_lmap) paste0('\n', output_nm, '[-.sel] <- ', obj,'[-.sel]\n'),
