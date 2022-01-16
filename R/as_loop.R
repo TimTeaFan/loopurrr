@@ -1,5 +1,10 @@
 # TODO: Documentation
-as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", output_nm = "out") {
+as_loop <- function(.expr,
+                    output = default_output(),
+                    eval = FALSE,
+                    simplify = TRUE,
+                    idx = "i",
+                    output_nm = "out") {
 
   q <- rlang::enquo(.expr)
 
@@ -57,8 +62,19 @@ as_loop <- function(.expr, output = default_output(), eval = FALSE, idx = "i", o
   returns_null <- FALSE
 
   # not so sure if this is a good idea:
-  if(!is_walk) {
-  res <- rlang::eval_tidy(q)
+  if (simplify) {
+  res <- tryCatch({
+    sink(nullfile()) # "/dev/null"
+    tmp <- rlang::eval_tidy(q)
+    sink()
+    tmp
+  }, error = function(e) {
+    rlang::abort(c("Problem with `as_loop()` input `.expr`.",
+                   i = paste0("The underlying call to `purrr::", map_fn_chr,"` threw the following error:"),
+                   x = e$message,
+                   i = "Please provide a working call to `as_loop`.")
+                 )
+  })
   returns_null <- any(purrr::map_lgl(res, is.null))
   }
 
