@@ -56,12 +56,11 @@ as_loop <- function(.expr,
   id_arg    <- expr_ls[[".id"]]
   dir       <- expr_ls[[".dir"]]
   is_back   <- !is.null(dir) && dir == "backward"
-
-  # TODO: add tryCatch if map call throws error and let user know
+  def       <- expr_ls[[".default"]]
 
   returns_null <- FALSE
 
-  # not so sure if this is a good idea:
+  # try purrr call, hide print output, check if result contains NULL:
   if (simplify) {
   res <- tryCatch({
     sink(nullfile()) # "/dev/null"
