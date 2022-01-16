@@ -95,6 +95,12 @@ check_syntactical_nm <- function(x) {
   grepl("(^(\\p{L}|(\\.(\\p{L}|\\.|\\_)))(\\d|\\p{L}|\\.|\\_)*$)|(^\\.$)", x, perl = TRUE)
 }
 
+check_extr_fn <- function(fn_expr, e) {
+  fn <- eval(fn_expr, envir = e)
+  check <- is.numeric(fn) || is.character(fn)
+  check
+}
+
 
 # return_wo_print <- function(fn_call) {
 #   sink("/dev/null")
