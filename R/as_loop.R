@@ -183,6 +183,8 @@ as_loop <- function(.expr,
 
   maybe_post_process <- post_process(obj, q_env, output_nm, is_lmap, is_accu, is_accu2)
 
+  maybe_return_null <- create_null_return(maybe_assign, returns_null, is_redu, is_lmap, is_extr_fn, def)
+
   # FIXME: add this to rewrite_fn
   if (is_lmap && !is.null(maybe_at)) {
     apply_fn <- paste0('if (.sel[[', idx, ']]) {\n',
@@ -210,10 +212,7 @@ as_loop <- function(.expr,
                     maybe_if,
                     if((returns_null && !is_redu && !is_lmap) || is_extr_fn) '.tmp <-' else maybe_assign,
                     apply_fn, '\n',
-                    if((returns_null && !is_redu && !is_lmap) || is_extr_fn) {
-                      paste0('if (!is.null(.tmp)) ', maybe_assign, ' .tmp',
-                             if(is_extr_fn && !is.null(def)) paste0(' else ', def))
-                      },
+                    maybe_return_null,
                     maybe_lmap_stop,
                     '}\n',
                     if (!is.null(maybe_at) && !is_lmap) paste0('\n', output_nm, '[-.sel] <- ', obj,'[-.sel]\n'),

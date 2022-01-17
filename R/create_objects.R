@@ -178,6 +178,33 @@ call_as_chr <- function(expr) {
 }
 
 
+create_null_return <- function(maybe_assign, returns_null, is_redu, is_lmap, is_extr_fn, def) {
+
+  has_def <- !is.null(def)
+
+  def <- if (has_def && is.name(def)) {
+    as.character(def)
+    } else {
+      deparse_expr(def)
+    }
+
+  if ((returns_null && !is_redu && !is_lmap) || is_extr_fn) {
+
+    if_tmp <- 'if (!is.null(.tmp)) '
+
+    if (!has_def) {
+
+      return(paste0(if_tmp, maybe_assign, ' .tmp'))
+
+    } else if (is_extr_fn && has_def) {
+
+      else_def <- paste0(' else ', def)
+      return(paste0(maybe_assign, if_tmp,  ' .tmp', else_def))
+    }
+  }
+  return(NULL)
+}
+
 bind_rows_cols <- function(map_fn, output_nm, id_arg) {
 
   do_cl <- switch(map_fn,
