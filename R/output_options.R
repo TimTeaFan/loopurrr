@@ -15,10 +15,11 @@ create_output_fn <- function(output) {
       is_rstudio <- rstudioapi::isAvailable()
       if (is_rstudio) {
         out_fn <- function(x) {
-          if (requireNamespace("styler", quietly = TRUE)) {
-            x <- styler::style_text(x, indent_by = 2)
-          }
-          rstudioapi::insertText(text = append(x, "\n"))
+          # if (requireNamespace("styler", quietly = TRUE)) {
+          #   x <- styler::style_text(x, indent_by = 2)
+          # }
+          # rstudioapi::insertText(text = append(x, "\n"))
+          insert_and_reformat_text(x)
         }
       }
       break
