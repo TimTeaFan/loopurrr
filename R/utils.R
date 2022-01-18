@@ -34,6 +34,72 @@ call2chr <- function(expr) {
   dep_cl
 }
 
+
+try_purr_call <- function(x, map_fn_chr) {
+  tryCatch({
+    sink(nullfile()) # "/dev/null"
+    on.exit(sink(), add = TRUE)
+    tmp <- rlang::eval_tidy(x)
+    # sink()
+    tmp
+  }, error = function(e) {
+    rlang::abort(c("Problem with `as_loop()` input `.expr`.",
+                   i = paste0("The underlying call to `purrr::", map_fn_chr,"` threw the following error:"),
+                   x = e$message,
+                   i = "Please provide a working call to `as_loop`.")
+    )
+  })
+}
+
+
+insert_and_reformat_text <- function(x) {
+  before <- rstudioapi::getActiveDocumentContext()
+  rng_bfr <- before$selection[[1]]$range$start
+  print(before)
+  loc <- calc_location(before)
+  print(paste0("we are here:", loc))
+
+  rstudioapi::insertText(location = c(loc, 1),
+                         text = paste0(x, "\n\n"))
+
+  after <- rstudioapi::getActiveDocumentContext()
+  rng_aft <- after$selection[[1]]$range$end
+  rng <- rstudioapi::document_range(c(loc, 1), rng_aft)
+
+  if (after$id != "#console") {
+    rstudioapi::setSelectionRanges(rng)
+    rstudioapi::executeCommand('reformatCode')
+  }
+}
+
+
+calc_location <- function(context) {
+  start <- context$selection[[1]]$range$start
+  end   <- context$selection[[1]]$range$end
+  loc <- if (identical(start, end) && start[2] == 1L) {
+    calc_last_line(context, start)
+  } else if (end[2] == 1L) {
+    end[1]
+  } else {
+    end[1] + 1L
+  }
+  loc
+}
+
+calc_last_line <- function(context, loc) {
+  con <<- context$contents
+  con_df <- dplyr::tibble(line = seq_along(con), code = con)
+  last_filled_line <- con_df %>%
+    dplyr::filter(nzchar(gsub("\\s+", "", code))) %>%
+    dplyr::filter(dplyr::lead(line) == loc[1]) %>%
+    dplyr::pull(line)
+  print(paste0("last line", last_filled_line))
+  last_filled_line + 1L
+  # print(last_filled_line)
+  # c(last_filled_line + 1L, 1L)
+}
+
+
 # get_supported_fns <- function() {
 #   require(purrr)
 #   all_purrr_fns <- purrr::map_chr(lsf.str("package:purrr"), `[`)

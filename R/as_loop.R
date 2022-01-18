@@ -64,19 +64,8 @@ as_loop <- function(.expr,
 
   # try purrr call, hide print output, check if result contains NULL:
   if (simplify) {
-  res <- tryCatch({
-    sink(nullfile()) # "/dev/null"
-    tmp <- rlang::eval_tidy(q)
-    sink()
-    tmp
-  }, error = function(e) {
-    rlang::abort(c("Problem with `as_loop()` input `.expr`.",
-                   i = paste0("The underlying call to `purrr::", map_fn_chr,"` threw the following error:"),
-                   x = e$message,
-                   i = "Please provide a working call to `as_loop`.")
-                 )
-  })
-  returns_null <- any(purrr::map_lgl(res, is.null))
+    res <- try_purr_call(q, map_fn_chr)
+    returns_null <- any(purrr::map_lgl(res, is.null))
   }
 
   # call dependent setup ---
