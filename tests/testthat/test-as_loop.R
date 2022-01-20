@@ -1,10 +1,8 @@
-library(purrr)
-
 test_that("as_loop works with map", {
 
   x <- list(c(1,2), c(2,3), c(3,4))
 
-  expect_equal(map(x, sum),
+  expect_equal(purrr::map(x, sum),
                as_loop(map(x, sum),
                        eval = TRUE)
                )
@@ -411,9 +409,11 @@ test_that("as_loop works with lmap and lmap_at", {
 
 # modify_at / modify_if
 
-# accumulate
+# accumulate / accumulate2
 
-# reduce
+# reduce / reduce2
+
+# character and numeric vectors as .f argument
 
 # support
 
@@ -421,12 +421,18 @@ test_that("as_loop throws an error when called with non-purrr or non-supported f
 
   x <- list(1, 2, 3)
 
-  expect_error(as_loop(lapply(x, sum), eval = TRUE),
+  tmap <- function(x, f) f(x)
+
+  expect_error(as_loop(tmap(x, sum), eval = TRUE),
                "only works with `map` and similar functions from the purrr package"
   )
 
   expect_error(as_loop(lmap_if(x, sum), eval = TRUE),
                "does only support certain"
+  )
+
+  expect_error(as_loop(lapply(x, sum), eval = TRUE),
+               "doesn't support functions from base R's apply family"
   )
 
 })
