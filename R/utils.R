@@ -55,17 +55,20 @@ try_purr_call <- function(x, map_fn_chr) {
 insert_and_reformat_text <- function(x) {
   before <- rstudioapi::getActiveDocumentContext()
   rng_bfr <- before$selection[[1]]$range$start
-  print(before)
-  loc <- calc_location(before)
-  print(paste0("we are here:", loc))
 
-  rstudioapi::insertText(location = c(loc, 1),
+  x_ln <- line_length(x)
+  loc <- calc_location(before, x_ln)
+
+  rstudioapi::insertText(location = c(loc[[1]], 1),
                          text = paste0(x, "\n\n"))
 
   after <- rstudioapi::getActiveDocumentContext()
-  rng_aft <- after$selection[[1]]$range$end
-  rng <- rstudioapi::document_range(c(loc, 1), rng_aft)
-
+  rng_aft <- if (is.null(loc[[2]])) {
+    after$selection[[1]]$range$end
+  } else {
+    rstudioapi::as.document_position(c(loc[[2]], 1))
+  }
+  rng <- rstudioapi::document_range(c(loc[[1]], 1), rng_aft)
   if (after$id != "#console") {
     rstudioapi::setSelectionRanges(rng)
     rstudioapi::executeCommand('reformatCode')
@@ -73,15 +76,20 @@ insert_and_reformat_text <- function(x) {
 }
 
 
-calc_location <- function(context) {
+line_length <- function(x) {
+  length(unlist(strsplit(x, "\n")))
+}
+
+calc_location <- function(context, x_ln) {
   start <- context$selection[[1]]$range$start
   end   <- context$selection[[1]]$range$end
   loc <- if (identical(start, end) && start[2] == 1L) {
-    calc_last_line(context, start)
+    out <- calc_last_line(context, start)
+    list(out, NULL)
   } else if (end[2] == 1L) {
-    end[1]
+    return(list(end[1], NULL))
   } else {
-    end[1] + 1L
+    list(end[1] + 1L, end[1] + 1L + x_ln)
   }
   loc
 }
@@ -93,10 +101,7 @@ calc_last_line <- function(context, loc) {
     dplyr::filter(nzchar(gsub("\\s+", "", code))) %>%
     dplyr::filter(dplyr::lead(line) == loc[1]) %>%
     dplyr::pull(line)
-  print(paste0("last line", last_filled_line))
   last_filled_line + 1L
-  # print(last_filled_line)
-  # c(last_filled_line + 1L, 1L)
 }
 
 
