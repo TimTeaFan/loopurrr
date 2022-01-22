@@ -601,7 +601,7 @@ test_that("as_loop works with accumulate2", {
   expect_equal(exp1, out1)
 
 
-  # dir = forward, no init
+  # dir = forward, with init
   exp2 <- capture.output(
     accumulate2(1:5, 5:9, sum_print3, .init = 100)
   )
@@ -616,9 +616,99 @@ test_that("as_loop works with accumulate2", {
 })
 
 
-
 # reduce
+
+test_that("as_loop works with reduce", {
+
+  sum_print <- function(x, y) {
+    print(paste("x is :", x))
+    x + y
+  }
+
+  # dir = forward, no init
+  exp1 <- capture.output(
+    reduce(1:10, ~ sum_print(.x, .y))
+  )
+
+  out1 <- capture.output(
+    reduce(1:10, ~ sum_print(.x, .y)) %>%
+      as_loop(., eval = TRUE)
+  )
+
+  expect_equal(exp1, out1)
+
+
+  # dir = forward, with init
+  exp2 <- capture.output(
+    reduce(1:10, ~sum_print(.x, .y), .init = 100)
+  )
+
+  out2 <- capture.output(
+    reduce(1:10, ~sum_print(.x, .y), .init = 100) %>%
+      as_loop(., eval = TRUE)
+  )
+
+  expect_equal(exp2, out2)
+
+
+  # dir = backward, no init
+  exp3 <- capture.output(
+    reduce(1:10, ~sum_print(.x, .y), .dir = "backward")
+  )
+
+  out3 <- capture.output(
+    reduce(1:10, ~sum_print(.x, .y), .dir = "backward") %>%
+      as_loop(., eval = TRUE)
+  )
+
+  expect_equal(exp3, out3)
+
+
+  # dir = backward, with init
+  exp4 <- capture.output(
+    reduce(1:10, ~sum_print(.x, .y), .init = 100, .dir = "backward")
+  )
+
+  out4 <- capture.output(
+    reduce(1:10, ~sum_print(.x, .y), .init = 100, .dir = "backward") %>%
+      as_loop(., eval = TRUE)
+  )
+
+  expect_equal(exp4, out4)
+
+})
+
+
+
 # reduce2
+
+test_that("as_loop works with reduce2", {
+
+  foo <- function(x, y, z) {
+    (x^2 + y^(1/2)) / z
+  }
+
+  # dir = forward, no init
+  exp1 <- reduce2(1:3, 4:5, foo)
+
+  out1 <- reduce2(1:3, 4:5, foo) %>%
+      as_loop(., eval = TRUE)
+
+  expect_equal(exp1, out1)
+
+
+  # dir = forward, no init
+  exp2 <- reduce2(1:3, 4:6, foo, .init = 10)
+
+  out2 <- reduce2(1:3, 4:6, foo, .init = 10) %>%
+    as_loop(., eval = TRUE)
+
+  expect_equal(exp2, out2)
+
+})
+
+
+
 
 # character and numeric vectors as .f argument
 
