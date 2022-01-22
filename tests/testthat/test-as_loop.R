@@ -517,11 +517,108 @@ test_that("as_loop works with modify", {
 
 })
 
+# accumulate
+
+test_that("as_loop works with accumulate", {
+
+  sum_print <- function(x, y) {
+    print(paste("x is :", x))
+    x + y
+  }
+
+  # dir = forward, no init
+  exp1 <- capture.output(
+    accumulate(1:10, ~sum_print(.x, .y))
+    )
+
+  out1 <- capture.output(
+    accumulate(1:10, ~sum_print(.x, .y)) %>% as_loop(., eval = TRUE)
+  )
+
+  expect_equal(exp1, out1)
 
 
-# accumulate / accumulate2
+  # dir = forward, with init
+  exp2 <- capture.output(
+    accumulate(1:10, ~sum_print(.x, .y), .init = 100)
+  )
 
-# reduce / reduce2
+  out2 <- capture.output(
+    accumulate(1:10, ~sum_print(.x, .y), .init = 100) %>% as_loop(., eval = TRUE)
+  )
+
+  expect_equal(exp2, out2)
+
+
+  # dir = backward, no init
+  exp3 <- capture.output(
+    accumulate(1:10, ~sum_print(.x, .y), .dir = "backward")
+  )
+
+  out3 <- capture.output(
+    accumulate(1:10, ~sum_print(.x, .y), .dir = "backward") %>% as_loop(., eval = TRUE)
+  )
+
+  expect_equal(exp3, out3)
+
+
+  # dir = backward, with init
+  exp4 <- capture.output(
+    accumulate(1:10, ~sum_print(.x, .y), .init = 100, .dir = "backward")
+  )
+
+  out4 <- capture.output(
+    accumulate(1:10, ~sum_print(.x, .y), .init = 100, .dir = "backward") %>%
+      as_loop(., eval = TRUE)
+  )
+
+  expect_equal(exp4, out4)
+
+
+})
+
+# accumulate2
+
+test_that("as_loop works with accumulate2", {
+
+  sum_print3 <- function(x, y, z) {
+    print(paste("x is :", x))
+    print(paste("y is :", y))
+    print(paste("z is :", z))
+    x + y + z
+  }
+
+  # dir = forward, no init
+  exp1 <- capture.output(
+    accumulate2(1:5, 5:8, sum_print3)
+  )
+
+  out1 <- capture.output(
+    accumulate2(1:5, 5:8, sum_print3) %>%
+      as_loop(., eval = TRUE)
+  )
+
+  expect_equal(exp1, out1)
+
+
+  # dir = forward, no init
+  exp2 <- capture.output(
+    accumulate2(1:5, 5:9, sum_print3, .init = 100)
+  )
+
+  out2 <- capture.output(
+    accumulate2(1:5, 5:9, sum_print3, .init = 100) %>%
+      as_loop(., eval = TRUE)
+  )
+
+  expect_equal(exp2, out2)
+
+})
+
+
+
+# reduce
+# reduce2
 
 # character and numeric vectors as .f argument
 
