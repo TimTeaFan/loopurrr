@@ -152,8 +152,8 @@ as_loop <- function(.expr,
                      # obj_nms = obj_nms,
                      output_nm = output_nm,
                      idx     = idx,
-                     at      = at_idx
-                     # fn_env  = q_env,
+                     at      = at_idx,
+                     fn_env  = q_env
                      )
 
   maybe_if <- add_if(map_fn  = map_fn_chr,

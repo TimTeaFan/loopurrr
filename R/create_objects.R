@@ -303,15 +303,15 @@ add_selection <- function(map_fn, obj, obj_nms, output_nm, idx, at = NULL, p_fn 
 }
 
 
-add_at <- function(map_fn, obj, output_nm, idx, at) {
+add_at <- function(map_fn, obj, output_nm, idx, at, fn_env) {
 
   if (is.null(at)) {
     return(NULL)
   }
 
   # FIXME: Problem if deparse is used
-  is_char <- is.character(eval(at))
-  if (!is_char && !is.numeric(eval(at))) {
+  is_char <- is.character(eval(at, envir = fn_env))
+  if (!is_char && !is.numeric(eval(at, envir = fn_env))) {
     stop("unrecognised index type")
   }
 
