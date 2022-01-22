@@ -172,10 +172,3 @@ check_extr_fn <- function(fn_expr, e) {
   check
 }
 
-
-# return_wo_print <- function(fn_call) {
-#   sink("/dev/null")
-#   res <- fn_call
-#   sink()
-#   res
-# }
