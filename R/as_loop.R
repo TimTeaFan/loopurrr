@@ -17,7 +17,13 @@ as_loop <- function(.expr,
   # basic setup
   q_expr <- rlang::quo_get_expr(q)
   cl_chr <- call_as_chr(q_expr)
-  map_fn_chr <- as.character(q_expr[[1]])
+
+  map_fn_chr <- deparse(q_expr[[1]])
+  # remove namespace
+  if(grepl("^\\w+::", map_fn_chr, perl = TRUE)) {
+    map_fn_chr <- gsub("^\\w+::", "", map_fn_chr)
+  }
+
   is_supported(map_fn_chr)
   map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
 
