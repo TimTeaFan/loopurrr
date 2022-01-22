@@ -238,7 +238,9 @@ post_process <- function(obj, fn_env, output_nm, is_lmap, is_accu, is_accu2) {
 
   } else if (is_accu && !is_accu2) {
 
-    return(paste0('if (all(lengths(', output_nm, ') == 1L)) unlist(', output_nm, ')\n'))
+    return(paste0('if (all(lengths(', output_nm, ') == 1L)) {\n',
+                  output_nm, ' <- unlist(', output_nm, ')\n}',
+                  '\n'))
 
   } else NULL
 
