@@ -2,7 +2,7 @@ test_that("as_loop works with map", {
 
   x <- list(c(1,2), c(2,3), c(3,4))
 
-  expect_equal(purrr::map(x, sum),
+  expect_equal(map(x, sum),
                as_loop(map(x, sum),
                        eval = TRUE)
                )
@@ -50,7 +50,7 @@ test_that("as_loop works with different ways of supplying .f", {
 
   # not supported yet: lambda functions using the `...`
 
-  expect_error(as_loop(map(y, function(...) sum(..1)),
+  expect_error(as_loop(map(y, function(...) sum(..1, na.rm = TRUE)),
                        eval = TRUE),
                "does not support anonymous functions"
   )
@@ -63,20 +63,42 @@ test_that("as_loop works with different ways of supplying .f", {
     list()
   )
 
-  expect_error(as_loop(map(l2, "num"),
-                       eval = TRUE),
-               "does not yet support lists, character vectors or numeric vectors "
-  )
-
-  expect_error(as_loop(map(l2, c(2, 2)),
-                       eval = TRUE),
-               "does not yet support lists, character vectors or numeric vectors "
-  )
-
   expect_error(as_loop(map(l2, list("num", 3)),
                        eval = TRUE),
-               "does not yet support lists, character vectors or numeric vectors "
+               "does not yet support lists when supplied as"
   )
+})
+
+test_that("as_loop works with magrittr pipe", {
+
+  x <- list(c(1,2), c(2,3), c(3,4))
+
+  exp1 <- x %>% map(sum)
+  out1 <- x %>% map(sum) %>% as_loop(., eval = TRUE)
+
+  expect_equal(exp1, out1)
+
+
+  exp2 <- c(1:3) %>% map(sum)
+  out2 <- c(1:3) %>% map(sum) %>% as_loop(., eval = TRUE)
+
+  expect_equal(exp2, out2)
+
+
+  exp3 <- sum %>% map(1:3, .)
+  out3 <- sum %>% map(1:3, .) %>% as_loop(., eval = TRUE)
+
+  expect_equal(exp3, out3)
+})
+
+test_that("as_loop works with namespaced map calls", {
+
+  x <- list(c(1,2), c(2,3), c(3,4))
+
+  exp1 <- x %>% purrr::map(sum)
+  out1 <- x %>% purrr::map(sum) %>% as_loop(., eval = TRUE)
+
+  expect_equal(exp1, out1)
 })
 
 test_that("as_loop works with typed versions of map", {
@@ -215,12 +237,6 @@ test_that("as_loop works with lmap", {
 
 })
 
-# modify
-
-# test_that("as_loop works with modify", {
-#
-#
-# })
 
 # imap / iwalk
 test_that("as_loop works with imap and iwalk", {
@@ -407,13 +423,127 @@ test_that("as_loop works with lmap and lmap_at", {
 
 # modify
 
-# modify_at / modify_if
+test_that("as_loop works with modify", {
+
+  x <- list(a = c(7, 10), b = c(20, 25))
+  attr(x, "myatt") <- "this vector has attributes"
+
+  exp1 <- modify(x, sum)
+  out1 <- as_loop(modify(x, sum), eval = TRUE)
+
+  expect_equal(exp1, out1)
+
+})
+
+# modify_at and modify_if
+
+test_that("as_loop works with modify_at and modify_if", {
+
+  x <- list(a = c(7, 10), b = c("a", "b"))
+  attr(x, "myatt") <- "this vector has attributes"
+
+  # modify_at by name in function
+  exp1 <- modify_at(x, "a", sum)
+  out1 <- as_loop(modify_at(x, "a", sum), eval = TRUE)
+
+  expect_equal(exp1, out1)
+
+  # modify_at by name in external vector
+  myvec <- "a"
+  exp1b <- modify_at(x, myvec, sum)
+  out1b <- as_loop(modify_at(x, myvec, sum), eval = TRUE)
+
+  expect_equal(exp1b, out1b)
+
+
+  # modify_at by position
+  exp2 <- modify_at(x, 1, sum)
+  out2 <- as_loop(modify_at(x, 1, sum), eval = TRUE)
+
+  expect_equal(exp2, out2)
+
+  # modify_at by position in vector
+  myvec2 <- 1
+  exp2b <- modify_at(x, myvec2, sum)
+  out2b <- as_loop(modify_at(x, myvec2, sum), eval = TRUE)
+
+  expect_equal(exp2b, out2b)
+
+
+  # modify_if without else
+  exp3 <- modify_if(x, is.numeric, sum)
+  out3 <- as_loop(modify_if(x, is.numeric, sum), eval = TRUE)
+
+  expect_equal(exp3, out3)
+
+
+  # modify_if without else in custom function
+  myfun <- function(x) is.numeric(x)
+  exp3b <- modify_if(x, myfun, sum)
+  out3b <- as_loop(modify_if(x, myfun, sum), eval = TRUE)
+
+  expect_equal(exp3b, out3b)
+
+
+  # modify_if without else in regular anonymous function
+  exp3c <- modify_if(x, function(x) is.numeric(x), sum)
+  out3c <- as_loop(modify_if(x, function(x) is.numeric(x), sum), eval = TRUE)
+
+  expect_equal(exp3c, out3c)
+
+
+  # modify_if with else
+  exp4 <- modify_if(x, is.numeric, sum, .else = ~paste(.x, collapse = ","))
+  out4 <- as_loop(modify_if(x, is.numeric, sum, .else = ~ paste(.x, collapse = ",")),
+                  eval = TRUE)
+
+  expect_equal(exp4, out4)
+})
+
+
+# modify2
+
+test_that("as_loop works with modify", {
+
+  x <- list(a = 7, b = 25)
+  attr(x, "myatt") <- "this vector has attributes"
+
+  y <- list(20, c(100))
+
+  exp1 <- modify2(x, y, sum)
+  out1 <- as_loop(modify2(x, y, sum), eval = TRUE)
+
+  expect_equal(exp1, out1)
+
+})
+
+
 
 # accumulate / accumulate2
 
 # reduce / reduce2
 
 # character and numeric vectors as .f argument
+
+test_that("as_loop throws an error when called with non-purrr or non-supported functions", {
+
+  l2 <- list(
+    list(num = 1:3,     letters[1:3]),
+    list(num = 101:103, letters[4:6]),
+    list()
+  )
+
+  exp1 <- map(l2, "num")
+  out1 <- as_loop(map(l2, "num"), eval = TRUE)
+
+  expect_equal(exp1, out1)
+
+  exp2 <- map(l2, c(2, 2))
+  out2 <- as_loop(map(l2, c(2, 2)), eval = TRUE)
+
+  expect_equal(exp2, out2)
+
+})
 
 # support
 
