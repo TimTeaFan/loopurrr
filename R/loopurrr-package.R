@@ -1,3 +1,6 @@
+#' @description
+#' Translate {purrr}'s iterator function to regular for-loops
+#'
 #' @keywords internal
 "_PACKAGE"
 
