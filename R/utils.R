@@ -53,25 +53,31 @@ try_purr_call <- function(x, map_fn_chr) {
 
 
 insert_and_reformat_text <- function(x) {
+
   before <- rstudioapi::getActiveDocumentContext()
-  rng_bfr <- before$selection[[1]]$range$start
 
-  x_ln <- line_length(x)
-  loc <- calc_location(before, x_ln)
-
-  rstudioapi::insertText(location = c(loc[[1]], 1),
-                         text = paste0(x, "\n\n"))
-
-  after <- rstudioapi::getActiveDocumentContext()
-  rng_aft <- if (is.null(loc[[2]])) {
-    after$selection[[1]]$range$end
+  if (before$id == "#console") {
+    rstudioapi::insertText(text = x)
   } else {
-    rstudioapi::as.document_position(c(loc[[2]], 1))
-  }
-  rng <- rstudioapi::document_range(c(loc[[1]], 1), rng_aft)
-  if (after$id != "#console") {
-    rstudioapi::setSelectionRanges(rng)
-    rstudioapi::executeCommand('reformatCode')
+    rng_bfr <- before$selection[[1]]$range$start
+
+    x_ln <- line_length(x)
+    loc <- calc_location(before, x_ln)
+
+    rstudioapi::insertText(location = c(loc[[1]], 1),
+                           text = paste0(x, "\n\n"))
+
+    after <- rstudioapi::getActiveDocumentContext()
+    rng_aft <- if (is.null(loc[[2]])) {
+      after$selection[[1]]$range$end
+    } else {
+      rstudioapi::as.document_position(c(loc[[2]], 1))
+    }
+    rng <- rstudioapi::document_range(c(loc[[1]], 1), rng_aft)
+    if (after$id != "#console") {
+      rstudioapi::setSelectionRanges(rng)
+      rstudioapi::executeCommand('reformatCode')
+    }
   }
 }
 
@@ -120,8 +126,8 @@ calc_last_line <- function(context, loc) {
 #
 # datapasta::vector_paste(get_supported_fns())
 
-is_supported <- function(map_fn) {
 
+get_supported_fns <- function() {
   supported_fns <- c("imap", "imap_chr", "imap_dbl", "imap_dfc", "imap_dfr", "imap_int", "imap_lgl",
                      "imap_raw", "imodify", "iwalk", "lmap", "lmap_at", "map", "map_at", "map_chr",
                      "map_dbl", "map_df", "map_dfc", "map_dfr", "map_if", "map_int", "map_lgl",
@@ -130,6 +136,12 @@ is_supported <- function(map_fn) {
                      "modify2", "pmap", "pmap_chr", "pmap_dbl", "pmap_df", "pmap_dfc", "pmap_dfr",
                      "pmap_int", "pmap_lgl", "pmap_raw", "pwalk", "walk", "walk2", "accumulate",
                      "accumulate2", "reduce", "reduce2")
+  supported_fns
+}
+
+is_supported <- function(map_fn) {
+
+  supported_fns <- get_supported_fns()
 
   not_supported_fns <- c("apply", "lapply", "vapply", "sapply", "rapply", "Map", "mapply", "tapply")
 
