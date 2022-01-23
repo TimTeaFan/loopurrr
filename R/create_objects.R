@@ -194,12 +194,12 @@ create_null_return <- function(maybe_assign, returns_null, is_redu, is_lmap, is_
 
     if (!has_def) {
 
-      return(paste0(if_tmp, maybe_assign, ' .tmp'))
+      return(paste0(if_tmp, maybe_assign, '.tmp\n'))
 
     } else if (is_extr_fn && has_def) {
 
       else_def <- paste0(' else ', def)
-      return(paste0(maybe_assign, if_tmp,  ' .tmp', else_def))
+      return(paste0(maybe_assign, if_tmp, '.tmp\n', else_def))
     }
   }
   return(NULL)
