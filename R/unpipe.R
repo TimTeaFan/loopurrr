@@ -58,12 +58,15 @@ unpipe_all <- function(code_expr, .top_level = TRUE) {
 
 # Check if call to `as_loop` used pipes, and if, unpipe it.
 
-check_and_unpipe <- function(sc) {
+check_and_unpipe <- function(sc, is_dot) {
 
-  if (length(sc) > 1) {
+  # TODO: create recursive function that goes through the whole call stack:
+  if (length(sc) > 1 && is_dot) {
     last_cl <- as.list(sc[length(sc) -1L][[1]])
     if (as.character(last_cl[[1]]) == "%>%" && as.character(last_cl[[3]]) == "as_loop") {
-      unpipe_all(last_cl[[2]])
+      return(unpipe_all(last_cl[[2]]))
+    } else if (as.character(last_cl[[2]][[1]]) == "%>%" && as.character(last_cl[[2]][[3]]) == "as_loop") {
+      return(unpipe_all(last_cl[[2]][[2]]))
     }
   }
 }

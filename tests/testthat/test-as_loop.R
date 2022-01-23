@@ -4,7 +4,7 @@ test_that("as_loop works with map", {
 
   expect_equal(map(x, sum),
                as_loop(map(x, sum),
-                       eval = TRUE)
+                       return = "eval")
                )
 
 
@@ -12,7 +12,7 @@ test_that("as_loop works with map", {
 
   expect_equal(map(y, paste),
                as_loop(map(y, paste),
-                       eval = TRUE)
+                       return = "eval")
   )
 })
 
@@ -23,13 +23,13 @@ test_that("as_loop works with different ways of supplying .f", {
   # purrr style formulas
   expect_equal(map(x, ~ sum(.x)),
                as_loop(map(x, ~ sum(.x)),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # anonymous functions
   expect_equal(map(x, function(x) sum(x)),
                as_loop(map(x, function(x) sum(x)),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # argument forwarding in ...
@@ -38,20 +38,20 @@ test_that("as_loop works with different ways of supplying .f", {
 
   expect_equal(map(y, sum, na.rm = TRUE),
                as_loop(map(y, sum, na.rm = TRUE),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # not supported yet: argument forwarding with lambda functions
 
   expect_error(as_loop(map(y, ~ sum(.x, na.rm = .y), TRUE),
-                       eval = TRUE),
+                       return = "eval"),
                "argument forwarding"
   )
 
   # not supported yet: lambda functions using the `...`
 
   expect_error(as_loop(map(y, function(...) sum(..1, na.rm = TRUE)),
-                       eval = TRUE),
+                       return = "eval"),
                "does not support anonymous functions"
   )
 
@@ -64,7 +64,7 @@ test_that("as_loop works with different ways of supplying .f", {
   )
 
   expect_error(as_loop(map(l2, list("num", 3)),
-                       eval = TRUE),
+                       return = "eval"),
                "does not yet support lists when supplied as"
   )
 })
@@ -74,19 +74,19 @@ test_that("as_loop works with magrittr pipe", {
   x <- list(c(1,2), c(2,3), c(3,4))
 
   exp1 <- x %>% map(sum)
-  out1 <- x %>% map(sum) %>% as_loop(., eval = TRUE)
+  out1 <- x %>% map(sum) %>% as_loop(., return = "eval")
 
   expect_equal(exp1, out1)
 
 
   exp2 <- c(1:3) %>% map(sum)
-  out2 <- c(1:3) %>% map(sum) %>% as_loop(., eval = TRUE)
+  out2 <- c(1:3) %>% map(sum) %>% as_loop(., return = "eval")
 
   expect_equal(exp2, out2)
 
 
   exp3 <- sum %>% map(1:3, .)
-  out3 <- sum %>% map(1:3, .) %>% as_loop(., eval = TRUE)
+  out3 <- sum %>% map(1:3, .) %>% as_loop(., return = "eval")
 
   expect_equal(exp3, out3)
 })
@@ -96,7 +96,7 @@ test_that("as_loop works with namespaced map calls", {
   x <- list(c(1,2), c(2,3), c(3,4))
 
   exp1 <- x %>% purrr::map(sum)
-  out1 <- x %>% purrr::map(sum) %>% as_loop(., eval = TRUE)
+  out1 <- x %>% purrr::map(sum) %>% as_loop(., return = "eval")
 
   expect_equal(exp1, out1)
 })
@@ -108,7 +108,7 @@ test_that("as_loop works with typed versions of map", {
   # map_int
   expect_equal(map_int(x_int, sum),
                as_loop(map_int(x_int, sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
 
@@ -117,7 +117,7 @@ test_that("as_loop works with typed versions of map", {
   # map_dbl
   expect_equal(map_dbl(x, sum),
                as_loop(map_dbl(x, sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
 
@@ -126,46 +126,46 @@ test_that("as_loop works with typed versions of map", {
   # map_chr
   expect_equal(map_chr(y, paste),
                as_loop(map_chr(y, paste),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # map_lgl
   expect_equal(map_lgl(x, ~ sum(.x) > 4),
                as_loop(map_lgl(x, ~ sum(.x) > 4),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # # map_raw
   expect_equal(map_raw(y, ~ as.raw(.x)),
                as_loop(map_raw(y, ~ as.raw(.x)),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # map_dfc with named vector
   expect_equal(map_dfc(y, ~ c(a = .x, b = 1, c = 2)),
                as_loop(
                  map_dfc(y, ~ c(a = .x, b = 1, c = 2)),
-                 eval = TRUE)
+                 return = "eval")
   )
 
   # map_dfc with unnamed vector
   expect_equal(map_dfc(unname(y), ~ c(.x, 1, 2)),
                as_loop(
                  map_dfc(unname(y), ~ c(.x, 1, 2)),
-                 eval = TRUE)
+                 return = "eval")
   )
 
   # map_dfr with named vector
   expect_equal(map_dfr(y, ~ c(a = .x, b = 1, c = 2)),
                as_loop(
                  map_dfr(y, ~ c(a = .x, b = 1, c = 2)),
-                 eval = TRUE)
+                 return = "eval")
   )
 
   # map_dfc with unnamed vector
   expect_error(as_loop(
                  map_dfr(unname(y), ~ c(.x, 1, 2)),
-                 eval = TRUE),
+                 return = "eval"),
                "Argument 1 must have names"
   )
 
@@ -178,22 +178,22 @@ test_that("as_loop works with map_at and map_if", {
 
   expect_equal(map_at(x, "a", sum),
                as_loop(map_at(x, "a", sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   expect_equal(map_at(x, c(1, 3), sum),
                as_loop(map_at(x, c(1, 3), sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   expect_equal(map_if(x, is.numeric, sum),
                as_loop(map_if(x, is.numeric, sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   expect_equal(map_if(x, is.numeric, sum, .else = ~ paste(.x, collapse = ", ")),
                as_loop(map_if(x, is.numeric, sum, .else = ~ paste(.x, collapse = ", ")),
-                       eval = TRUE)
+                       return = "eval")
   )
 
 })
@@ -204,7 +204,7 @@ test_that("as_loop works with walk", {
 
   output_asloop <- capture.output(
     as_loop(walk(c(a = 1, b = 2, c = 3), ~ print(.x)),
-            eval = TRUE)
+            return = "eval")
   )
 
   output_walk <- capture.output(
@@ -212,6 +212,17 @@ test_that("as_loop works with walk", {
   )
 
   expect_equal(output_asloop, output_walk)
+
+  # confirm return value of `walk`
+
+  exp1 <- walk(c(a = 1, b = 2, c = 3), ~ print(.x)) %>%
+    `+`(., 1)
+
+  out1 <- walk(c(a = 1, b = 2, c = 3), ~ print(.x)) %>%
+    as_loop(., return = "eval")  %>%
+    `+`(., 1)
+
+  expect_equal(exp1, out1)
 
 })
 
@@ -230,7 +241,7 @@ test_that("as_loop works with lmap", {
     out
   }
 
-  test_ls <- as_loop(lmap(y, list_rep), eval = TRUE)
+  test_ls <- as_loop(lmap(y, list_rep), return = "eval")
   expect_ls <- lmap(y, list_rep)
 
   expect_equal(test_ls, expect_ls)
@@ -245,13 +256,13 @@ test_that("as_loop works with imap and iwalk", {
   expect_equal(imap(c(a = 1, b = 2, c = 3), paste),
 
                as_loop(imap(c(a = 1, b = 2, c = 3), paste),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # iwalk
   output_asloop <- capture.output(
     as_loop(iwalk(c(a = 1, b = 2, c = 3), ~ print(c(.x, .y))),
-            eval = TRUE)
+            return = "eval")
   )
 
   output_iwalk <- capture.output(
@@ -270,7 +281,7 @@ test_that("as_loop works with map2", {
 
   expect_equal(map2(a, b, sum),
                as_loop(map2(a, b, sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
 })
@@ -286,43 +297,43 @@ test_that("as_loop works with typed versions of map2", {
   # map2_chr
   expect_equal(map2_chr(a, b, sum),
                as_loop(map2_chr(a, b, sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # map2_int
   expect_equal(map2_int(a, b, sum),
                as_loop(map2_int(a, b, sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # map2_dbl
   expect_equal(map2_dbl(a, b, sum),
                as_loop(map2_dbl(a, b, sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # map2_lgl
   expect_equal(map2_dbl(a, b, ~ .x == .y),
                as_loop(map2_dbl(a, b, ~ .x == .y),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # map2_raw
   expect_equal(map2_raw(a, b, ~ as.raw(.x + .y)),
                as_loop(map2_raw(a, b, ~ as.raw(.x + .y)),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # map2_dfc
   expect_equal(map2_dbl(a, b, sum),
                as_loop(map2_dbl(a, b, sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   # map2_dfr
   expect_equal(map2_dbl(a, b, sum),
                as_loop(map2_dbl(a, b, sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
 
@@ -337,7 +348,7 @@ test_that("as_loop works with walk2", {
 
   output_asloop <- capture.output(
     as_loop(walk2(a, b, ~ print(paste0(.x, .y))),
-            eval = TRUE)
+            return = "eval")
   )
 
   output_walk2 <- capture.output(
@@ -359,14 +370,14 @@ test_that("as_loop works with pmap", {
 
   expect_equal(pmap(list(a, b, c), sum),
                as_loop(pmap(list(a, b, c), sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   d <- set_names(1:10, letters[1:10])
 
   expect_equal(pmap(list(d, b, c), sum),
                as_loop(pmap(list(d, b, c), sum),
-                       eval = TRUE)
+                       return = "eval")
   )
 
 })
@@ -381,7 +392,7 @@ test_that("as_loop works with pwalk", {
 
   output_asloop <- capture.output(
     as_loop(pwalk(list(a, b, c), ~ print(paste(..1, ..2, ..3))),
-            eval = TRUE)
+            return = "eval")
   )
 
   output_pwalk <- capture.output(
@@ -410,12 +421,12 @@ test_that("as_loop works with lmap and lmap_at", {
 
   expect_equal(lmap(y,  list_rep),
                as_loop(lmap(y,  list_rep),
-                       eval = TRUE)
+                       return = "eval")
   )
 
   expect_equal(lmap_at(y, c(1,3), list_rep),
                as_loop(lmap_at(y, c(1,3), list_rep),
-                       eval = TRUE)
+                       return = "eval")
   )
 
 })
@@ -429,7 +440,7 @@ test_that("as_loop works with modify", {
   attr(x, "myatt") <- "this vector has attributes"
 
   exp1 <- modify(x, sum)
-  out1 <- as_loop(modify(x, sum), eval = TRUE)
+  out1 <- as_loop(modify(x, sum), return = "eval")
 
   expect_equal(exp1, out1)
 
@@ -444,35 +455,35 @@ test_that("as_loop works with modify_at and modify_if", {
 
   # modify_at by name in function
   exp1 <- modify_at(x, "a", sum)
-  out1 <- as_loop(modify_at(x, "a", sum), eval = TRUE)
+  out1 <- as_loop(modify_at(x, "a", sum), return = "eval")
 
   expect_equal(exp1, out1)
 
   # modify_at by name in external vector
   myvec <- "a"
   exp1b <- modify_at(x, myvec, sum)
-  out1b <- as_loop(modify_at(x, myvec, sum), eval = TRUE)
+  out1b <- as_loop(modify_at(x, myvec, sum), return = "eval")
 
   expect_equal(exp1b, out1b)
 
 
   # modify_at by position
   exp2 <- modify_at(x, 1, sum)
-  out2 <- as_loop(modify_at(x, 1, sum), eval = TRUE)
+  out2 <- as_loop(modify_at(x, 1, sum), return = "eval")
 
   expect_equal(exp2, out2)
 
   # modify_at by position in vector
   myvec2 <- 1
   exp2b <- modify_at(x, myvec2, sum)
-  out2b <- as_loop(modify_at(x, myvec2, sum), eval = TRUE)
+  out2b <- as_loop(modify_at(x, myvec2, sum), return = "eval")
 
   expect_equal(exp2b, out2b)
 
 
   # modify_if without else
   exp3 <- modify_if(x, is.numeric, sum)
-  out3 <- as_loop(modify_if(x, is.numeric, sum), eval = TRUE)
+  out3 <- as_loop(modify_if(x, is.numeric, sum), return = "eval")
 
   expect_equal(exp3, out3)
 
@@ -480,14 +491,14 @@ test_that("as_loop works with modify_at and modify_if", {
   # modify_if without else in custom function
   myfun <- function(x) is.numeric(x)
   exp3b <- modify_if(x, myfun, sum)
-  out3b <- as_loop(modify_if(x, myfun, sum), eval = TRUE)
+  out3b <- as_loop(modify_if(x, myfun, sum), return = "eval")
 
   expect_equal(exp3b, out3b)
 
 
   # modify_if without else in regular anonymous function
   exp3c <- modify_if(x, function(x) is.numeric(x), sum)
-  out3c <- as_loop(modify_if(x, function(x) is.numeric(x), sum), eval = TRUE)
+  out3c <- as_loop(modify_if(x, function(x) is.numeric(x), sum), return = "eval")
 
   expect_equal(exp3c, out3c)
 
@@ -495,13 +506,14 @@ test_that("as_loop works with modify_at and modify_if", {
   # modify_if with else
   exp4 <- modify_if(x, is.numeric, sum, .else = ~paste(.x, collapse = ","))
   out4 <- as_loop(modify_if(x, is.numeric, sum, .else = ~ paste(.x, collapse = ",")),
-                  eval = TRUE)
+                  return = "eval")
 
   expect_equal(exp4, out4)
 })
 
 
 # modify2
+# TODO: add modify2 with .inp objects!
 
 test_that("as_loop works with modify", {
 
@@ -511,7 +523,7 @@ test_that("as_loop works with modify", {
   y <- list(20, c(100))
 
   exp1 <- modify2(x, y, sum)
-  out1 <- as_loop(modify2(x, y, sum), eval = TRUE)
+  out1 <- as_loop(modify2(x, y, sum), return = "eval")
 
   expect_equal(exp1, out1)
 
@@ -532,7 +544,7 @@ test_that("as_loop works with accumulate", {
     )
 
   out1 <- capture.output(
-    accumulate(1:10, ~sum_print(.x, .y)) %>% as_loop(., eval = TRUE)
+    accumulate(1:10, ~sum_print(.x, .y)) %>% as_loop(., return = "eval")
   )
 
   expect_equal(exp1, out1)
@@ -544,7 +556,7 @@ test_that("as_loop works with accumulate", {
   )
 
   out2 <- capture.output(
-    accumulate(1:10, ~sum_print(.x, .y), .init = 100) %>% as_loop(., eval = TRUE)
+    accumulate(1:10, ~sum_print(.x, .y), .init = 100) %>% as_loop(., return = "eval")
   )
 
   expect_equal(exp2, out2)
@@ -556,7 +568,7 @@ test_that("as_loop works with accumulate", {
   )
 
   out3 <- capture.output(
-    accumulate(1:10, ~sum_print(.x, .y), .dir = "backward") %>% as_loop(., eval = TRUE)
+    accumulate(1:10, ~sum_print(.x, .y), .dir = "backward") %>% as_loop(., return = "eval")
   )
 
   expect_equal(exp3, out3)
@@ -569,7 +581,7 @@ test_that("as_loop works with accumulate", {
 
   out4 <- capture.output(
     accumulate(1:10, ~sum_print(.x, .y), .init = 100, .dir = "backward") %>%
-      as_loop(., eval = TRUE)
+      as_loop(., return = "eval")
   )
 
   expect_equal(exp4, out4)
@@ -595,7 +607,7 @@ test_that("as_loop works with accumulate2", {
 
   out1 <- capture.output(
     accumulate2(1:5, 5:8, sum_print3) %>%
-      as_loop(., eval = TRUE)
+      as_loop(., return = "eval")
   )
 
   expect_equal(exp1, out1)
@@ -608,7 +620,7 @@ test_that("as_loop works with accumulate2", {
 
   out2 <- capture.output(
     accumulate2(1:5, 5:9, sum_print3, .init = 100) %>%
-      as_loop(., eval = TRUE)
+      as_loop(., return = "eval")
   )
 
   expect_equal(exp2, out2)
@@ -632,7 +644,7 @@ test_that("as_loop works with reduce", {
 
   out1 <- capture.output(
     reduce(1:10, ~ sum_print(.x, .y)) %>%
-      as_loop(., eval = TRUE)
+      as_loop(., return = "eval")
   )
 
   expect_equal(exp1, out1)
@@ -645,7 +657,7 @@ test_that("as_loop works with reduce", {
 
   out2 <- capture.output(
     reduce(1:10, ~sum_print(.x, .y), .init = 100) %>%
-      as_loop(., eval = TRUE)
+      as_loop(., return = "eval")
   )
 
   expect_equal(exp2, out2)
@@ -658,7 +670,7 @@ test_that("as_loop works with reduce", {
 
   out3 <- capture.output(
     reduce(1:10, ~sum_print(.x, .y), .dir = "backward") %>%
-      as_loop(., eval = TRUE)
+      as_loop(., return = "eval")
   )
 
   expect_equal(exp3, out3)
@@ -671,7 +683,7 @@ test_that("as_loop works with reduce", {
 
   out4 <- capture.output(
     reduce(1:10, ~sum_print(.x, .y), .init = 100, .dir = "backward") %>%
-      as_loop(., eval = TRUE)
+      as_loop(., return = "eval")
   )
 
   expect_equal(exp4, out4)
@@ -692,7 +704,7 @@ test_that("as_loop works with reduce2", {
   exp1 <- reduce2(1:3, 4:5, foo)
 
   out1 <- reduce2(1:3, 4:5, foo) %>%
-      as_loop(., eval = TRUE)
+      as_loop(., return = "eval")
 
   expect_equal(exp1, out1)
 
@@ -701,7 +713,7 @@ test_that("as_loop works with reduce2", {
   exp2 <- reduce2(1:3, 4:6, foo, .init = 10)
 
   out2 <- reduce2(1:3, 4:6, foo, .init = 10) %>%
-    as_loop(., eval = TRUE)
+    as_loop(., return = "eval")
 
   expect_equal(exp2, out2)
 
@@ -721,12 +733,12 @@ test_that("as_loop throws an error when called with non-purrr or non-supported f
   )
 
   exp1 <- map(l2, "num")
-  out1 <- as_loop(map(l2, "num"), eval = TRUE)
+  out1 <- as_loop(map(l2, "num"), return = "eval")
 
   expect_equal(exp1, out1)
 
   exp2 <- map(l2, c(2, 2))
-  out2 <- as_loop(map(l2, c(2, 2)), eval = TRUE)
+  out2 <- as_loop(map(l2, c(2, 2)), return = "eval")
 
   expect_equal(exp2, out2)
 
@@ -740,15 +752,15 @@ test_that("as_loop throws an error when called with non-purrr or non-supported f
 
   tmap <- function(x, f) f(x)
 
-  expect_error(as_loop(tmap(x, sum), eval = TRUE),
+  expect_error(as_loop(tmap(x, sum), return = "eval"),
                "only works with `map` and similar functions from the purrr package"
   )
 
-  expect_error(as_loop(lmap_if(x, sum), eval = TRUE),
+  expect_error(as_loop(lmap_if(x, sum), return = "eval"),
                "does only support certain"
   )
 
-  expect_error(as_loop(lapply(x, sum), eval = TRUE),
+  expect_error(as_loop(lapply(x, sum), return = "eval"),
                "doesn't support functions from base R's apply family"
   )
 

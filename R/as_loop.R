@@ -1,15 +1,136 @@
-# TODO: Documentation
+#' Translate {purrr} iterative functions to regular for-loops
+#'
+#' @description
+#' `as_loop()` takes a function call to one of {purrr}'s iterator functions, such as [purrr::map()],
+#' and translates it into a regular `for`-loop. Depending on the output context, the translation is
+#' either (i) printed to the console, (ii) copied to the clipboard or (iii) directly inserted into
+#' RStudio. Note that For the latter two options the {clipr} respectively the {rstudioapi} packages
+#' are required.
+#'
+#' The usage is pretty straight-forward: Just wrap a call to a {purrr} iterator function into
+#' `as_loop()` or us one of the pipe operators (`|>` or `%>%`) to pipe the function call into
+#' `as_loop()`. For details see the examples below.
+#'
+#' @param .expr A function call to a {purrr} iterator function. See the "Supported functions"
+#' section below for an overview of which {purrr} iterator functions are currently supported.
+#'
+#' @param simplify When TRUE, the default, `as_loop()` will run the function call in `.expr` to
+#' check two things: (1) Whether the call is valid. If not, an error will be thrown, pointing out
+#' that the underlying function call is invalid. (2) Whether the resulting return value contains
+#' `NULL`. In this case the the for-loop needs to be more verbose. When `simplify` is set `FALSE`
+#' the function call in `.expr` is not checked for errors and resulting for-loop will be more verbose
+#' even if `NULL` is not among the return values. It is recommened to set `simplify` to `FALSE` for
+#' calculation-heavy function calls.
+#'
+#' @param output_nm sets the name of the resulting output object. The default name is `out`.
+#'
+#' @param idx sets the name of the index of the `for`-loop. The default index is `i`.
+#'
+#' @param output_context An optional output context that defines the output target. Possible values
+#' are one or several of:
+#'
+#'   - `"rstudio"`: This will insert the translation to the location where `as_loop()` was run. If it
+#'   was run from within an R script, the for-loop will be inserted there, otherwise in the console.
+#'   Note that the {rstudioapi} package is needed for this option.
+#'   - `"clipboard"`: This will copy the `for`-loop translation to the clipboard. Note that the
+#'   {rstudioapi} package is needed for this option.
+#'   - `"console"`: This will print the call to the console using `cat()`.
+#'
+#' The default setting is to call `default_context()`. This function first looks at the
+#' `"loopurrr.output"` option. If the option is not set (`NULL`), then it will default to
+#' `c("rstudio", "clipboard", "console")`. In this case `as_loop()` will try each output
+#' option starting with `"rstudio"`. If neither the {rstudioapi} package nor the {clipr}
+#' package are installed, the output context will fall back to the `"console"`.
+#'
+#' @param return When set to `"string"`, the default, `as_loop()` will return the translated code as
+#' character strings to the location specified in `output_context`. When set to `"eval"`, the
+#' translated code will be evaluated in a dedicated environment and the output object will be
+#' returned. This option is especially for testing whether `as_loop()` works as expected. It should
+#' be irrelevant for most users.
+#'
+#' @returns
+#' Depending on the `return` argument the return value is:
+#'  1. When `output == "string"`: `NULL`. As a side-effect, the translated `for`-loop will be
+#'  returned to the specified output context.
+#'  1. When `output == "eval"`: Usually the return value of the output object that is constructed
+#'  with the `for`-loop. In case of a call to `walk`, `walk2` etc. the (first) input object will be
+#'  returned.
+#'
+#' @section Supported functions:
+#' ```{r, child = "man/rmd/setup.Rmd"}
+#' ```
+#'
+#' The following iterator functions from the {purrr} package are currently supported:
+#' ```{r, comment = "#>", collapse = TRUE, echo = FALSE}
+#' sort(get_supported_fns())
+#' ```
+#'
+#' @section Examples:
+#'
+#' [TEXT HIER]
+#'
+#' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
+#' map(1:3, sum) %>% as_loop()
+#'
+#'# --- convert: `map(1:3, sum)` as loop --- #
+#' .inp1 <- 1:3
+#' out <- vector("list", length = length(.inp1))
+#'
+#' for (i in seq_along(.inp1)) {
+#'   out[[i]] <- sum(.inp1[[i]])
+#' }
+#' # --- end loop --- #
+#' ```
+#'
+#' [TEXT HIER]
+#'
+#' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
+#' map_dbl(x, sum) %>%
+#'   as_loop(., output_nm = ".res", idx = "j")
+#'
+#' # --- convert: `map_dbl(x, sum)` as loop --- #
+#' .res <- vector("double", length = length(x))
+#'
+#' for (j in seq_along(x)) {
+#'   .res[[j]] <- sum(x[[j]])
+#' }
+#' # --- end loop --- #
+#' ```
+#'
+#' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
+#' map(1:3, sum) %>% as_loop(., simplify = FALSE)
+#'
+#' # --- convert: `map(1:3, sum)` as loop --- #
+#' .inp1 <- 1:3
+#' out <- vector("list", length = length(.inp1))
+#'
+#' for (i in seq_along(.inp1)) {
+#'   .tmp <- sum(.inp1[[i]])
+#'   if (!is.null(.tmp))
+#'     out[[i]] <- .tmp
+#' }
+# --- end loop --- #
+#' ```
+#'
+#'
+#'
+#'
+#'
 as_loop <- function(.expr,
-                    output = default_output(),
-                    eval = FALSE,
                     simplify = TRUE,
+                    output_nm = "out",
                     idx = "i",
-                    output_nm = "out") {
+                    output_context = default_context(),
+                    return = c("string", "eval")) {
+
+  return <- match.arg(return, several.ok = FALSE)
+  output_context <- match.arg(output_context, several.ok = TRUE)
 
   q <- rlang::enquo(.expr)
 
+  # TODO: wrap this block into one function
   # check: magrittr pipe expression
-  new_expr <- check_and_unpipe(sys.calls())
+  new_expr <- check_and_unpipe(sys.calls(), is_dot = match.call()$`.expr` == ".")
   if (!is.null(new_expr)) {
     q <- rlang::quo_set_expr(q, new_expr)
   }
@@ -18,6 +139,7 @@ as_loop <- function(.expr,
   q_expr <- rlang::quo_get_expr(q)
   cl_chr <- call_as_chr(q_expr)
 
+  # TODO: deparse and remove namespace into function:
   map_fn_chr <- deparse(q_expr[[1]])
   # remove namespace
   if(grepl("^\\w+::", map_fn_chr, perl = TRUE)) {
@@ -32,17 +154,15 @@ as_loop <- function(.expr,
   # error: output_nm may not be `.at` or `.sel` or `.inp`
   # warn: output_nm and `.at`, `.sel` `.inp` should not exist in global environment
 
-  output <- match.arg(output, several.ok = TRUE)
 
-  if (eval) {
+  if (return == "eval") {
     output_fn <- NULL
   } else {
-    output_fn <- create_output_fn(output)
+    output_fn <- create_output_fn(output_context)
   }
 
   q_ex_std <- rlang::call_match(call = q_expr, fn = map_fn)
   expr_ls <- as.list(q_ex_std)
-
   q_env <- rlang::quo_get_env(q)
 
   # put these calls in a setup function
@@ -55,6 +175,7 @@ as_loop <- function(.expr,
   dir       <- expr_ls[[".dir"]]
   def       <- expr_ls[[".default"]]
 
+  # put these calls in another setup function
   has_init   <- !is.null(init)
   is_back    <- !is.null(dir) && dir == "backward"
   is_lmap    <- grepl("^lmap", map_fn_chr, perl = TRUE)
@@ -66,7 +187,7 @@ as_loop <- function(.expr,
   is_redu    <- grepl("reduce", map_fn_chr, perl = TRUE)
   is_extr_fn <- check_extr_fn(fn_expr, q_env)
 
-  returns_null <- if(is_extr_fn) TRUE else FALSE
+  returns_null <- if(is_extr_fn || !simplify) TRUE else FALSE
 
   # try purrr call, hide print output, check if result contains NULL:
   if (simplify) {
@@ -76,6 +197,7 @@ as_loop <- function(.expr,
 
   # call dependent setup ---
 
+  # wrap this logic into a function that return `inp_ls
   # define input list
   if (!is.null(expr_ls[[".l"]])) {
     inp_ls <- as.list(expr_ls[[".l"]][-1])
@@ -87,9 +209,7 @@ as_loop <- function(.expr,
                    .y = expr_ls[[".y"]])
   }
 
-
   # function and arguments
-
   map_fn_fmls <- rlang::fn_fmls_names(map_fn)
   non_dot_args <- map_fn_fmls[map_fn_fmls != "..."]
 
@@ -99,6 +219,7 @@ as_loop <- function(.expr,
   # object and input object calls and names
   inp_objs <- create_inp_objs(inp_ls)
   # FIXME: Will this work with modify2 ???!
+  # TODO:  add this to `create_inp_objs`
   if (!is.null(inp_objs) && is_modify) {
     names(inp_objs)[1] <- output_nm
   }
@@ -120,10 +241,13 @@ as_loop <- function(.expr,
              after = 1)
     }
   }
+  # add all the above to `create_inp_objs` and let it return list with multiple outputs
 
+  # TODO: add this line to `create_custom_inpts`:
   custom_inp_objs <- inp_objs[names(inp_objs) != inp_objs]
   maybe_custom_inpts <- create_custom_inpts(custom_inp_objs)
 
+  # TODO: wrap into funciton
   if (is_lmap) {
     brk <- list(o = '[',
                 c = ']')
@@ -149,7 +273,6 @@ as_loop <- function(.expr,
 
   maybe_at <- add_at(map_fn  = map_fn_chr,
                      obj     = obj,
-                     # obj_nms = obj_nms,
                      output_nm = output_nm,
                      idx     = idx,
                      at      = at_idx,
@@ -180,6 +303,17 @@ as_loop <- function(.expr,
 
   maybe_return_null <- create_null_return(maybe_assign, returns_null, is_redu, is_lmap, is_extr_fn, def)
 
+  # TODO: wrap those parts in functions:
+  maybe_if_selector <- if (!is.null(maybe_if) && is.null(else_fn) && !is_lmap) paste0('.sel <- vector("logical", length = length(', obj,'))\n')
+
+  forloop_start <- paste0('\nfor (',idx,' in ', if(is_back) 'rev(', 'seq_along(', obj, ')', if(is_back) ')')
+
+  maybe_at_nonselected <- if (!is.null(maybe_at) && !is_lmap) paste0('\n', output_nm, '[-.sel] <- ', obj,'[-.sel]\n')
+
+  maybe_if_nonselected <- if (!is.null(maybe_if) && is.null(else_fn) && !is_lmap) paste0('\n', output_nm, '[.sel] <- ', obj,'[.sel]\n')
+
+  maybe_null_or_extractor_fn <- if((returns_null && !is_redu && !is_lmap) || is_extr_fn) '.tmp <-' else maybe_assign
+
   # FIXME: add this to rewrite_fn
   if (is_lmap && !is.null(maybe_at)) {
     apply_fn <- paste0('if (.sel[[', idx, ']]) {\n',
@@ -197,29 +331,41 @@ as_loop <- function(.expr,
   str_out <- paste0('# --- convert: ', cl_chr, ' as loop --- #\n',
                     maybe_custom_inpts,
                     maybe_at,
-                    if (!is.null(maybe_if) && is.null(else_fn) && !is_lmap) paste0('.sel <- vector("logical", length = length(', obj,'))\n'),
+                    maybe_if_selector,
                     maybe_output,
                     maybe_accu,
-                    paste0('\nfor (',idx,' in ', if(is_back) 'rev(', 'seq_along(', obj, ')', if(is_back) ')'),
+                    forloop_start,
+                    # this part to forloop_start
                     if (!is.null(maybe_at) && !is_lmap) '[.sel]',
                     if ((is_redu || is_accu) && !has_init) '[-1]',
                     ') {\n',
+                    # the part above to forloop_start
                     maybe_if,
-                    if((returns_null && !is_redu && !is_lmap) || is_extr_fn) '.tmp <-' else maybe_assign,
+                    maybe_null_or_extractor_fn,
                     apply_fn, '\n',
                     maybe_return_null,
                     maybe_lmap_stop,
                     '}\n',
-                    if (!is.null(maybe_at) && !is_lmap) paste0('\n', output_nm, '[-.sel] <- ', obj,'[-.sel]\n'),
-                    if (!is.null(maybe_if) && is.null(else_fn) && !is_lmap) paste0('\n', output_nm, '[.sel] <- ', obj,'[.sel]\n'),
+                    maybe_at_nonselected,
+                    maybe_if_nonselected,
                     maybe_name_obj,
                     maybe_bind_rows_cols,
                     maybe_post_process,
                     '# --- end loop --- #\n')
 
-  if (eval) {
-    str_eval <- paste0(str_out, if(!is_walk) {paste0('\n', output_nm)})
-    eval(parse(text = str_eval, keep.source = FALSE), envir = rlang::new_environment(parent = q_env))
+  if (return != "string") {
+    str_eval <- paste0(str_out, if(is_walk) {
+      paste0('\n', 'invisible(', obj, ')')
+      } else {
+        paste0('\n', output_nm)
+      })
+    out_code <- parse(text = str_eval, keep.source = FALSE)
+    if (return == "eval") {
+      return(eval(out_code, envir = rlang::new_environment(parent = q_env)))
+    } else {
+      # just in case we want `as_loop` to return a list of calls someday (not supported yet)
+      return(out_code)
+    }
   } else {
     output_fn(str_out)
   }
