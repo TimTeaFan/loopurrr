@@ -50,9 +50,9 @@
 #'
 #' @returns
 #' Depending on the `return` argument the return value is:
-#'  1. When `output == "string"`: `NULL`. As a side-effect, the translated for loop will be
+#'  1. When `output = "string"`: `NULL`. As a side-effect, the translated for loop will be
 #'  returned to the specified output context.
-#'  1. When `output == "eval"`: Usually the return value of the output object that is constructed
+#'  1. When `output = "eval"`: Usually the return value of the output object that is constructed
 #'  with the for loop. In case of a call to `walk`, `walk2` etc. the (first) input object will be
 #'  returned.
 #'
@@ -124,7 +124,7 @@
 #'   if (!is.null(.tmp))
 #'     out[[i]] <- .tmp
 #' }
-#' --- end loop --- #
+#' # --- end loop --- #
 #' ```
 #'
 #' @export
