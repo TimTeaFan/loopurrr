@@ -1,18 +1,50 @@
-
+#' Get and set output loopurrr's options
+#'
+#' @description
+#' `get_output_opt()` and `set_output_opt()` get and set loopurrr's output options. They are light
+#' wrappers around `getOption("loopurrr.output")` and `options("loopurrr.output")`.
+#'
+#' `default_context()` inspects if the `"loopurrr.output"` option is set. If the option is not
+#' specified, it will default to `c("rstudio", "clipboard", "console")`. If `"console"` is not
+#' among the output options it will be automatically include it as last option.
+#'
+#' @param x Either `NULL` or one or several of `"rstudio"`, `"clipboard"`, `"console"`. If set to
+#' more than one option, the output options will be tried in order from left to right.
+#'
+#' @param default If the specified option is not set in the options list, this value is returned.
+#' This argument is for internal use only.
+#'
+#' @returns
+#' For `get_output_opt()`, the current value set for option `"loopurrr.output"`, or default
+#' (which defaults to NULL) if the option is unset.
+#'
+#' For `default_context()`, either the current value set for option `"loopurrr.output"`.
+#' In this case, if `"console"` is not among the options it will be automatically include it as last
+#' option. Or, if option `"loopurrr.output"` is not specified `c("rstudio", "clipboard", "console")`.
+#'
+#'
+#' @section Examples:
+#'
+#' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
+#' set_output_opt(c("clipboard", "rstudio"))
+#'
+#' get_ouptut_opt()
+#' #> [1] "clipboard" "rstudio"
+#'
+#' default_context()
+#' #> [1] "clipboard" "rstudio" "console"
+#' ```
+#'
+#' @rdname output_options
+#' @export
 get_output_opt <- function(default = NULL) {
   getOption("loopurrr.output", default = default)
 }
 
+#' @rdname output_options
+#' @export
 set_output_opt <- function(x = list("rstudio", "clipboard", "console", NULL)) {
   match.arg(x, several.ok = TRUE)
-  if (any(purrr::map_lgl(x, is.null)) && length(x) > 1) {
-    rlang::abort(
-      c("Problem with `set_output_opt()` input `x`.",
-        i = "You can either unset {loopurrr}'s output option by specifying `x = NULL` or you can set it to one or several output options.",
-        x = "`x` contains `NULL` as well as other output options.",
-        i = "`x = NULL` must not be used together with other output options.")
-    )
-  }
   quoted_option <- bquote(options("loopurrr.output" = .(x)))
   option_chr <- gsub('"', "'", deparse(quoted_option))
   x_chr <- gsub('"', "'", deparse(x))
@@ -24,6 +56,8 @@ set_output_opt <- function(x = list("rstudio", "clipboard", "console", NULL)) {
   )
 }
 
+#' @rdname output_options
+#' @export
 default_context <- function() {
   out_opt <- get_output_opt(default = c("rstudio", "clipboard"))
   if(!"console" %in% out_opt) {
@@ -33,7 +67,7 @@ default_context <- function() {
 }
 
 
-
+#' depending on output_context check and create final output function
 create_output_fn <- function(output) {
 
   has_rstudioapi <- requireNamespace("rstudioapi", quietly = TRUE)
