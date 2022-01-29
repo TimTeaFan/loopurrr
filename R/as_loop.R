@@ -1,4 +1,4 @@
-#' Translate {purrr} iterative functions to regular for-loops
+#' Translate {purrr} iterative functions to regular for loops
 #'
 #' @description
 #' `as_loop()` takes a function call to one of {purrr}'s iterator functions, such as [purrr::map()],
@@ -17,27 +17,27 @@
 #' @param simplify When TRUE, the default, `as_loop()` will run the function call in `.expr` to
 #' check two things: (1) Whether the call is valid. If not, an error will be thrown, pointing out
 #' that the underlying function call is invalid. (2) Whether the resulting return value contains
-#' `NULL`. In this case the the for-loop needs to be more verbose. When `simplify` is set `FALSE`
-#' the function call in `.expr` is not checked for errors and resulting for-loop will be more verbose
+#' `NULL`. In this case the the for loop needs to be more verbose. When `simplify` is set `FALSE`
+#' the function call in `.expr` is not checked for errors and resulting for loop will be more verbose
 #' even if `NULL` is not among the return values. It is recommened to set `simplify` to `FALSE` for
 #' calculation-heavy function calls.
 #'
 #' @param output_nm sets the name of the resulting output object. The default name is `out`.
 #'
-#' @param idx sets the name of the index of the `for`-loop. The default index is `i`.
+#' @param idx sets the name of the index of the for loop. The default index is `i`.
 #'
 #' @param output_context An optional output context that defines the output target. Possible values
 #' are one or several of:
 #'
 #'   - `"rstudio"`: This will insert the translation to the location where `as_loop()` was run. If it
-#'   was run from within an R script, the for-loop will be inserted there, otherwise in the console.
+#'   was run from within an R script, the for loop will be inserted there, otherwise in the console.
 #'   Note that the {rstudioapi} package is needed for this option.
-#'   - `"clipboard"`: This will copy the `for`-loop translation to the clipboard. Note that the
+#'   - `"clipboard"`: This will copy the for loop translation to the clipboard. Note that the
 #'   {rstudioapi} package is needed for this option.
 #'   - `"console"`: This will print the call to the console using `cat()`.
 #'
 #' The default setting is to call `default_context()`. This function first looks at the
-#' `"loopurrr.output"` option. If the option is not set (`NULL`), then it will default to
+#' `"loopurrr.output"` option. If the option is not specified, then it will default to
 #' `c("rstudio", "clipboard", "console")`. In this case `as_loop()` will try each output
 #' option starting with `"rstudio"`. If neither the {rstudioapi} package nor the {clipr}
 #' package are installed, the output context will fall back to the `"console"`.
@@ -50,10 +50,10 @@
 #'
 #' @returns
 #' Depending on the `return` argument the return value is:
-#'  1. When `output == "string"`: `NULL`. As a side-effect, the translated `for`-loop will be
+#'  1. When `output == "string"`: `NULL`. As a side-effect, the translated for loop will be
 #'  returned to the specified output context.
 #'  1. When `output == "eval"`: Usually the return value of the output object that is constructed
-#'  with the `for`-loop. In case of a call to `walk`, `walk2` etc. the (first) input object will be
+#'  with the for loop. In case of a call to `walk`, `walk2` etc. the (first) input object will be
 #'  returned.
 #'
 #' @section Supported functions:
@@ -61,18 +61,27 @@
 #' ```
 #'
 #' The following iterator functions from the {purrr} package are currently supported:
-#' ```{r, comment = "#>", collapse = TRUE, echo = FALSE}
-#' sort(get_supported_fns())
+#' ```{r, comment = "#>", collapse = TRUE, echo = FALSE, eval = TRUE}
+#' dplyr::tibble(id = c("map_", "imap", "map2", "pmap", "modify", "i?walk", "accumulate", "reduce")) %>%
+#'  dplyr::rowwise() %>%
+#'  dplyr::mutate(fns = list(grep(paste0("^", id), get_supported_fns(), value = TRUE))) %>%
+#'  dplyr::ungroup() %>%
+#'  dplyr::mutate(fns = purrr::set_names(fns, id)) %>%
+#'  dplyr::pull(fns)
 #' ```
 #'
 #' @section Examples:
 #'
-#' [TEXT HIER]
+#' If we wrap or pipe a call to `purrr::map()` into `as_loop()` it will be translated into a
+#' regular for loop. Depending on the output context, the resulting for loop will either be
+#' (i) inserted directly into a script in RStudio, (ii) copied to the clipboard or (iii)
+#' printed to the console.
 #'
 #' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
-#' map(1:3, sum) %>% as_loop()
+#' as_loop(map(1:3, sum))      # wrap a call in `as_loop`
+#' map(1:3, sum) %>% as_loop() # pipe a call into `as_loop`
 #'
-#'# --- convert: `map(1:3, sum)` as loop --- #
+#' # --- convert: `map(1:3, sum)` as loop --- #
 #' .inp1 <- 1:3
 #' out <- vector("list", length = length(.inp1))
 #'
@@ -82,7 +91,9 @@
 #' # --- end loop --- #
 #' ```
 #'
-#' [TEXT HIER]
+#' The `output_nm` argument lets us specify the name of the resulting output object. In the
+#' example below `".res"`. The `idx` argument lets us specify the index to be used. In the example
+#' below `"j"`.
 #'
 #' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
 #' map_dbl(x, sum) %>%
@@ -96,6 +107,10 @@
 #' }
 #' # --- end loop --- #
 #' ```
+#'
+#' When `simplify` is set `FALSE` `as_loop` will neither check the validity of the underlying call
+#' nor the expected output. In this case the resulting for loop is more verbose to account for the
+#' case of `NULL` in the return values.
 #'
 #' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
 #' map(1:3, sum) %>% as_loop(., simplify = FALSE)
@@ -112,10 +127,7 @@
 # --- end loop --- #
 #' ```
 #'
-#'
-#'
-#'
-#'
+#' @export
 as_loop <- function(.expr,
                     simplify = TRUE,
                     output_nm = "out",
@@ -218,7 +230,7 @@ as_loop <- function(.expr,
 
   # object and input object calls and names
   inp_objs <- create_inp_objs(inp_ls)
-  # FIXME: Will this work with modify2 ???!
+
   # TODO:  add this to `create_inp_objs`
   if (!is.null(inp_objs) && is_modify) {
     names(inp_objs)[1] <- output_nm
