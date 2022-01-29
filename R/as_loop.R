@@ -124,7 +124,7 @@
 #'   if (!is.null(.tmp))
 #'     out[[i]] <- .tmp
 #' }
-# --- end loop --- #
+#' --- end loop --- #
 #' ```
 #'
 #' @export
