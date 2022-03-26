@@ -2,10 +2,10 @@
 #'
 #' @description
 #' `as_loop()` takes a function call to one of {purrr}'s iterator functions, such as [purrr::map()],
-#' and translates it into a regular `for`-loop. Depending on the output context, the translation is
+#' and translates it into a regular `for` loop. Depending on the output context, the translation is
 #' either (i) printed to the console, (ii) copied to the clipboard or (iii) directly inserted into
-#' RStudio. Note that For the latter two options the {clipr} respectively the {rstudioapi} packages
-#' are required.
+#' RStudio. Note that the latter two options require the `{clipr}` respectively the `{rstudioapi}`
+#' package.
 #'
 #' The usage is pretty straight-forward: Just wrap a call to a {purrr} iterator function into
 #' `as_loop()` or us one of the pipe operators (`|>` or `%>%`) to pipe the function call into
@@ -17,10 +17,10 @@
 #' @param simplify When TRUE, the default, `as_loop()` will run the function call in `.expr` to
 #' check two things: (1) Whether the call is valid. If not, an error will be thrown, pointing out
 #' that the underlying function call is invalid. (2) Whether the resulting return value contains
-#' `NULL`. In this case the the for loop needs to be more verbose. When `simplify` is set `FALSE`
-#' the function call in `.expr` is not checked for errors and resulting for loop will be more verbose
-#' even if `NULL` is not among the return values. It is recommened to set `simplify` to `FALSE` for
-#' calculation-heavy function calls.
+#' `NULL`. In this case the `for` loop needs to be more verbose. When `simplify` is set `FALSE`
+#' the function call in `.expr` is not checked for errors and the resulting for loop will be more
+#' verbose even if `NULL` is not among the return values. It is recommended to set `simplify` to
+#' `FALSE` for calculation-heavy function calls.
 #'
 #' @param output_nm sets the name of the resulting output object. The default name is `out`.
 #'
@@ -31,16 +31,17 @@
 #'
 #'   - `"rstudio"`: This will insert the translation to the location where `as_loop()` was run. If it
 #'   was run from within an R script, the for loop will be inserted there, otherwise in the console.
-#'   Note that the {rstudioapi} package is needed for this option.
+#'   Note that the `{rstudioapi}` package is required for this option.
 #'   - `"clipboard"`: This will copy the for loop translation to the clipboard. Note that the
-#'   {rstudioapi} package is needed for this option.
+#'   `{clipr}` package is required for this option.
 #'   - `"console"`: This will print the call to the console using `cat()`.
 #'
 #' The default setting is to call `default_context()`. This function first looks at the
 #' `"loopurrr.output"` option. If the option is not specified, then it will default to
-#' `c("rstudio", "clipboard", "console")`. In this case `as_loop()` will try each output
-#' option starting with `"rstudio"`. If neither the {rstudioapi} package nor the {clipr}
-#' package are installed, the output context will fall back to the `"console"`.
+#' `c("rstudio", "clipboard", "console")`. In this case `as_loop()` will run the output
+#' options from left to right (starting with `"rstudio"`) until successful. If neither the
+#' {rstudioapi} package nor the {clipr} package are installed, the output context will fall back
+#' to `"console"`.
 #'
 #' @param return When set to `"string"`, the default, `as_loop()` will return the translated code as
 #' character strings to the location specified in `output_context`. When set to `"eval"`, the

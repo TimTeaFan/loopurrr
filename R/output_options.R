@@ -9,7 +9,8 @@
 #' among the output options it will be automatically include it as last option.
 #'
 #' @param x Either `NULL` or one or several of `"rstudio"`, `"clipboard"`, `"console"`. If set to
-#' more than one option, the output options will be tried in order from left to right.
+#' more than one option, the output options will be run in order from left to right until
+#' successful.
 #'
 #' @param default If the specified option is not set in the options list, this value is returned.
 #' This argument is for internal use only.
