@@ -531,7 +531,7 @@ test_that("as_loop works with modify", {
 
 # accumulate
 
-test_that("as_loop works with accumulate", {
+test_that("as_loop works with accumulate, lambda function", {
 
   sum_print <- function(x, y) {
     print(paste("x is :", x))
@@ -589,9 +589,126 @@ test_that("as_loop works with accumulate", {
 
 })
 
+
+test_that("as_loop works with accumulate, anonymous function", {
+
+  sum_print <- function(x, y) {
+    print(paste("x is :", x))
+    x + y
+  }
+
+  # dir = forward, no init
+  exp1 <- capture.output(
+    accumulate(1:10, function(.x, .y) sum_print(.x, .y))
+  )
+
+  out1 <- capture.output(
+    accumulate(1:10, function(.x, .y) sum_print(.x, .y)) %>% as_loop(., return = "eval")
+  )
+
+  expect_equal(exp1, out1)
+
+
+  # dir = forward, with init
+  exp2 <- capture.output(
+    accumulate(1:10, function(.x, .y) sum_print(.x, .y), .init = 100)
+  )
+
+  out2 <- capture.output(
+    accumulate(1:10, function(.x, .y) sum_print(.x, .y), .init = 100) %>% as_loop(., return = "eval")
+  )
+
+  expect_equal(exp2, out2)
+
+
+  # dir = backward, no init
+  exp3 <- capture.output(
+    accumulate(1:10, function(.x, .y) sum_print(.x, .y), .dir = "backward")
+  )
+
+  out3 <- capture.output(
+    accumulate(1:10, function(.x, .y) sum_print(.x, .y), .dir = "backward") %>% as_loop(., return = "eval")
+  )
+
+  expect_equal(exp3, out3)
+
+
+  # dir = backward, with init
+  exp4 <- capture.output(
+    accumulate(1:10, function(.x, .y) sum_print(.x, .y), .init = 100, .dir = "backward")
+  )
+
+  out4 <- capture.output(
+    accumulate(1:10, function(.x, .y) sum_print(.x, .y), .init = 100, .dir = "backward") %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp4, out4)
+
+
+})
+
+test_that("as_loop works with accumulate, named function", {
+
+  sum_print <- function(x, y) {
+    print(paste("x is :", x))
+    x + y
+  }
+
+  # dir = forward, no init
+  exp1 <- capture.output(
+    accumulate(1:10, sum_print)
+  )
+
+  out1 <- capture.output(
+    accumulate(1:10, sum_print) %>% as_loop(., return = "eval")
+  )
+
+  expect_equal(exp1, out1)
+
+
+  # dir = forward, with init
+  exp2 <- capture.output(
+    accumulate(1:10, sum_print, .init = 100)
+  )
+
+  out2 <- capture.output(
+    accumulate(1:10, sum_print, .init = 100) %>% as_loop(., return = "eval")
+  )
+
+  expect_equal(exp2, out2)
+
+
+  # dir = backward, no init
+  exp3 <- capture.output(
+    accumulate(1:10, sum_print, .dir = "backward")
+  )
+
+  out3 <- capture.output(
+    accumulate(1:10, sum_print, .dir = "backward") %>% as_loop(., return = "eval")
+  )
+
+  expect_equal(exp3, out3)
+
+
+  # dir = backward, with init
+  exp4 <- capture.output(
+    accumulate(1:10, sum_print, .init = 100, .dir = "backward")
+  )
+
+  out4 <- capture.output(
+    accumulate(1:10, sum_print, .init = 100, .dir = "backward") %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp4, out4)
+
+
+})
+
 # accumulate2
 
-test_that("as_loop works with accumulate2", {
+test_that("as_loop works with accumulate2, named function", {
 
   sum_print3 <- function(x, y, z) {
     print(paste("x is :", x))
@@ -627,10 +744,82 @@ test_that("as_loop works with accumulate2", {
 
 })
 
+test_that("as_loop works with accumulate2, anonymous function", {
+
+  sum_print3 <- function(x, y, z) {
+    print(paste("x is :", x))
+    print(paste("y is :", y))
+    print(paste("z is :", z))
+    x + y + z
+  }
+
+  # dir = forward, no init
+  exp1 <- capture.output(
+    accumulate2(1:5, 5:8, function(.x, .y, .z) sum_print3(.x, .y, .z))
+  )
+
+  out1 <- capture.output(
+    accumulate2(1:5, 5:8, function(.x, .y, .z) sum_print3(.x, .y, .z)) %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp1, out1)
+
+
+  # dir = forward, with init
+  exp2 <- capture.output(
+    accumulate2(1:5, 5:9, function(.x, .y, .z) sum_print3(.x, .y, .z), .init = 100)
+  )
+
+  out2 <- capture.output(
+    accumulate2(1:5, 5:9, function(.x, .y, .z) sum_print3(.x, .y, .z), .init = 100) %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp2, out2)
+
+})
+
+test_that("as_loop works with accumulate2, lambda function", {
+
+  sum_print3 <- function(x, y, z) {
+    print(paste("x is :", x))
+    print(paste("y is :", y))
+    print(paste("z is :", z))
+    x + y + z
+  }
+
+  # dir = forward, no init
+  exp1 <- capture.output(
+    accumulate2(1:5, 5:8, ~ sum_print3(.x, .y, ..3))
+  )
+
+  out1 <- capture.output(
+    accumulate2(1:5, 5:8, ~ sum_print3(.x, .y, ..3)) %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp1, out1)
+
+
+  # dir = forward, with init
+  exp2 <- capture.output(
+    accumulate2(1:5, 5:9, ~ sum_print3(.x, .y, ..3), .init = 100)
+  )
+
+  out2 <- capture.output(
+    accumulate2(1:5, 5:9, ~ sum_print3(.x, .y, ..3), .init = 100) %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp2, out2)
+
+})
+
 
 # reduce
 
-test_that("as_loop works with reduce", {
+test_that("as_loop works with reduce, lambda function", {
 
   sum_print <- function(x, y) {
     print(paste("x is :", x))
@@ -690,11 +879,130 @@ test_that("as_loop works with reduce", {
 
 })
 
+test_that("as_loop works with reduce, anonymous function", {
+
+  sum_print <- function(x, y) {
+    print(paste("x is :", x))
+    x + y
+  }
+
+  # dir = forward, no init
+  exp1 <- capture.output(
+    reduce(1:10, function(.x, .y) sum_print(.x, .y))
+  )
+
+  out1 <- capture.output(
+    reduce(1:10, function(.x, .y) sum_print(.x, .y)) %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp1, out1)
+
+
+  # dir = forward, with init
+  exp2 <- capture.output(
+    reduce(1:10, function(.x, .y) sum_print(.x, .y), .init = 100)
+  )
+
+  out2 <- capture.output(
+    reduce(1:10, function(.x, .y) sum_print(.x, .y), .init = 100) %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp2, out2)
+
+
+  # dir = backward, no init
+  exp3 <- capture.output(
+    reduce(1:10, function(.x, .y) sum_print(.x, .y), .dir = "backward")
+  )
+
+  out3 <- capture.output(
+    reduce(1:10, function(.x, .y) sum_print(.x, .y), .dir = "backward") %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp3, out3)
+
+
+  # dir = backward, with init
+  exp4 <- capture.output(
+    reduce(1:10, function(.x, .y) sum_print(.x, .y), .init = 100, .dir = "backward")
+  )
+
+  out4 <- capture.output(
+    reduce(1:10, function(.x, .y) sum_print(.x, .y), .init = 100, .dir = "backward") %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp4, out4)
+
+})
+
+test_that("as_loop works with reduce, named function", {
+
+  sum_print <- function(x, y) {
+    print(paste("x is :", x))
+    x + y
+  }
+
+  # dir = forward, no init
+  exp1 <- capture.output(
+    reduce(1:10, sum_print)
+  )
+
+  out1 <- capture.output(
+    reduce(1:10, sum_print) %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp1, out1)
+
+
+  # dir = forward, with init
+  exp2 <- capture.output(
+    reduce(1:10, sum_print, .init = 100)
+  )
+
+  out2 <- capture.output(
+    reduce(1:10, sum_print, .init = 100) %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp2, out2)
+
+
+  # dir = backward, no init
+  exp3 <- capture.output(
+    reduce(1:10, sum_print, .dir = "backward")
+  )
+
+  out3 <- capture.output(
+    reduce(1:10, sum_print, .dir = "backward") %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp3, out3)
+
+
+  # dir = backward, with init
+  exp4 <- capture.output(
+    reduce(1:10, sum_print, .init = 100, .dir = "backward")
+  )
+
+  out4 <- capture.output(
+    reduce(1:10, sum_print, .init = 100, .dir = "backward") %>%
+      as_loop(., return = "eval")
+  )
+
+  expect_equal(exp4, out4)
+
+})
 
 
 # reduce2
 
-test_that("as_loop works with reduce2", {
+test_that("as_loop works with reduce2, named function", {
 
   foo <- function(x, y, z) {
     (x^2 + y^(1/2)) / z
@@ -713,6 +1021,56 @@ test_that("as_loop works with reduce2", {
   exp2 <- reduce2(1:3, 4:6, foo, .init = 10)
 
   out2 <- reduce2(1:3, 4:6, foo, .init = 10) %>%
+    as_loop(., return = "eval")
+
+  expect_equal(exp2, out2)
+
+})
+
+test_that("as_loop works with reduce2, anonymous function", {
+
+  foo <- function(x, y, z) {
+    (x^2 + y^(1/2)) / z
+  }
+
+  # dir = forward, no init
+  exp1 <- reduce2(1:3, 4:5, function(.x, .y, .z) foo(.x, .y, .z))
+
+  out1 <- reduce2(1:3, 4:5, function(.x, .y, .z) foo(.x, .y, .z)) %>%
+    as_loop(., return = "eval")
+
+  expect_equal(exp1, out1)
+
+
+  # dir = forward, no init
+  exp2 <- reduce2(1:3, 4:6, function(.x, .y, .z) foo(.x, .y, .z), .init = 10)
+
+  out2 <- reduce2(1:3, 4:6, function(.x, .y, .z) foo(.x, .y, .z), .init = 10) %>%
+    as_loop(., return = "eval")
+
+  expect_equal(exp2, out2)
+
+})
+
+test_that("as_loop works with reduce2, lambda function", {
+
+  foo <- function(x, y, z) {
+    (x^2 + y^(1/2)) / z
+  }
+
+  # dir = forward, no init
+  exp1 <- reduce2(1:3, 4:5, ~ foo(.x, .y, ..3))
+
+  out1 <- reduce2(1:3, 4:5, ~ foo(.x, .y, ..3)) %>%
+    as_loop(., return = "eval")
+
+  expect_equal(exp1, out1)
+
+
+  # dir = forward, no init
+  exp2 <- reduce2(1:3, 4:6, ~ foo(.x, .y, ..3), .init = 10)
+
+  out2 <- reduce2(1:3, 4:6, ~ foo(.x, .y, ..3), .init = 10) %>%
     as_loop(., return = "eval")
 
   expect_equal(exp2, out2)
