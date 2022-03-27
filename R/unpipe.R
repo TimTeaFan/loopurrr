@@ -63,7 +63,8 @@ check_and_unpipe <- function(sc, is_dot) {
   # TODO: create recursive function that goes through the whole call stack:
   if (length(sc) > 1 && is_dot) {
     last_cl <- as.list(sc[length(sc) -1L][[1]])
-    if (as.character(last_cl[[1]]) == "%>%" && as.character(last_cl[[3]]) == "as_loop") {
+
+    if (as.character(last_cl[[1]]) == "%>%" && as.character(last_cl[[3]])[[1]] == "as_loop") {
       return(unpipe_all(last_cl[[2]]))
     } else if (as.character(last_cl[[2]][[1]]) == "%>%" && as.character(last_cl[[2]][[3]]) == "as_loop") {
       return(unpipe_all(last_cl[[2]][[2]]))
