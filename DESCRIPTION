@@ -17,7 +17,8 @@ Depends: R (>= 3.2), purrr (>= 0.3.4)
 Suggests: 
     clipr,
     rstudioapi,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    covr
 Config/testthat/edition: 3
 Imports: 
     rlang,
