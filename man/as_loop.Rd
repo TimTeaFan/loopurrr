@@ -77,7 +77,9 @@ The usage is pretty straight-forward: Just wrap a call to a {purrr} iterator fun
 \section{Supported functions}{
 
 
-The following iterator functions from the {purrr} package are currently supported:\preformatted{#> $map
+The following iterator functions from the {purrr} package are currently supported:\if{html}{\out{<div class="r">}}\preformatted{options(width = 60)
+get_supported_fns()
+#> $map
 #>  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df" 
 #>  [6] "map_dfc" "map_dfr" "map_if"  "map_int" "map_lgl"
 #> [11] "map_raw"
@@ -94,8 +96,12 @@ The following iterator functions from the {purrr} package are currently supporte
 #> [1] "pmap"     "pmap_chr" "pmap_dbl" "pmap_df"  "pmap_dfc"
 #> [6] "pmap_dfr" "pmap_int" "pmap_lgl" "pmap_raw"
 #> 
+#> $lmap
+#> [1] "lmap"    "lmap_at"
+#> 
 #> $modify
 #> [1] "modify"    "modify_at" "modify_if" "modify2"  
+#> [5] "imodify"  
 #> 
 #> $walk
 #> [1] "iwalk" "pwalk" "walk"  "walk2"
@@ -105,7 +111,7 @@ The following iterator functions from the {purrr} package are currently supporte
 #> 
 #> $reduce
 #> [1] "reduce"  "reduce2"
-}
+}\if{html}{\out{</div>}}
 }
 
 \section{Examples}{
