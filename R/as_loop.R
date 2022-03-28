@@ -62,13 +62,9 @@
 #' ```
 #'
 #' The following iterator functions from the {purrr} package are currently supported:
-#' ```{r, comment = "#>", collapse = TRUE, echo = FALSE, eval = TRUE}
-#' dplyr::tibble(id = c("map_", "imap", "map2", "pmap", "modify", "i?walk", "accumulate", "reduce")) %>%
-#'  dplyr::rowwise() %>%
-#'  dplyr::mutate(fns = list(grep(paste0("^", id), get_supported_fns(), value = TRUE))) %>%
-#'  dplyr::ungroup() %>%
-#'  dplyr::mutate(fns = purrr::set_names(fns, id)) %>%
-#'  dplyr::pull(fns)
+#' ```{r, comment = "#>", collapse = TRUE, eval = TRUE}
+#' options(width = 60)
+#' get_supported_fns()
 #' ```
 #'
 #' @section Examples:
