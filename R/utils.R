@@ -126,22 +126,41 @@ calc_last_line <- function(context, loc) {
 #
 # datapasta::vector_paste(get_supported_fns())
 
-
+# TODO: export and document this function:
 get_supported_fns <- function() {
-  supported_fns <- c("imap", "imap_chr", "imap_dbl", "imap_dfc", "imap_dfr", "imap_int", "imap_lgl",
-                     "imap_raw", "imodify", "iwalk", "lmap", "lmap_at", "map", "map_at", "map_chr",
-                     "map_dbl", "map_df", "map_dfc", "map_dfr", "map_if", "map_int", "map_lgl",
-                     "map_raw", "map2", "map2_chr", "map2_dbl", "map2_df", "map2_dfc", "map2_dfr",
-                     "map2_int", "map2_lgl", "map2_raw", "modify", "modify_at", "modify_if",
-                     "modify2", "pmap", "pmap_chr", "pmap_dbl", "pmap_df", "pmap_dfc", "pmap_dfr",
-                     "pmap_int", "pmap_lgl", "pmap_raw", "pwalk", "walk", "walk2", "accumulate",
-                     "accumulate2", "reduce", "reduce2")
+
+  supported_fns <- list(
+
+      map = c("map", "map_at", "map_chr", "map_dbl", "map_df", "map_dfc", "map_dfr", "map_if",
+              "map_int", "map_lgl", "map_raw"),
+
+      imap = c("imap", "imap_chr", "imap_dbl", "imap_dfc", "imap_dfr", "imap_int", "imap_lgl",
+               "imap_raw"),
+
+      map = c("map2", "map2_chr", "map2_dbl", "map2_df", "map2_dfc", "map2_dfr", "map2_int",
+              "map2_lgl",  "map2_raw"),
+
+      pmap = c("pmap", "pmap_chr", "pmap_dbl", "pmap_df", "pmap_dfc", "pmap_dfr", "pmap_int",
+               "pmap_lgl", "pmap_raw"),
+
+      lmap = c("lmap", "lmap_at"),
+
+      modify = c("modify", "modify_at", "modify_if", "modify2", "imodify"),
+
+      walk = c("iwalk", "pwalk", "walk", "walk2"),
+
+      accumulate = c("accumulate", "accumulate2"),
+
+      reduce = c("reduce", "reduce2")
+
+    )
+
   supported_fns
 }
 
 is_supported <- function(map_fn) {
 
-  supported_fns <- get_supported_fns()
+  supported_fns <- unlist(get_supported_fns())
 
   not_supported_fns <- c("apply", "lapply", "vapply", "sapply", "rapply", "Map", "mapply", "tapply")
 
