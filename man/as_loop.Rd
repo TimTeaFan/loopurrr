@@ -20,10 +20,10 @@ section below for an overview of which {purrr} iterator functions are currently 
 \item{simplify}{When TRUE, the default, \code{as_loop()} will run the function call in \code{.expr} to
 check two things: (1) Whether the call is valid. If not, an error will be thrown, pointing out
 that the underlying function call is invalid. (2) Whether the resulting return value contains
-\code{NULL}. In this case the the for loop needs to be more verbose. When \code{simplify} is set \code{FALSE}
-the function call in \code{.expr} is not checked for errors and resulting for loop will be more verbose
-even if \code{NULL} is not among the return values. It is recommened to set \code{simplify} to \code{FALSE} for
-calculation-heavy function calls.}
+\code{NULL}. In this case the \code{for} loop needs to be more verbose. When \code{simplify} is set \code{FALSE}
+the function call in \code{.expr} is not checked for errors and the resulting for loop will be more
+verbose even if \code{NULL} is not among the return values. It is recommended to set \code{simplify} to
+\code{FALSE} for calculation-heavy function calls.}
 
 \item{output_nm}{sets the name of the resulting output object. The default name is \code{out}.}
 
@@ -34,17 +34,18 @@ are one or several of:
 \itemize{
 \item \code{"rstudio"}: This will insert the translation to the location where \code{as_loop()} was run. If it
 was run from within an R script, the for loop will be inserted there, otherwise in the console.
-Note that the {rstudioapi} package is needed for this option.
+Note that the \code{{rstudioapi}} package is required for this option.
 \item \code{"clipboard"}: This will copy the for loop translation to the clipboard. Note that the
-{rstudioapi} package is needed for this option.
+\code{{clipr}} package is required for this option.
 \item \code{"console"}: This will print the call to the console using \code{cat()}.
 }
 
 The default setting is to call \code{default_context()}. This function first looks at the
 \code{"loopurrr.output"} option. If the option is not specified, then it will default to
-\code{c("rstudio", "clipboard", "console")}. In this case \code{as_loop()} will try each output
-option starting with \code{"rstudio"}. If neither the {rstudioapi} package nor the {clipr}
-package are installed, the output context will fall back to the \code{"console"}.}
+\code{c("rstudio", "clipboard", "console")}. In this case \code{as_loop()} will run the output
+options from left to right (starting with \code{"rstudio"}) until successful. If neither the
+{rstudioapi} package nor the {clipr} package are installed, the output context will fall back
+to \code{"console"}.}
 
 \item{return}{When set to \code{"string"}, the default, \code{as_loop()} will return the translated code as
 character strings to the location specified in \code{output_context}. When set to \code{"eval"}, the
@@ -64,10 +65,10 @@ returned.
 }
 \description{
 \code{as_loop()} takes a function call to one of {purrr}'s iterator functions, such as \code{\link[purrr:map]{purrr::map()}},
-and translates it into a regular \code{for}-loop. Depending on the output context, the translation is
+and translates it into a regular \code{for} loop. Depending on the output context, the translation is
 either (i) printed to the console, (ii) copied to the clipboard or (iii) directly inserted into
-RStudio. Note that For the latter two options the {clipr} respectively the {rstudioapi} packages
-are required.
+RStudio. Note that the latter two options require the \code{{clipr}} respectively the \code{{rstudioapi}}
+package.
 
 The usage is pretty straight-forward: Just wrap a call to a {purrr} iterator function into
 \code{as_loop()} or us one of the pipe operators (\verb{|>} or \verb{\%>\%}) to pipe the function call into
@@ -76,26 +77,28 @@ The usage is pretty straight-forward: Just wrap a call to a {purrr} iterator fun
 \section{Supported functions}{
 
 
-The following iterator functions from the {purrr} package are currently supported:\preformatted{#> $map_
-#>  [1] "map_at"  "map_chr" "map_dbl" "map_df"  "map_dfc" "map_dfr" "map_if"  "map_int"
-#>  [9] "map_lgl" "map_raw"
+The following iterator functions from the {purrr} package are currently supported:\preformatted{#> $map
+#>  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df" 
+#>  [6] "map_dfc" "map_dfr" "map_if"  "map_int" "map_lgl"
+#> [11] "map_raw"
 #> 
 #> $imap
-#> [1] "imap"     "imap_chr" "imap_dbl" "imap_dfc" "imap_dfr" "imap_int" "imap_lgl" "imap_raw"
+#> [1] "imap"     "imap_chr" "imap_dbl" "imap_dfc" "imap_dfr"
+#> [6] "imap_int" "imap_lgl" "imap_raw"
 #> 
-#> $map2
-#> [1] "map2"     "map2_chr" "map2_dbl" "map2_df"  "map2_dfc" "map2_dfr" "map2_int" "map2_lgl"
-#> [9] "map2_raw"
+#> $map
+#> [1] "map2"     "map2_chr" "map2_dbl" "map2_df"  "map2_dfc"
+#> [6] "map2_dfr" "map2_int" "map2_lgl" "map2_raw"
 #> 
 #> $pmap
-#> [1] "pmap"     "pmap_chr" "pmap_dbl" "pmap_df"  "pmap_dfc" "pmap_dfr" "pmap_int" "pmap_lgl"
-#> [9] "pmap_raw"
+#> [1] "pmap"     "pmap_chr" "pmap_dbl" "pmap_df"  "pmap_dfc"
+#> [6] "pmap_dfr" "pmap_int" "pmap_lgl" "pmap_raw"
 #> 
 #> $modify
 #> [1] "modify"    "modify_at" "modify_if" "modify2"  
 #> 
-#> $`i?walk`
-#> [1] "iwalk" "walk"  "walk2"
+#> $walk
+#> [1] "iwalk" "pwalk" "walk"  "walk2"
 #> 
 #> $accumulate
 #> [1] "accumulate"  "accumulate2"

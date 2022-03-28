@@ -2,10 +2,10 @@
 % Please edit documentation in R/unpipe.R
 \name{check_and_unpipe}
 \alias{check_and_unpipe}
-\title{Check if call to \code{as_loop} used pipes, and if, unpipe it.}
+\title{Check if call to \code{as_loop} uses pipes, and if, unpipe it.}
 \usage{
 check_and_unpipe(sc, is_dot)
 }
 \description{
-Check if call to \code{as_loop} used pipes, and if, unpipe it.
+Check if call to \code{as_loop} uses pipes, and if, unpipe it.
 }

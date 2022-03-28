@@ -7,6 +7,8 @@
 \title{@description
 Translate {purrr}'s iterator function to regular for-loops}
 \description{
+\if{html}{\figure{logo.png}{options: align='right' alt='logo' width='120'}}
+
 What the package does (one paragraph).
 }
 \author{

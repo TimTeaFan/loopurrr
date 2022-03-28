@@ -17,7 +17,8 @@ default_context()
 This argument is for internal use only.}
 
 \item{x}{Either \code{NULL} or one or several of \code{"rstudio"}, \code{"clipboard"}, \code{"console"}. If set to
-more than one option, the output options will be tried in order from left to right.}
+more than one option, the output options will be run in order from left to right until
+successful.}
 }
 \value{
 For \code{get_output_opt()}, the current value set for option \code{"loopurrr.output"}, or default

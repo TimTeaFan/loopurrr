@@ -3,16 +3,7 @@
 # The {gradethis}'s licence and copyrights apply!!
 # The code base was slightly adapted to {loopurrr}'s objective
 
-
-
-#' Unpipe one layer of piped code.
-#'
-#' `unpipe()` removes one call to \code{\link[magrittr]{\%>\%}} from an expression,
-#' reformatting the result as a nested function call. If the code does not
-#' contain a top-level call to \code{\link[magrittr]{\%>\%}}, `unpipe()` returns it as is.
-#'
-#' @param code a quoted piece of code
-#' @noRd
+# Unpipe one layer of piped code.
 unpipe <- function(code) {
 
   # Ceci n'est pas une pipe
@@ -43,7 +34,7 @@ unpipe <- function(code) {
   rhs
 }
 
-#' Unpipe nested calls:
+# Unpipe nested calls:
 unpipe_all <- function(code_expr, .top_level = TRUE) {
   code_expr_len <- length(code_expr)
   if (code_expr_len == 0) return(code_expr)
@@ -56,7 +47,7 @@ unpipe_all <- function(code_expr, .top_level = TRUE) {
 }
 
 
-#' Check if call to `as_loop` used pipes, and if, unpipe it.
+#' Check if call to `as_loop` uses pipes, and if, unpipe it.
 
 check_and_unpipe <- function(sc, is_dot) {
 
