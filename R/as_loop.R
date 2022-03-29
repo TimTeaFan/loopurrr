@@ -64,7 +64,7 @@
 #' The following iterator functions from the {purrr} package are currently supported:
 #' ```{r, comment = "#>", collapse = TRUE, eval = TRUE}
 #' options(width = 60)
-#' get_supported_fns()
+#' get_supported_fns("as_loop")
 #' ```
 #'
 #' @section Examples:
@@ -155,7 +155,7 @@ as_loop <- function(.expr,
     map_fn_chr <- gsub("^\\w+::", "", map_fn_chr)
   }
 
-  is_supported(map_fn_chr)
+  is_supported(map_fn_chr, "as_loop")
   map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
 
 

@@ -1,21 +1,61 @@
+#' Show a list of supported function names
+#'
+#' @description
+#' `get_supported_fns()` shows which functions are supported for a specifc `{loopurrr}` function.
+#' Currently, only works on `as_loop()`.
+#'
+#' @param fn The name of a `{loopurrr}` function (as string) for which supported functions should
+#' be returned.
+#'
+#' @returns
+#' A list of supported function names as named character vectors.
+#'
+#' @section Examples:
+#'
+#' ```{r, comment = "#>", collapse = TRUE, eval = TRUE}
+#' options(width = 60)
+#' get_supported_fns("as_loop")
+#' ```
+#'
+#' @export
+get_supported_fns <- function(fn) {
 
-# https://stackoverflow.com/a/14295659/9349302
-# not needed anymore
-# find_calls <- function(x) {
-#   # Base case
-#   if (!is.recursive(x)) return()
-#
-#   recurse <- function(x) {
-#     sort(unique(as.character(unlist(lapply(x, find_calls)))))
-#   }
-#
-#   if (is.call(x)) {
-#     f_name <- as.character(x[[1]])
-#     c(f_name, recurse(x[-1]))
-#   } else {
-#     recurse(x)
-#   }
-# }
+  supported_fns <- list(
+
+    as_loop = list(
+
+      map = c("map", "map_at", "map_chr", "map_dbl", "map_df", "map_dfc", "map_dfr", "map_if",
+              "map_int", "map_lgl", "map_raw"),
+
+      imap = c("imap", "imap_chr", "imap_dbl", "imap_dfc", "imap_dfr", "imap_int", "imap_lgl",
+               "imap_raw"),
+
+      map = c("map2", "map2_chr", "map2_dbl", "map2_df", "map2_dfc", "map2_dfr", "map2_int",
+              "map2_lgl",  "map2_raw"),
+
+      pmap = c("pmap", "pmap_chr", "pmap_dbl", "pmap_df", "pmap_dfc", "pmap_dfr", "pmap_int",
+               "pmap_lgl", "pmap_raw"),
+
+      lmap = c("lmap", "lmap_at"),
+
+      modify = c("modify", "modify_at", "modify_if", "modify2", "imodify"),
+
+      walk = c("iwalk", "pwalk", "walk", "walk2"),
+
+      accumulate = c("accumulate", "accumulate2"),
+
+      reduce = c("reduce", "reduce2")
+    )
+  )
+
+  if (is.null(supported_fns[[fn]])) {
+    rlang::inform("No supported functions. Did you specify the function name correctly?")
+    return(invisible(NULL))
+  } else {
+    supported_fns[[fn]]
+  }
+
+}
 
 
 deparse_expr <- function(call) {
@@ -111,56 +151,9 @@ calc_last_line <- function(context, loc) {
 }
 
 
-# get_supported_fns <- function() {
-#   require(purrr)
-#   all_purrr_fns <- purrr::map_chr(lsf.str("package:purrr"), `[`)
-#   purrr_map_fns <- grep("(map2)|(modify)|(walk)|(map_)|(map)$", all_purrr_fns, value = TRUE)
-#   invoke_fns <- grepl("^invoke_", purrr_map_fns)
-#   call_or_depth_fns <- grepl("(_call)|(_depth)$", purrr_map_fns)
-#   sel_map_fns <- purrr::set_names(purrr_map_fns[!(invoke_fns | call_or_depth_fns)])
-#
-#   not_include <- c("modify_in", "list_modify", "lmap_if")
-#
-#   sel_map_fns[! sel_map_fns %in% not_include]
-# }
-#
-# datapasta::vector_paste(get_supported_fns())
+is_supported <- function(map_fn, loopurrr_fn) {
 
-# TODO: export and document this function:
-get_supported_fns <- function() {
-
-  supported_fns <- list(
-
-      map = c("map", "map_at", "map_chr", "map_dbl", "map_df", "map_dfc", "map_dfr", "map_if",
-              "map_int", "map_lgl", "map_raw"),
-
-      imap = c("imap", "imap_chr", "imap_dbl", "imap_dfc", "imap_dfr", "imap_int", "imap_lgl",
-               "imap_raw"),
-
-      map = c("map2", "map2_chr", "map2_dbl", "map2_df", "map2_dfc", "map2_dfr", "map2_int",
-              "map2_lgl",  "map2_raw"),
-
-      pmap = c("pmap", "pmap_chr", "pmap_dbl", "pmap_df", "pmap_dfc", "pmap_dfr", "pmap_int",
-               "pmap_lgl", "pmap_raw"),
-
-      lmap = c("lmap", "lmap_at"),
-
-      modify = c("modify", "modify_at", "modify_if", "modify2", "imodify"),
-
-      walk = c("iwalk", "pwalk", "walk", "walk2"),
-
-      accumulate = c("accumulate", "accumulate2"),
-
-      reduce = c("reduce", "reduce2")
-
-    )
-
-  supported_fns
-}
-
-is_supported <- function(map_fn) {
-
-  supported_fns <- unlist(get_supported_fns())
+  supported_fns <- unlist(get_supported_fns(loopurrr_fn))
 
   not_supported_fns <- c("apply", "lapply", "vapply", "sapply", "rapply", "Map", "mapply", "tapply")
 
