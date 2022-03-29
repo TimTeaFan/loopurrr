@@ -78,7 +78,7 @@ The usage is pretty straight-forward: Just wrap a call to a {purrr} iterator fun
 
 
 The following iterator functions from the {purrr} package are currently supported:\if{html}{\out{<div class="r">}}\preformatted{options(width = 60)
-get_supported_fns()
+get_supported_fns("as_loop")
 #> $map
 #>  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df" 
 #>  [6] "map_dfc" "map_dfr" "map_if"  "map_int" "map_lgl"

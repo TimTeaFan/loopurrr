@@ -3,5 +3,6 @@
 export(as_loop)
 export(default_context)
 export(get_output_opt)
+export(get_supported_fns)
 export(set_output_opt)
 import(purrr)
