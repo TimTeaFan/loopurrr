@@ -19,8 +19,12 @@ status](https://www.r-pkg.org/badges/version/loopurrr)](https://cran.r-project.o
 
 ## Overview
 
-<a href="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/logo_big.png"><img src="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/logo.png" alt="loopurrr's logo a cat sleeping in the form of a circle" align="right"></a>
-<br>
+<p id="logocontainer">
+<img src="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/readme_style.svg">
+</p>
+<p id="logop">
+<a id="logo" href="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/logo_big.png"><img src="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/logo.png" alt="loopurrr's logo a cat sleeping in the form of a circle" align="right"></a>
+</p>
 
 The goal of {loopurrr} is to make {purrr}’s iterator functions more
 understandable and easier to debug.
