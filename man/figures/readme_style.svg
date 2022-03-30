@@ -3,7 +3,7 @@
         <div xmlns="http://www.w3.org/1999/xhtml">
             <style>
               @media only screen and (max-width: 475px) {
-                  #logop {
+                  #user-content-logop {
                       overflow:hidden;
                   }
               }
