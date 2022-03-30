@@ -19,8 +19,6 @@ status](https://www.r-pkg.org/badges/version/loopurrr)](https://cran.r-project.o
 
 ## Overview
 
-<img src="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/readme_style.svg" width="0" height="0" alt="css-in-readme">
-
 <p id="logop">
 <a id="logo" href="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/logo_big.png"><img src="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/logo.png" alt="loopurrr's logo a cat sleeping in the form of a circle" align="right"></a>
 </p>
