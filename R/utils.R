@@ -1,11 +1,10 @@
 #' Show a list of supported function names
 #'
 #' @description
-#' `get_supported_fns()` shows which functions are supported for a specifc `{loopurrr}` function.
+#' `get_supported_fns()` shows which functions are supported for a specific `{loopurrr}` function.
 #' Currently, only works on `as_loop()`.
 #'
-#' @param fn The name of a `{loopurrr}` function (as string) for which supported functions should
-#' be returned.
+#' @param fn The name of a `{loopurrr}` function as string.
 #'
 #' @returns
 #' A list of supported function names as named character vectors.
