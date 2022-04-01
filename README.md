@@ -35,29 +35,44 @@ functions, such as `purrr::map()`, and translates it into a regular
 
 You might ask: *“Why would anyone want to do this?!”* 😲😮
 
-`as_loop()` has at least three use cases:
+`as_loop()` has at least three use cases: 😀😀
 
-#### Learning and Teaching Functional Programming
+#### 1. Learning and Teaching Functional Programming
 
 Beginners, and especially users new to functional-style programming
 often have a hard time getting their head around R’s rather opaque
-iterator functions. `for` loops, on the other hand, are fairly well
-understood, even by users new to R.
+iterator functions, such as base R’s `lapply()` or `purrr::map()`. `for`
+loops, on the other hand, are fairly well understood, even by users new
+to R.
 
-`as_loop` translates a function call to one of {purrr}’s iterator
-functions into a regular `for` loop. By this it makes visible how
+`as_loop()` translates a function call to one of {purrr}’s iterator
+functions into a regular `for` loop. Through this `as_loop()` shows how
 {purrr}’s iterator functions work under the hood. After reading about
-what iterator functions do, LearneRs can start playing around with
-calling `as_loop()` on the examples in the {purrr} documentation.
-TeacheRs can use `as_loop()` interactively when introducing the
-different types of iterator functions in the {purrr} package.
+what iterator functions do (for example
+[here](https://r4ds.had.co.nz/iteration.html#the-map-functions)),
+LearneRs can start playing around with calling `as_loop()` on the
+examples in the {purrr} documentation. TeacheRs, on the other hand, can
+use `as_loop()` interactively when introducing the different types of
+iterator functions in the {purrr} package.
 
-#### Debugging
+#### 2. Debugging
 
-Once you know what an iterator function does and how to use it, the next
-hurdle to take is dealing with …
+Once learneRs know what an iterator function does and how to use it, the
+next hurdle to take is dealing with failure. Iterator functions
+introduce an additional layer of complexity, because special knowledge
+is required to debug non-running code. By translating an iterator
+function into a regular `for` loop, `as_loop()` can help debug
+functions. When a `for` loop is executed in the global environment it
+will run over an index, for example `i`. Once the code throws an error,
+useRs can easily inspect the code at index `i` without any special
+knowledge of how to use a debugger, `browser()` or `purrr::safely()`. Of
+course, useRs are highly encouraged to learn how to use R’s and
+{purrr}’s debugging tools and functions. However, in data science teams
+with different levels of programming knowledge, the possibility to
+translate complex iterator functions to regular `for` loops can help
+mitigate knowledge gaps.
 
-#### Extension of Existing Functions
+#### 3. Accessing and Extending {purrr} Functions
 
 Dependent free
 
@@ -77,12 +92,9 @@ remotes::install_github("TimTeaFan/loopurrr")
 
 …
 
-…
-
-## Supported functions
-
-Currently the following iterator functions from the {purrr} package are
-supported:
+First, lets use `get_supported_fns("as_loop")` to get a glimpse of what
+iterator functions from the {purrr} package are currently supported by
+`as_loop()`:
 
     #> $map
     #>  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df"  "map_dfc" "map_dfr"
