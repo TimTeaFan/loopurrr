@@ -6,7 +6,7 @@
 <!-- badges: start -->
 
 ![Release
-status](https://img.shields.io/badge/status-first%20release-yellow)
+status](https://img.shields.io/badge/status-under%20construction-red)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/TimTeaFan/loopurrr/workflows/R-CMD-check/badge.svg)](https://github.com/TimTeaFan/loopurrr/actions)
@@ -33,17 +33,35 @@ function: `as_loop()`.
 functions, such as `purrr::map()`, and translates it into a regular
 `for` loop.
 
-You might ask: *“Why would anyone want to do this?!”*
+You might ask: *“Why would anyone want to do this?!”* 😲😮
 
 `as_loop()` has at least three use cases:
 
 #### Learning and Teaching Functional Programming
 
+Beginners, and especially users new to functional-style programming
+often have a hard time getting their head around R’s rather opaque
+iterator functions. `for` loops, on the other hand, are fairly well
+understood, even by users new to R.
+
+`as_loop` translates a function call to one of {purrr}’s iterator
+functions into a regular `for` loop. By this it makes visible how
+{purrr}’s iterator functions work under the hood. After reading about
+what iterator functions do, LearneRs can start playing around with
+calling `as_loop()` on the examples in the {purrr} documentation.
+TeacheRs can use `as_loop()` interactively when introducing the
+different types of iterator functions in the {purrr} package.
+
 #### Debugging
+
+Once you know what an iterator function does and how to use it, the next
+hurdle to take is dealing with …
 
 #### Extension of Existing Functions
 
-…
+Dependent free
+
+Extendable
 
 ## Installation
 
