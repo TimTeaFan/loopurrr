@@ -75,16 +75,18 @@
 #' printed to the console.
 #'
 #' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
-#' as_loop(map(1:3, sum))      # wrap a call in `as_loop`
-#' map(1:3, sum) %>% as_loop() # pipe a call into `as_loop`
+#' x <- list(1, c(1:2), c(1:3))
+#' as_loop(map(x, sum))        # wrap a call in `as_loop()`
+#' map(1:3, sum) %>% as_loop() # pipe a call into `as_loop()`
 #'
-#' # --- convert: `map(1:3, sum)` as loop --- #
-#' .inp1 <- 1:3
-#' out <- vector("list", length = length(.inp1))
+#' # --- convert: `map(x, sum)` as loop --- #
+#' out <- vector("list", length = length(x))
 #'
-#' for (i in seq_along(.inp1)) {
-#'   out[[i]] <- sum(.inp1[[i]])
+#' for (i in seq_along(x)) {
+#'   out[[i]] <- sum(x[[i]])
 #' }
+#' # --- end loop --- #
+#'
 #' # --- end loop --- #
 #' ```
 #'
@@ -93,6 +95,7 @@
 #' below `"j"`.
 #'
 #' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
+#' x <- list(1, c(1:2), c(1:3))
 #' map_dbl(x, sum) %>%
 #'   as_loop(., output_nm = ".res", idx = "j")
 #'
@@ -106,8 +109,10 @@
 #' ```
 #'
 #' When `simplify` is set `FALSE` `as_loop` will neither check the validity of the underlying call
-#' nor the expected output. In this case the resulting for loop is more verbose to account for the
-#' case of `NULL` in the return values.
+#' nor the expected output. In this case the resulting `for` loop is more verbose. This is because we
+#' need to take the case of `NULL` in the return values into account. In the example below we further
+#' see what happens, when we use an unnamed object, such as `1:3`, in the call to `purrr::map()`.
+#' `as_loop()` assign unnamed objects an internal name. In the example below `.inp1`.
 #'
 #' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
 #' map(1:3, sum) %>% as_loop(., simplify = FALSE)

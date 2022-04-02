@@ -163,7 +163,7 @@ For future versions of `{loopurrr}` the following milestones are planned:
 - translate `{purrr}`'s iterators to base R equivalents with `as_base()` (yet to be created)
 
 If anyone is interested in collaborating on one or more of those milestones, any help is appreciated!
-Feel free to reach out to me, for example on Twitter [@TimTeaFan](https://twitter.com/timteafan)
+Feel free to reach out to me, for example on Twitter <a href="https://twitter.com/timteafan" target="_blank">@TimTeaFan</a>.
 
 
 ## History

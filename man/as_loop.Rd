@@ -120,22 +120,25 @@ get_supported_fns("as_loop")
 If we wrap or pipe a call to \code{purrr::map()} into \code{as_loop()} it will be translated into a
 regular for loop. Depending on the output context, the resulting for loop will either be
 (i) inserted directly into a script in RStudio, (ii) copied to the clipboard or (iii)
-printed to the console.\if{html}{\out{<div class="r">}}\preformatted{as_loop(map(1:3, sum))      # wrap a call in `as_loop`
-map(1:3, sum) \%>\% as_loop() # pipe a call into `as_loop`
+printed to the console.\if{html}{\out{<div class="r">}}\preformatted{x <- list(1, c(1:2), c(1:3))
+as_loop(map(x, sum))        # wrap a call in `as_loop()`
+map(1:3, sum) \%>\% as_loop() # pipe a call into `as_loop()`
 
-# --- convert: `map(1:3, sum)` as loop --- #
-.inp1 <- 1:3
-out <- vector("list", length = length(.inp1))
+# --- convert: `map(x, sum)` as loop --- #
+out <- vector("list", length = length(x))
 
-for (i in seq_along(.inp1)) \{
-  out[[i]] <- sum(.inp1[[i]])
+for (i in seq_along(x)) \{
+  out[[i]] <- sum(x[[i]])
 \}
+# --- end loop --- #
+
 # --- end loop --- #
 }\if{html}{\out{</div>}}
 
 The \code{output_nm} argument lets us specify the name of the resulting output object. In the
 example below \code{".res"}. The \code{idx} argument lets us specify the index to be used. In the example
-below \code{"j"}.\if{html}{\out{<div class="r">}}\preformatted{map_dbl(x, sum) \%>\%
+below \code{"j"}.\if{html}{\out{<div class="r">}}\preformatted{x <- list(1, c(1:2), c(1:3))
+map_dbl(x, sum) \%>\%
   as_loop(., output_nm = ".res", idx = "j")
 
 # --- convert: `map_dbl(x, sum)` as loop --- #
@@ -148,8 +151,10 @@ for (j in seq_along(x)) \{
 }\if{html}{\out{</div>}}
 
 When \code{simplify} is set \code{FALSE} \code{as_loop} will neither check the validity of the underlying call
-nor the expected output. In this case the resulting for loop is more verbose to account for the
-case of \code{NULL} in the return values.\if{html}{\out{<div class="r">}}\preformatted{map(1:3, sum) \%>\% as_loop(., simplify = FALSE)
+nor the expected output. In this case the resulting \code{for} loop is more verbose. This is because we
+need to take the case of \code{NULL} in the return values into account. In the example below we further
+see what happens, when we use an unnamed object, such as \code{1:3}, in the call to \code{purrr::map()}.
+\code{as_loop()} assign unnamed objects an internal name. In the example below \code{.inp1}.\if{html}{\out{<div class="r">}}\preformatted{map(1:3, sum) \%>\% as_loop(., simplify = FALSE)
 
 # --- convert: `map(1:3, sum)` as loop --- #
 .inp1 <- 1:3
