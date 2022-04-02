@@ -68,7 +68,7 @@ default_context <- function() {
 }
 
 
-#' depending on output_context check and create final output function
+# depending on output_context check and create final output function
 create_output_fn <- function(output) {
 
   has_rstudioapi <- requireNamespace("rstudioapi", quietly = TRUE)

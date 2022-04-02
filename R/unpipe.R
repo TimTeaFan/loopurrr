@@ -64,7 +64,6 @@ check_and_unpipe <- function(sc, is_dot) {
 
 
 # Helper functions
-
 is_pipe <- function(x) {
   if (is.call(x) && as.character(x[[1]]) == "%>%") TRUE else FALSE
 }
