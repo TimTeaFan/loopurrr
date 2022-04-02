@@ -35,9 +35,9 @@ In this initial version, `{loopurrr}` consists only of *one* main function: `as_
 `as_loop()` takes a function call to one of `{purrr}`'s iterator functions, such as `purrr::map()`, and
 translates it into a regular `for` loop.
 
-You might ask: *"Why would anyone want to do this?!"* 😲😮
+You might ask: *"Why would anyone want to do this?!"*
 
-`as_loop()` has at least three use cases: 😀😀
+`as_loop()` has at least three use cases:
 
 1. Learning and Teaching Functional Programming
 1. Debugging
