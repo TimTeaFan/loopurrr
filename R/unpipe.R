@@ -47,8 +47,7 @@ unpipe_all <- function(code_expr, .top_level = TRUE) {
 }
 
 
-#' Check if call to `as_loop` uses pipes, and if, unpipe it.
-
+# Check if call to `as_loop` uses pipes, and if, unpipe it.
 check_and_unpipe <- function(sc, is_dot) {
 
   # TODO: create recursive function that goes through the whole call stack:
