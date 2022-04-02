@@ -22,5 +22,4 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     rlang,
-    dplyr,
-    utils
+    dplyr
