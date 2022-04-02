@@ -6,7 +6,7 @@
 #'
 #' `default_context()` inspects if the `"loopurrr.output"` option is set. If the option is not
 #' specified, it will default to `c("rstudio", "clipboard", "console")`. If `"console"` is not
-#' among the output options it will be automatically include it as last option.
+#' among the output options it will be automatically included as last option.
 #'
 #' @param x Either `NULL` or one or several of `"rstudio"`, `"clipboard"`, `"console"`. If set to
 #' more than one option, the output options will be run in order from left to right until
@@ -20,7 +20,7 @@
 #' (which defaults to NULL) if the option is unset.
 #'
 #' For `default_context()`, either the current value set for option `"loopurrr.output"`.
-#' In this case, if `"console"` is not among the options it will be automatically include it as last
+#' In this case, if `"console"` is not among the options, it will be automatically included as last
 #' option. Or, if option `"loopurrr.output"` is not specified `c("rstudio", "clipboard", "console")`.
 #'
 #'

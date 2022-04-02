@@ -7,14 +7,13 @@
 get_supported_fns(fn)
 }
 \arguments{
-\item{fn}{The name of a \code{{loopurrr}} function (as string) for which supported functions should
-be returned.}
+\item{fn}{The name of a \code{{loopurrr}} function as string.}
 }
 \value{
 A list of supported function names as named character vectors.
 }
 \description{
-\code{get_supported_fns()} shows which functions are supported for a specifc \code{{loopurrr}} function.
+\code{get_supported_fns()} shows which functions are supported for a specific \code{{loopurrr}} function.
 Currently, only works on \code{as_loop()}.
 }
 \section{Examples}{

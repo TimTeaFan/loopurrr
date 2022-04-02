@@ -2,7 +2,7 @@
 % Please edit documentation in R/as_loop.R
 \name{as_loop}
 \alias{as_loop}
-\title{Translate {purrr} iterative functions to regular for loops}
+\title{Translate purrr's iterator functions to regular for loops}
 \usage{
 as_loop(
   .expr,
@@ -14,8 +14,8 @@ as_loop(
 )
 }
 \arguments{
-\item{.expr}{A function call to a {purrr} iterator function. See the "Supported functions"
-section below for an overview of which {purrr} iterator functions are currently supported.}
+\item{.expr}{A function call to a \code{{purrr}} iterator function. See the "Supported functions"
+section below for an overview of which \code{{purrr}} iterator functions are currently supported.}
 
 \item{simplify}{When TRUE, the default, \code{as_loop()} will run the function call in \code{.expr} to
 check two things: (1) Whether the call is valid. If not, an error will be thrown, pointing out
@@ -64,20 +64,20 @@ returned.
 }
 }
 \description{
-\code{as_loop()} takes a function call to one of {purrr}'s iterator functions, such as \code{\link[purrr:map]{purrr::map()}},
+\code{as_loop()} takes a function call to one of \code{{purrr}}'s iterator functions, such as \code{\link[purrr:map]{purrr::map()}},
 and translates it into a regular \code{for} loop. Depending on the output context, the translation is
 either (i) printed to the console, (ii) copied to the clipboard or (iii) directly inserted into
 RStudio. Note that the latter two options require the \code{{clipr}} respectively the \code{{rstudioapi}}
-package.
+package to be installed.
 
-The usage is pretty straight-forward: Just wrap a call to a {purrr} iterator function into
+The usage is pretty straight-forward: Just wrap a call to a \code{{purrr}} iterator function into
 \code{as_loop()} or us one of the pipe operators (\verb{|>} or \verb{\%>\%}) to pipe the function call into
 \code{as_loop()}. For details see the examples below.
 }
 \section{Supported functions}{
 
 
-The following iterator functions from the {purrr} package are currently supported:\if{html}{\out{<div class="r">}}\preformatted{options(width = 60)
+The following iterator functions from the \code{{purrr}} package are currently supported:\if{html}{\out{<div class="r">}}\preformatted{options(width = 60)
 get_supported_fns("as_loop")
 #> $map
 #>  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df" 

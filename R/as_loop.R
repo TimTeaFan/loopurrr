@@ -1,18 +1,18 @@
-#' Translate {purrr} iterative functions to regular for loops
+#' Translate purrr's iterator functions to regular for loops
 #'
 #' @description
-#' `as_loop()` takes a function call to one of {purrr}'s iterator functions, such as [purrr::map()],
+#' `as_loop()` takes a function call to one of `{purrr}`'s iterator functions, such as [purrr::map()],
 #' and translates it into a regular `for` loop. Depending on the output context, the translation is
 #' either (i) printed to the console, (ii) copied to the clipboard or (iii) directly inserted into
 #' RStudio. Note that the latter two options require the `{clipr}` respectively the `{rstudioapi}`
-#' package.
+#' package to be installed.
 #'
-#' The usage is pretty straight-forward: Just wrap a call to a {purrr} iterator function into
+#' The usage is pretty straight-forward: Just wrap a call to a `{purrr}` iterator function into
 #' `as_loop()` or us one of the pipe operators (`|>` or `%>%`) to pipe the function call into
 #' `as_loop()`. For details see the examples below.
 #'
-#' @param .expr A function call to a {purrr} iterator function. See the "Supported functions"
-#' section below for an overview of which {purrr} iterator functions are currently supported.
+#' @param .expr A function call to a `{purrr}` iterator function. See the "Supported functions"
+#' section below for an overview of which `{purrr}` iterator functions are currently supported.
 #'
 #' @param simplify When TRUE, the default, `as_loop()` will run the function call in `.expr` to
 #' check two things: (1) Whether the call is valid. If not, an error will be thrown, pointing out
@@ -61,7 +61,7 @@
 #' ```{r, child = "man/rmd/setup.Rmd"}
 #' ```
 #'
-#' The following iterator functions from the {purrr} package are currently supported:
+#' The following iterator functions from the `{purrr}` package are currently supported:
 #' ```{r, comment = "#>", collapse = TRUE, eval = TRUE}
 #' options(width = 60)
 #' get_supported_fns("as_loop")

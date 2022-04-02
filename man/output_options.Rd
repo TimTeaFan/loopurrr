@@ -25,7 +25,7 @@ For \code{get_output_opt()}, the current value set for option \code{"loopurrr.ou
 (which defaults to NULL) if the option is unset.
 
 For \code{default_context()}, either the current value set for option \code{"loopurrr.output"}.
-In this case, if \code{"console"} is not among the options it will be automatically include it as last
+In this case, if \code{"console"} is not among the options, it will be automatically included as last
 option. Or, if option \code{"loopurrr.output"} is not specified \code{c("rstudio", "clipboard", "console")}.
 }
 \description{
@@ -34,7 +34,7 @@ wrappers around \code{getOption("loopurrr.output")} and \code{options("loopurrr.
 
 \code{default_context()} inspects if the \code{"loopurrr.output"} option is set. If the option is not
 specified, it will default to \code{c("rstudio", "clipboard", "console")}. If \code{"console"} is not
-among the output options it will be automatically include it as last option.
+among the output options it will be automatically included as last option.
 }
 \section{Examples}{
 \if{html}{\out{<div class="r">}}\preformatted{set_output_opt(c("clipboard", "rstudio"))
