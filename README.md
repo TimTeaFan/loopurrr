@@ -35,12 +35,12 @@ You might ask: *“Why would anyone want to do this?!”* 😲😮
 
 `as_loop()` has at least three use cases: 😀😀
 
-1.  Learnung and Teaching Functional Programming
+1.  Learning and Teaching Functional Programming
 2.  Debugging
 3.  Accessing and Extending `{purrr}` Functions
 
 The remainder of this readme will expand on the uses cases above, show
-how to get started, and give brief outlook on the development roadmap.
+how to get started, and give a brief outlook on the development roadmap.
 
 ## Motivation and Use Cases
 
@@ -65,22 +65,23 @@ of iterator functions in the `{purrr}` package.
 Finally, this package is not only for beginners and users new to R. When
 writing this package I was fairly confident in my understanding of
 `{purrr}`’s iterator functions. Nevertheless, translating each of them
-into a `for` loop was quite revealing, especially with the complexer
-functions, such as `purrr::reduce()` when the direction is set to
-`"backward"`.
+into a `for` loop was quite revealing, especially with the more complex
+functions, such as `purrr::reduce()` (specifically when the direction is
+set to `"backward"`).
 
 #### 2. Debugging
 
 Once learneRs know what an iterator function does and how to use it, the
 next hurdle to take is dealing with failure. Iterator functions
 introduce an additional layer of complexity, because special knowledge
-is required to debug non-running code. By translating an iterator
-function into a regular `for` loop, `as_loop()` can help with debugging.
-Usually a `for` loop will run over an index, for example `i`. When
-executed in the global environment, useRs can easily inspect the code in
-the console at index `i` once the code throws an error, without any
-special knowledge of how to use a debugger, `browser()` or
-`purrr::safely()`.
+is required to debug non-running code (see also
+[here](https://r4ds.had.co.nz/iteration.html#dealing-with-failure)). By
+translating an iterator function into a regular `for` loop, `as_loop()`
+can help with debugging. Usually a `for` loop will run over an index,
+for example `i`. When executed in the global environment, useRs can
+easily inspect the code in the console at index `i` once the code throws
+an error - without any special knowledge of how to use a debugger,
+`browser()` or `purrr::safely()`.
 
 Of course, useRs are still highly encouraged to learn how to use R’s and
 `{purrr}`’s debugging tools and functions. However, in data science
@@ -161,19 +162,19 @@ result:
 ``` r
 1:3 %>% purrr::map(rnorm, n = 10)
 #> [[1]]
-#>  [1]  0.4492732  0.1821827  1.0668440  0.9938194  1.4233757  1.6044945
-#>  [7]  0.3600323  0.2924913 -0.6154723  1.2109110
+#>  [1]  2.4854312  1.3541352 -0.2602226  1.8852490  2.4913731  0.5179679
+#>  [7]  1.8438945  2.0900738  2.0576235  1.1362437
 #> 
 #> [[2]]
-#>  [1] 1.708223926 1.028933151 2.057332710 1.238676595 1.842188126 2.097817147
-#>  [7] 2.711611114 2.524380870 1.425594776 0.005207112
+#>  [1] 2.09320223 1.47673145 1.50532731 0.07780806 2.13772048 5.00904647
+#>  [7] 3.10646191 2.75283218 1.91978437 0.75552309
 #> 
 #> [[3]]
-#>  [1] 3.023413 3.701866 3.230454 2.209133 2.782891 3.885400 3.217757 3.403552
-#>  [9] 1.267636 3.186156
+#>  [1] 4.109859 2.631311 3.241522 5.075519 2.281347 3.720737 2.168363 2.366537
+#>  [9] 2.032225 3.383613
 ```
 
-Next, let’s pipe the function call into `as_loop()`.
+Next, lets pipe the function call into `as_loop()`.
 
 ``` r
 1:3 %>%
@@ -208,16 +209,16 @@ To see the result we need to print `out`:
 ``` r
 out
 #> [[1]]
-#>  [1] 0.08295559 0.96988146 1.84881647 0.66940219 1.87912824 0.34275107
-#>  [7] 1.05240545 1.81847565 0.68338166 1.67325895
+#>  [1]  0.4744212  3.6105443 -1.0153601  0.5811711  1.2456573  0.1005675
+#>  [7]  0.5553400  0.4774171  2.4187800  1.3399613
 #> 
 #> [[2]]
-#>  [1] 2.1042279 0.9164799 3.0623928 1.0967631 3.9914446 2.8395694 2.4481275
-#>  [8] 2.8098851 2.5973847 1.8577167
+#>  [1] 0.5527649 0.1992134 5.8794510 2.7640402 1.7116898 2.2230099 1.0204641
+#>  [8] 1.4774364 1.8341113 2.2364072
 #> 
 #> [[3]]
-#>  [1] 3.057388 1.552137 3.326279 3.338104 1.225934 1.518361 1.655845 3.127453
-#>  [9] 2.475428 3.008975
+#>  [1] 2.8099877 3.2236994 1.5589946 3.9975424 3.4434513 3.2415846 0.9077786
+#>  [8] 1.8373308 2.9802961 3.0687089
 ```
 
 ## Roadmap and Collaboration
@@ -230,10 +231,11 @@ planned:
     (e.g. `cross()` etc.)
 -   support base R’s `apply` family in `as_loop()`
 -   translate `{purrr}`’s iterators to base R equivalents with
-    `as_base()`
+    `as_base()` (yet to be created)
 
 If anyone is interested in collaborating on one or more of those
-milestones, any help is appreciated! Feel free to reach out to me.
+milestones, any help is appreciated! Feel free to reach out to me, for
+example on Twitter \[@TimTeaFan\](<https://twitter.com/timteafan>)
 
 ## History
 
@@ -246,17 +248,39 @@ functions work, was not enough to solve this, since things got more
 complicated when the code was throwing errors. `{loopurrr}` allows us to
 write clean code and translate it to regular `for` loops when needed.
 
-## Acknowledgements and Disclaimer
+## Acknowledgements
+
+Credit goes to the creators and maintainers of the amazing `{purrr}`
+package!<br> `{loopurrr}` is just an add-on which would not exist
+without it.
+
+Further, credit goes to the
+[`{gradethis}`](https://github.com/rstudio/gradethis/%5D) package from
+which I adapted [this
+code](https://github.com/rstudio/gradethis/blob/main/R/unpipe.R) to make
+`as_loop()` work with piped expressions (function calls).
+[`{gradethis}`](https://github.com/rstudio/gradethis/blob/main/LICENSE.md)
+license and copyrights apply!
+
+I was further inpsired by Miles McBain’s
+[`{datapasta}`](https://github.com/MilesMcBain/datapasta)’s different
+output options. Looking at the code alone wasn’t enough, I also got help
+on
+[StackOverflow](https://stackoverflow.com/questions/70572072/how-to-use-indentation-with-rstudioapiinserttext)
+from user @Waldi to make the {rstudioapi} package work.
+
+Finally, I adapted [this answer on
+StackOverflow](ttps://stackoverflow.com/a/33850689/9349302) to replace
+the function arguments of the functions in `map(.f = )` with the actual
+objects that are being used.
+
+## Disclaimer
 
 This package does not promote `for` loops over iterator functions.
 Rather the opposite is true. I love the `{purrr}` package and would be
 happy if people would use it more.
 
-Credit goes to the creators and maintainers of the amazing `{purrr}`
-package! `{loopurrr}` is just an add-on which would not exist without
-it.
-
 Although this package contains tests with more than 1000 lines of code,
-there are definitely a number of edge cases which don’t work correctly.
+there are definitely a number of edge cases which won’t work correctly.
 If you find one, I’d be happy if you file an issue
 [here](https://github.com/TimTeaFan/loopurrr/issues).
