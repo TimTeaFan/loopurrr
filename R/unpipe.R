@@ -54,9 +54,9 @@ check_and_unpipe <- function(sc, is_dot) {
   if (length(sc) > 1 && is_dot) {
     last_cl <- as.list(sc[length(sc) -1L][[1]])
 
-    if (as.character(last_cl[[1]][[1]]) == "%>%" && as.character(last_cl[[3]])[[1]] == "as_loop") {
+    if (as.character(last_cl[[1]])[[1]] == "%>%" && as.character(last_cl[[3]])[[1]] == "as_loop") {
       return(unpipe_all(last_cl[[2]]))
-    } else if (as.character(last_cl[[2]][[1]]) == "%>%" && as.character(last_cl[[2]][[3]]) == "as_loop") {
+    } else if (as.character(last_cl[[2]][[1]])[[1]] == "%>%" && as.character(last_cl[[2]][[3]])[[1]] == "as_loop") {
       return(unpipe_all(last_cl[[2]][[2]]))
     }
   }
