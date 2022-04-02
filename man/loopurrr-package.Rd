@@ -4,12 +4,9 @@
 \name{loopurrr-package}
 \alias{loopurrr}
 \alias{loopurrr-package}
-\title{@description
-Translate {purrr}'s iterator function to regular for-loops}
+\title{loopurrr: Tranlate purrr iterator functions to regular for loops}
 \description{
-\if{html}{\figure{logo.png}{options: align='right' alt='logo' width='120'}}
-
-What the package does (one paragraph).
+Translate {purrr}'s iterator functions to regular for loops
 }
 \author{
 \strong{Maintainer}: Tim Tiefenbach \email{mailme@tim-tiefenbach.de} (\href{https://orcid.org/0000-0001-9443-2434}{ORCID})

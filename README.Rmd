@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 # loopurrr
 
 <!-- badges: start -->
-![Release status](https://img.shields.io/badge/status-under%20construction-red)
+![Release status](https://img.shields.io/badge/status-first%20release-yellow)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/TimTeaFan/loopurrr/workflows/R-CMD-check/badge.svg)](https://github.com/TimTeaFan/loopurrr/actions)
 [![Codecov test coverage](https://codecov.io/gh/TimTeaFan/loopurrr/branch/main/graph/badge.svg)](https://codecov.io/gh/TimTeaFan/loopurrr?branch=main)

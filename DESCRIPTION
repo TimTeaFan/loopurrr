@@ -1,13 +1,14 @@
 Package: loopurrr
-Title: Tranlate map and other purrr functions to regular for-loops
-Version: 0.0.0.9000
+Title: Tranlate purrr iterator functions to regular for loops
+Version: 0.1.0.9000
 Authors@R: 
     person(given = "Tim",
            family = "Tiefenbach",
            role = c("aut", "cre"),
            email = "mailme@tim-tiefenbach.de",
            comment = c(ORCID = "0000-0001-9443-2434"))
-Description: What the package does (one paragraph).
+Description: Makes learning, teaching and debugging iterator functions from the purrr package easy
+    by translating them into regular for loops.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

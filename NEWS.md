@@ -1,3 +1,4 @@
-# loopurrr 0.0.0.9000
+# loopurrr 0.1.0
 
-* Added a `NEWS.md` file to track changes to the package.
+* Initial release 
+* Core functionality provided by `as_loop()`
