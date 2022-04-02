@@ -7,5 +7,6 @@
 # The following block is used by usethis to automatically manage
 # roxygen namespace tags. Modify with care!
 ## usethis namespace: start
+#' @importFrom("methods", "findFunction")
 ## usethis namespace: end
 NULL
