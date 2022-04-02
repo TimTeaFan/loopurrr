@@ -111,7 +111,7 @@ First, lets use `get_supported_fns("as_loop")` to get a glimpse of which iterato
 `{purrr}` package are currently supported by `as_loop()`:
 
 ```{r, comment = "#>", collapse = TRUE, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-devtools::load_all() # library(loopurrr)
+library(loopurrr)
 get_supported_fns("as_loop")
 ```
 
