@@ -3,5 +3,28 @@ url: https://timteafan.github.io/loopurrr/
 
 template:
   bootstrap: 5
-  params:
-    bootswatch: sandstone
+  bslib:
+    bg: "#F7F3D1"
+    fg: "#404040"
+    primary: "#80541c"
+    base_font: {google: "Source Sans Pro"}
+    heading_font: {google: "Raleway"}
+    code_font: {google: "Source Code Pro"}
+
+navbar:
+  bg: "#404040"
+  structure:
+    left:
+    right: [home, reference, news, twitter, github]
+  components:
+    reference:
+      icon: fas fa-tools
+      text: Reference
+      href: reference/index.html
+    news:
+      icon: fas fa-clipboard-list
+      text: News
+      href: news/index.html
+    twitter:
+      icon: "fab fa-twitter"
+      href: https://twitter.com/timteafan
