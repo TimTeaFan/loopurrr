@@ -24,7 +24,7 @@ a.navbar-brand {
 
 /* small box around version number*/
 small.nav-text {
-  color: #141414;
+  color: #141414! important;
   background-color: #d3e432;
   padding-left: 5px;
   padding-right:5px;
@@ -77,7 +77,9 @@ p>a, li>a, li>small>a, ul.dropdown-menu>li>a {
   }
 }
 
-p>a:hover, p>a:focus, li>a:hover, li>a:focus, li>small>a:hover, li>small>a:focus {
+
+p>a, p>a, li>a, li>a, li>small>a, li>small>a,
+p>a:hover, p>a:focus, li>a:hover, li>a:focus, li>small>a:hover, li>small>a:focus{
   color: #d98205 !important;
   text-decoration: none !important;
 }
