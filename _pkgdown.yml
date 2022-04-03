@@ -7,8 +7,8 @@ template:
 
 navbar:
   structure:
-    left:  [home, reference, news, twitter, github]
-    right: [search]
+    left:  [reference, news]
+    right: [twitter, github, search]
   components:
     reference:
       icon: fas fa-tools
