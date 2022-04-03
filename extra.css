@@ -3,7 +3,11 @@
 /* url('https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400&display=swap'); */
 
 .label-default {
-  background-color: #6fcf18; /* #05cf2f */
+  background-color: #b4c41d; /* #05cf2f */
+}
+
+img.logo {
+  display: none;
 }
 
 body {
@@ -46,14 +50,14 @@ p>a:hover, p>a:focus, li>a:hover, li>a:focus, li>small>a:hover, li>small>a:focus
   font-weight: 400 !important;
 }
 
-h1, h2, h3, .h1, .h2, .h3 {
+h1, h2, h3, h4, .h1, .h2, .h3, .h4 {
   font-family: "Source Sans Pro", Helvetica, Arial, sans-serif !important;
   color: #178acc !important;
   font-weight: 300 !important;
   line-height: 1.1 !important;
 }
 
-h4, h5, h6, .h4, .h5, .h6 {
+h5, h6, .h5, .h6 {
   font-family: "Source Sans Pro", Helvetica, Arial, sans-serif !important;
   color: #178acc !important;
   font-weight: 400 !important;
