@@ -2,19 +2,11 @@ title: loopurrr
 url: https://timteafan.github.io/loopurrr/
 
 template:
-  bootstrap: 5
-  bslib:
-    bg: "#F7F3D1"
-    fg: "#404040"
-    primary: "#80541c"
-    base_font: {google: "Source Sans Pro"}
-    heading_font: {google: "Raleway"}
-    code_font: {google: "Source Code Pro"}
+  params:
+    bootswatch: cerulean
 
 navbar:
-  bg: "#404040"
   structure:
-    left:
     right: [home, reference, news, twitter, github]
   components:
     reference:
