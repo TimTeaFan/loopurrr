@@ -2,6 +2,10 @@
 
 /* url('https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400&display=swap'); */
 
+span.fu > a {
+  text-decoration: none !important;
+}
+
 .label-default {
   background-color: #b4c41d; /* #05cf2f */
 }

@@ -4,9 +4,6 @@ url: https://timteafan.github.io/loopurrr/
 template:
   bootstrap: 5
   bootswatch: cerulean
-  bslib:
-    navbar:
-      bg: "#404040"
 
 navbar:
   structure:
