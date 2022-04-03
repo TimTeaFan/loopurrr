@@ -3,11 +3,15 @@ url: https://timteafan.github.io/loopurrr/
 
 template:
   bootstrap: 5
-  bootswatch: sandstone
+  bootswatch: cerulean
+  bslib:
+    navbar:
+      bg: "#404040"
 
 navbar:
   structure:
-    right: [home, reference, news, twitter, github]
+    left:  [home, reference, news, twitter, github]
+    right: [search]
   components:
     reference:
       icon: fas fa-tools
