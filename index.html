@@ -21,7 +21,8 @@
 <link href="deps/_Raleway-0.4.1/font.css" rel="stylesheet">
 <!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Tranlate purrr iterator functions to regular for loops">
+<!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
+<meta property="og:title" content="Tranlate purrr iterator functions to regular for loops">
 <meta property="og:description" content="Makes learning, teaching and debugging iterator functions from the purrr package easy
     by translating them into regular for loops.">
 <meta property="og:image" content="https://timteafan.github.io/loopurrr/logo.png">
@@ -72,6 +73,12 @@
      
   </a>
 </li>
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/TimTeaFan/loopurrr/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
 </div>
 
@@ -92,7 +99,7 @@
 <p id="logop">
 <a id="logo" href="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/logo_big.png" class="external-link"><img src="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/logo.png" alt="loopurrr's logo a cat sleeping in the form of a circle" align="right"></a>
 </p>
-<p><code>{loopurrr}</code> makes <a href="http://purrr.tidyverse.org" class="external-link">purrr</a>’s iterator functions more understandable and easier to debug. In this initial version, <code>{loopurrr}</code> consists only of <em>one</em> main function: <code><a href="reference/as_loop.html">as_loop()</a></code>.</p>
+<p><a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a> makes <a href="http://purrr.tidyverse.org" class="external-link">purrr</a>’s iterator functions more understandable and easier to debug. In this initial version, <a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a> consists only of <em>one</em> main function: <code><a href="reference/as_loop.html">as_loop()</a></code>.</p>
 <p><code><a href="reference/as_loop.html">as_loop()</a></code> takes a function call to one of <a href="http://purrr.tidyverse.org" class="external-link">purrr</a>’s iterator functions, such as <code><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">purrr::map()</a></code>, and translates it into a regular <code>for</code> loop.</p>
 <p>You might ask: <em>“Why would anyone want to do this?!”</em></p>
 <p><code><a href="reference/as_loop.html">as_loop()</a></code> has at least three use cases:</p>
@@ -129,7 +136,7 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p><code>{loopurrr}</code> is not on CRAN yet. You can install the latest version from <a href="https://github.com/TimTeaFan/loopurrr" class="external-link">GitHub</a> with:</p>
+<p><a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a> is not on CRAN yet. You can install the latest version from <a href="https://github.com/TimTeaFan/loopurrr" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># install.packages("remotes")</span>
 <span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"TimTeaFan/loopurrr"</span><span class="op">)</span></code></pre></div>
@@ -220,9 +227,9 @@
 <div class="section level2">
 <h2 id="roadmap-and-collaboration">Roadmap and Collaboration<a class="anchor" aria-label="anchor" href="#roadmap-and-collaboration"></a>
 </h2>
-<p>For future versions of <code>{loopurrr}</code> the following milestones are planned:</p>
+<p>For future versions of <a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a> the following milestones are planned:</p>
 <ul>
-<li>release <code>{loopurrr}</code> on CRAN</li>
+<li>release <a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a> on CRAN</li>
 <li>enable support for more iterator functions from <a href="http://purrr.tidyverse.org" class="external-link">purrr</a> (e.g. <code>cross()</code> etc.)</li>
 <li>support base R’s <code>apply</code> family in <code><a href="reference/as_loop.html">as_loop()</a></code>
 </li>
@@ -233,12 +240,12 @@
 <div class="section level2">
 <h2 id="history">History<a class="anchor" aria-label="anchor" href="#history"></a>
 </h2>
-<p>The idea of this package is based on an experience I had at work. After diving deeper into <a href="http://purrr.tidyverse.org" class="external-link">purrr</a>’s iterator functions I started refactoring some old code by replacing loops with <code>map</code> functions. To my surprise, although the code was much cleaner now, not everybody liked it. For some users it made things harder to understand. Learning once how <code>map</code> functions work, was not enough to solve this, since things got more complicated when the code was throwing errors. <code>{loopurrr}</code> allows us to write clean code and translate it to regular <code>for</code> loops when needed.</p>
+<p>The idea of this package is based on an experience I had at work. After diving deeper into <a href="http://purrr.tidyverse.org" class="external-link">purrr</a>’s iterator functions I started refactoring some old code by replacing loops with <code>map</code> functions. To my surprise, although the code was much cleaner now, not everybody liked it. For some users it made things harder to understand. Learning once how <code>map</code> functions work, was not enough to solve this, since things got more complicated when the code was throwing errors. <a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a> allows us to write clean code and translate it to regular <code>for</code> loops when needed.</p>
 </div>
 <div class="section level2">
 <h2 id="acknowledgements">Acknowledgements<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>
 </h2>
-<p>Credit goes to the creators and maintainers of the amazing <a href="http://purrr.tidyverse.org" class="external-link">purrr</a> package!<br><code>{loopurrr}</code> is just an add-on which would not exist without it.</p>
+<p>Credit goes to the creators and maintainers of the amazing <a href="http://purrr.tidyverse.org" class="external-link">purrr</a> package!<br><a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a> is just an add-on which would not exist without it.</p>
 <p>Further, credit goes to the <a href="https://github.com/rstudio/gradethis/%5D" class="external-link"><code>{gradethis}</code></a> package from which I adapted <a href="https://github.com/rstudio/gradethis/blob/main/R/unpipe.R" class="external-link">this code</a> to make <code><a href="reference/as_loop.html">as_loop()</a></code> work with piped expressions (function calls). <a href="https://github.com/rstudio/gradethis/blob/main/LICENSE.md" class="external-link"><code>{gradethis}</code></a> license and copyrights apply!</p>
 <p>I was further inpsired by Miles McBain’s <a href="https://github.com/MilesMcBain/datapasta" class="external-link"><code>{datapasta}</code></a>’s different output options. Looking at the code alone wasn’t enough, I also got help on <a href="https://stackoverflow.com/questions/70572072/how-to-use-indentation-with-rstudioapiinserttext" class="external-link">StackOverflow</a> from user @Waldi to make the {rstudioapi} package work.</p>
 <p>Finally, I adapted <a href="ttps://stackoverflow.com/a/33850689/9349302">this answer on StackOverflow</a> to replace the function arguments of the functions in <code>map(.f = )</code> with the actual objects that are being used.</p>
@@ -250,7 +257,15 @@
 <p>Although this package contains tests with more than 1000 lines of code, there are definitely a number of edge cases which won’t work correctly. If you find one, I’d be happy if you file an issue <a href="https://github.com/TimTeaFan/loopurrr/issues" class="external-link">here</a>.</p>
 </div>
 </div>
-  </main><aside class="col-md-3"><div class="license">
+  </main><aside class="col-md-3"><div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/TimTeaFan/loopurrr/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/TimTeaFan/loopurrr/issues" class="external-link">Report a bug</a></li>
+</ul>
+</div>
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li><a href="LICENSE.html">Full license</a></li>

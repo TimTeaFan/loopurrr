@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400&display=swap');
+
+/* url('https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400&display=swap'); */
+
+.label-default {
+  background-color: #6fcf18; /* #05cf2f */
+}
+
+body {
+  font-family: "Source Sans Pro", Helvetica, Arial, sans-serif !important;
+  /*  "Lato", sans-serif */
+  font-size: 16px !important;
+  line-height: 1.846 !important;
+  font-weight: 400 !important;
+  color: #444444 !important;
+  -webkit-font-smoothing: antialiased !important;
+  letter-spacing: .1px !important;
+}
+
+.navbar li>a, .navbar li>a {
+  color: #ffffff !important;
+}
+
+.navbar li>a:hover, .navbar li>a:focus {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+p>a, li>a, li>small>a, ul.dropdown-menu>li>a {
+  color: #83bb13 !important;
+}
+
+@media (max-width: 768px) {
+  ul.dropdown-menu>li>a {
+      color: #ffffff !important;
+  }
+}
+
+p>a:hover, p>a:focus, li>a:hover, li>a:focus, li>small>a:hover, li>small>a:focus {
+  color: #5d8709 !important;
+  text-decoration: none !important;
+}
+
+/* ul.dropdown-menu>li>a:hover, ul.dropdown-menu>li>a:focus */
+.ref-index th {
+  font-weight: 400 !important;
+}
+
+h1, h2, h3, .h1, .h2, .h3 {
+  font-family: "Source Sans Pro", Helvetica, Arial, sans-serif !important;
+  color: #178acc !important;
+  font-weight: 300 !important;
+  line-height: 1.1 !important;
+}
+
+h4, h5, h6, .h4, .h5, .h6 {
+  font-family: "Source Sans Pro", Helvetica, Arial, sans-serif !important;
+  color: #178acc !important;
+  font-weight: 400 !important;
+  line-height: 1.1 !important;
+}
+
+pre {
+  font-size: 14px !important;
+  line-height: 1.846 !important;
+}
+
+code, kbd, pre, samp {
+  font-family: "Source Code Pro", Menlo, Monaco, Consolas, "Courier New", monospace !important;
+}
