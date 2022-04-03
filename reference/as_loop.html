@@ -46,7 +46,10 @@ as_loop(). For details see the examples below."><meta property="og:image" conten
     News
   </a>
 </li>
-<li class="nav-item">
+      </ul><form class="form-inline my-2 my-lg-0" role="search">
+        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
+
+      <ul class="navbar-nav"><li class="nav-item">
   <a class="external-link nav-link" href="https://twitter.com/timteafan">
     <span class="fab fa fab fa-twitter"></span>
      
@@ -58,10 +61,7 @@ as_loop(). For details see the examples below."><meta property="og:image" conten
      
   </a>
 </li>
-      </ul><form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
-
-      <ul class="navbar-nav"></ul></div>
+      </ul></div>
 
     
   </div>
@@ -191,8 +191,8 @@ returned.</p></li>
 regular for loop. Depending on the output context, the resulting for loop will either be
 (i) inserted directly into a script in RStudio, (ii) copied to the clipboard or (iii)
 printed to the console.</p><div class="r"><div class="sourceCode"><pre><code><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="fu">map</span><span class="op">(</span><span class="va">x</span>, <span class="va">sum</span><span class="op">)</span><span class="op">)</span>        <span class="co"># wrap a call in `as_loop()`</span>
-<span class="fu">map</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="va">sum</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># pipe a call into `as_loop()`</span>
+<span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">sum</span><span class="op">)</span><span class="op">)</span>        <span class="co"># wrap a call in `as_loop()`</span>
+<span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="va">sum</span><span class="op">)</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># pipe a call into `as_loop()`</span>
 
 <span class="co"># --- convert: `map(x, sum)` as loop --- #</span>
 <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"list"</span>, length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span>
@@ -206,7 +206,7 @@ printed to the console.</p><div class="r"><div class="sourceCode"><pre><code><sp
 <p>The <code>output_nm</code> argument lets us specify the name of the resulting output object. In the
 example below <code>".res"</code>. The <code>idx</code> argument lets us specify the index to be used. In the example
 below <code>"j"</code>.</p><div class="r"><div class="sourceCode"><pre><code><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>
-<span class="fu">map_dbl</span><span class="op">(</span><span class="va">x</span>, <span class="va">sum</span><span class="op">)</span> <span class="op">%&gt;%</span>
+<span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_dbl</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">sum</span><span class="op">)</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="va">.</span>, output_nm <span class="op">=</span> <span class="st">".res"</span>, idx <span class="op">=</span> <span class="st">"j"</span><span class="op">)</span>
 
 <span class="co"># --- convert: `map_dbl(x, sum)` as loop --- #</span>
@@ -220,7 +220,7 @@ below <code>"j"</code>.</p><div class="r"><div class="sourceCode"><pre><code><sp
 nor the expected output. In this case the resulting <code>for</code> loop is more verbose. This is because we
 need to take the case of <code>NULL</code> in the return values into account. In the example below we further
 see what happens, when we use an unnamed object, such as <code>1:3</code>, in the call to <code><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">purrr::map()</a></code>.
-<code>as_loop()</code> assign unnamed objects an internal name. In the example below <code>.inp1</code>.</p><div class="r"><div class="sourceCode"><pre><code><span class="fu">map</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="va">sum</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="va">.</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+<code>as_loop()</code> assign unnamed objects an internal name. In the example below <code>.inp1</code>.</p><div class="r"><div class="sourceCode"><pre><code><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="va">sum</span><span class="op">)</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="va">.</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
 
 <span class="co"># --- convert: `map(1:3, sum)` as loop --- #</span>
 <span class="va">.inp1</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>

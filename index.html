@@ -59,6 +59,12 @@
     News
   </a>
 </li>
+      </ul>
+<form class="form-inline my-2 my-lg-0" role="search">
+        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="search.json" id="search-input" placeholder="Search for" autocomplete="off">
+</form>
+
+      <ul class="navbar-nav">
 <li class="nav-item">
   <a class="external-link nav-link" href="https://twitter.com/timteafan">
     <span class="fab fa fab fa-twitter"></span>
@@ -72,11 +78,6 @@
   </a>
 </li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav"></ul>
 </div>
 
     
@@ -142,54 +143,57 @@
 <h2 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
 </h2>
 <p>First, lets use <code>get_supported_fns("as_loop")</code> to get a glimpse of which iterator functions from the <a href="http://purrr.tidyverse.org" class="external-link">purrr</a> package are currently supported by <code><a href="reference/as_loop.html">as_loop()</a></code>:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co">#&gt; $map</span></span>
-<span id="cb2-2"><a href="#cb2-2"></a><span class="co">#&gt;  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df"  "map_dfc" "map_dfr"</span></span>
-<span id="cb2-3"><a href="#cb2-3"></a><span class="co">#&gt;  [8] "map_if"  "map_int" "map_lgl" "map_raw"</span></span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="co">#&gt; </span></span>
-<span id="cb2-5"><a href="#cb2-5"></a><span class="co">#&gt; $imap</span></span>
-<span id="cb2-6"><a href="#cb2-6"></a><span class="co">#&gt; [1] "imap"     "imap_chr" "imap_dbl" "imap_dfc" "imap_dfr" "imap_int" "imap_lgl"</span></span>
-<span id="cb2-7"><a href="#cb2-7"></a><span class="co">#&gt; [8] "imap_raw"</span></span>
-<span id="cb2-8"><a href="#cb2-8"></a><span class="co">#&gt; </span></span>
-<span id="cb2-9"><a href="#cb2-9"></a><span class="co">#&gt; $map</span></span>
-<span id="cb2-10"><a href="#cb2-10"></a><span class="co">#&gt; [1] "map2"     "map2_chr" "map2_dbl" "map2_df"  "map2_dfc" "map2_dfr" "map2_int"</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a><span class="co">#&gt; [8] "map2_lgl" "map2_raw"</span></span>
-<span id="cb2-12"><a href="#cb2-12"></a><span class="co">#&gt; </span></span>
-<span id="cb2-13"><a href="#cb2-13"></a><span class="co">#&gt; $pmap</span></span>
-<span id="cb2-14"><a href="#cb2-14"></a><span class="co">#&gt; [1] "pmap"     "pmap_chr" "pmap_dbl" "pmap_df"  "pmap_dfc" "pmap_dfr" "pmap_int"</span></span>
-<span id="cb2-15"><a href="#cb2-15"></a><span class="co">#&gt; [8] "pmap_lgl" "pmap_raw"</span></span>
-<span id="cb2-16"><a href="#cb2-16"></a><span class="co">#&gt; </span></span>
-<span id="cb2-17"><a href="#cb2-17"></a><span class="co">#&gt; $lmap</span></span>
-<span id="cb2-18"><a href="#cb2-18"></a><span class="co">#&gt; [1] "lmap"    "lmap_at"</span></span>
-<span id="cb2-19"><a href="#cb2-19"></a><span class="co">#&gt; </span></span>
-<span id="cb2-20"><a href="#cb2-20"></a><span class="co">#&gt; $modify</span></span>
-<span id="cb2-21"><a href="#cb2-21"></a><span class="co">#&gt; [1] "modify"    "modify_at" "modify_if" "modify2"   "imodify"  </span></span>
-<span id="cb2-22"><a href="#cb2-22"></a><span class="co">#&gt; </span></span>
-<span id="cb2-23"><a href="#cb2-23"></a><span class="co">#&gt; $walk</span></span>
-<span id="cb2-24"><a href="#cb2-24"></a><span class="co">#&gt; [1] "iwalk" "pwalk" "walk"  "walk2"</span></span>
-<span id="cb2-25"><a href="#cb2-25"></a><span class="co">#&gt; </span></span>
-<span id="cb2-26"><a href="#cb2-26"></a><span class="co">#&gt; $accumulate</span></span>
-<span id="cb2-27"><a href="#cb2-27"></a><span class="co">#&gt; [1] "accumulate"  "accumulate2"</span></span>
-<span id="cb2-28"><a href="#cb2-28"></a><span class="co">#&gt; </span></span>
-<span id="cb2-29"><a href="#cb2-29"></a><span class="co">#&gt; $reduce</span></span>
-<span id="cb2-30"><a href="#cb2-30"></a><span class="co">#&gt; [1] "reduce"  "reduce2"</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a></span><span class="op">)</span>
+<span class="fu"><a href="reference/get_supported_fns.html">get_supported_fns</a></span><span class="op">(</span><span class="st">"as_loop"</span><span class="op">)</span>
+<span class="co">#&gt; $map</span>
+<span class="co">#&gt;  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df"  "map_dfc" "map_dfr"</span>
+<span class="co">#&gt;  [8] "map_if"  "map_int" "map_lgl" "map_raw"</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $imap</span>
+<span class="co">#&gt; [1] "imap"     "imap_chr" "imap_dbl" "imap_dfc" "imap_dfr" "imap_int" "imap_lgl"</span>
+<span class="co">#&gt; [8] "imap_raw"</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $map</span>
+<span class="co">#&gt; [1] "map2"     "map2_chr" "map2_dbl" "map2_df"  "map2_dfc" "map2_dfr" "map2_int"</span>
+<span class="co">#&gt; [8] "map2_lgl" "map2_raw"</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $pmap</span>
+<span class="co">#&gt; [1] "pmap"     "pmap_chr" "pmap_dbl" "pmap_df"  "pmap_dfc" "pmap_dfr" "pmap_int"</span>
+<span class="co">#&gt; [8] "pmap_lgl" "pmap_raw"</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $lmap</span>
+<span class="co">#&gt; [1] "lmap"    "lmap_at"</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $modify</span>
+<span class="co">#&gt; [1] "modify"    "modify_at" "modify_if" "modify2"   "imodify"  </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $walk</span>
+<span class="co">#&gt; [1] "iwalk" "pwalk" "walk"  "walk2"</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $accumulate</span>
+<span class="co">#&gt; [1] "accumulate"  "accumulate2"</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $reduce</span>
+<span class="co">#&gt; [1] "reduce"  "reduce2"</span></code></pre></div>
 <p>Now we can look at the documentation of <a href="http://purrr.tidyverse.org" class="external-link">purrr</a> and start with translating the first example of <code><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">purrr::map()</a></code>. First, lets look at the result:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fl">1</span><span class="op">:</span><span class="fl">3</span> <span class="op">%&gt;%</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">rnorm</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fl">1</span><span class="op">:</span><span class="fl">3</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">rnorm</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>
 <span class="co">#&gt; [[1]]</span>
-<span class="co">#&gt;  [1]  2.2774409  0.8047915 -1.1760346 -1.0427843  2.7379321  1.2038944</span>
-<span class="co">#&gt;  [7]  0.7700466  2.4655117  0.5696917  1.3623644</span>
+<span class="co">#&gt;  [1]  2.10394488  0.84472095  0.09196153  0.72654192  0.51453458  1.73257985</span>
+<span class="co">#&gt;  [7]  0.71479639  0.87543917  1.69411144 -0.21665817</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[2]]</span>
-<span class="co">#&gt;  [1] 3.4517462 3.1873055 1.1531178 2.6154024 3.1894336 1.1906326 0.7301067</span>
-<span class="co">#&gt;  [8] 1.4232494 0.6573112 3.3227052</span>
+<span class="co">#&gt;  [1] 3.3872580 1.2538071 3.7486990 1.3453894 0.3737051 2.2191727 1.5941547</span>
+<span class="co">#&gt;  [8] 1.5503655 3.6499360 2.1497202</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[3]]</span>
-<span class="co">#&gt;  [1] 3.194374 2.140866 2.717488 1.839687 2.601345 3.707104 1.350024 3.608649</span>
-<span class="co">#&gt;  [9] 4.441465 3.918482</span></code></pre></div>
+<span class="co">#&gt;  [1] 3.275109 2.113992 3.290829 1.243384 3.669023 2.475728 3.129348 1.714306</span>
+<span class="co">#&gt;  [9] 2.119823 2.034846</span></code></pre></div>
 <p>Next, lets pipe the function call into <code><a href="reference/as_loop.html">as_loop()</a></code>.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fl">1</span><span class="op">:</span><span class="fl">3</span> <span class="op">%&gt;%</span>
-  <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">rnorm</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">%&gt;%</span>
+<code class="sourceCode R"><span class="fl">1</span><span class="op">:</span><span class="fl">3</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
+  <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">rnorm</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p>Depending on the automatically detected output settings, the result will either be</p>
 <ol style="list-style-type: decimal">
@@ -210,16 +214,16 @@
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">out</span>
 <span class="co">#&gt; [[1]]</span>
-<span class="co">#&gt;  [1] -0.7200126  1.7311830  2.2690621 -0.2107278  2.4543609  2.3500439</span>
-<span class="co">#&gt;  [7]  2.2721887  1.0647378  0.4952374  1.7298569</span>
+<span class="co">#&gt;  [1]  0.3267879  0.4983870  1.2085033  0.8895642  2.2741151  1.0371970</span>
+<span class="co">#&gt;  [7] -1.1718397  1.3767759 -0.4451856  1.1054542</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[2]]</span>
-<span class="co">#&gt;  [1] 1.3039634 2.7448869 1.2602083 2.9542130 3.2978170 0.7099589 3.2346049</span>
-<span class="co">#&gt;  [8] 2.2093101 0.7843484 1.2772277</span>
+<span class="co">#&gt;  [1] 1.4029947 2.0199951 3.0544539 2.9820236 0.5358218 2.5511685 3.6756350</span>
+<span class="co">#&gt;  [8] 2.1871546 1.9150988 3.1270697</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[3]]</span>
-<span class="co">#&gt;  [1] 1.8397364 3.7574153 0.8742848 2.4375385 4.6123190 1.3133069 1.8128238</span>
-<span class="co">#&gt;  [8] 2.7940326 3.5215455 4.5140684</span></code></pre></div>
+<span class="co">#&gt;  [1] 3.8912208 3.7897599 2.8600962 4.9544992 2.9034824 4.3065515 2.4570359</span>
+<span class="co">#&gt;  [8] 2.1244303 0.6712715 3.0975002</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="roadmap-and-collaboration">Roadmap and Collaboration<a class="anchor" aria-label="anchor" href="#roadmap-and-collaboration"></a>
@@ -227,7 +231,7 @@
 <p>For future versions of <a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a> the following milestones are planned:</p>
 <ul>
 <li>release <a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a> on CRAN</li>
-<li>enable support for more iterator functions from <a href="http://purrr.tidyverse.org" class="external-link">purrr</a> (e.g. <code>cross()</code> etc.)</li>
+<li>enable support for more iterator functions from <a href="http://purrr.tidyverse.org" class="external-link">purrr</a> (e.g. <code><a href="https://purrr.tidyverse.org/reference/cross.html" class="external-link">cross()</a></code> etc.)</li>
 <li>support base R’s <code>apply</code> family in <code><a href="reference/as_loop.html">as_loop()</a></code>
 </li>
 <li>translate <a href="http://purrr.tidyverse.org" class="external-link">purrr</a>’s iterators to base R equivalents with <code>as_base()</code> (yet to be created)</li>
