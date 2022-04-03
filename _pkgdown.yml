@@ -4,4 +4,4 @@ url: https://timteafan.github.io/loopurrr/
 template:
   bootstrap: 5
   params:
-    bootswatch: cerulean
+    bootswatch: sandstone
