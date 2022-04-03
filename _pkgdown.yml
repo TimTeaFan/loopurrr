@@ -2,8 +2,8 @@ title: loopurrr
 url: https://timteafan.github.io/loopurrr/
 
 template:
-  params:
-    bootswatch: cerulean
+  bootstrap: 5
+  bootswatch: sandstone
 
 navbar:
   structure:
