@@ -110,7 +110,7 @@ remotes::install_github("TimTeaFan/loopurrr")
 First, lets use `get_supported_fns("as_loop")` to get a glimpse of which iterator functions from the
 `{purrr}` package are currently supported by `as_loop()`:
 
-```{r, comment = "#>", collapse = TRUE, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r, comment = "#>", collapse = TRUE, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
 library(loopurrr)
 get_supported_fns("as_loop")
 ```

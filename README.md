@@ -124,36 +124,40 @@ First, lets use `get_supported_fns("as_loop")` to get a glimpse of which
 iterator functions from the `{purrr}` package are currently supported by
 `as_loop()`:
 
-    #> $map
-    #>  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df"  "map_dfc" "map_dfr"
-    #>  [8] "map_if"  "map_int" "map_lgl" "map_raw"
-    #> 
-    #> $imap
-    #> [1] "imap"     "imap_chr" "imap_dbl" "imap_dfc" "imap_dfr" "imap_int" "imap_lgl"
-    #> [8] "imap_raw"
-    #> 
-    #> $map
-    #> [1] "map2"     "map2_chr" "map2_dbl" "map2_df"  "map2_dfc" "map2_dfr" "map2_int"
-    #> [8] "map2_lgl" "map2_raw"
-    #> 
-    #> $pmap
-    #> [1] "pmap"     "pmap_chr" "pmap_dbl" "pmap_df"  "pmap_dfc" "pmap_dfr" "pmap_int"
-    #> [8] "pmap_lgl" "pmap_raw"
-    #> 
-    #> $lmap
-    #> [1] "lmap"    "lmap_at"
-    #> 
-    #> $modify
-    #> [1] "modify"    "modify_at" "modify_if" "modify2"   "imodify"  
-    #> 
-    #> $walk
-    #> [1] "iwalk" "pwalk" "walk"  "walk2"
-    #> 
-    #> $accumulate
-    #> [1] "accumulate"  "accumulate2"
-    #> 
-    #> $reduce
-    #> [1] "reduce"  "reduce2"
+``` r
+library(loopurrr)
+get_supported_fns("as_loop")
+#> $map
+#>  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df"  "map_dfc" "map_dfr"
+#>  [8] "map_if"  "map_int" "map_lgl" "map_raw"
+#> 
+#> $imap
+#> [1] "imap"     "imap_chr" "imap_dbl" "imap_dfc" "imap_dfr" "imap_int" "imap_lgl"
+#> [8] "imap_raw"
+#> 
+#> $map
+#> [1] "map2"     "map2_chr" "map2_dbl" "map2_df"  "map2_dfc" "map2_dfr" "map2_int"
+#> [8] "map2_lgl" "map2_raw"
+#> 
+#> $pmap
+#> [1] "pmap"     "pmap_chr" "pmap_dbl" "pmap_df"  "pmap_dfc" "pmap_dfr" "pmap_int"
+#> [8] "pmap_lgl" "pmap_raw"
+#> 
+#> $lmap
+#> [1] "lmap"    "lmap_at"
+#> 
+#> $modify
+#> [1] "modify"    "modify_at" "modify_if" "modify2"   "imodify"  
+#> 
+#> $walk
+#> [1] "iwalk" "pwalk" "walk"  "walk2"
+#> 
+#> $accumulate
+#> [1] "accumulate"  "accumulate2"
+#> 
+#> $reduce
+#> [1] "reduce"  "reduce2"
+```
 
 Now we can look at the documentation of `{purrr}` and start with
 translating the first example of `purrr::map()`. First, lets look at the
@@ -162,16 +166,16 @@ result:
 ``` r
 1:3 %>% purrr::map(rnorm, n = 10)
 #> [[1]]
-#>  [1]  2.2774409  0.8047915 -1.1760346 -1.0427843  2.7379321  1.2038944
-#>  [7]  0.7700466  2.4655117  0.5696917  1.3623644
+#>  [1]  2.10394488  0.84472095  0.09196153  0.72654192  0.51453458  1.73257985
+#>  [7]  0.71479639  0.87543917  1.69411144 -0.21665817
 #> 
 #> [[2]]
-#>  [1] 3.4517462 3.1873055 1.1531178 2.6154024 3.1894336 1.1906326 0.7301067
-#>  [8] 1.4232494 0.6573112 3.3227052
+#>  [1] 3.3872580 1.2538071 3.7486990 1.3453894 0.3737051 2.2191727 1.5941547
+#>  [8] 1.5503655 3.6499360 2.1497202
 #> 
 #> [[3]]
-#>  [1] 3.194374 2.140866 2.717488 1.839687 2.601345 3.707104 1.350024 3.608649
-#>  [9] 4.441465 3.918482
+#>  [1] 3.275109 2.113992 3.290829 1.243384 3.669023 2.475728 3.129348 1.714306
+#>  [9] 2.119823 2.034846
 ```
 
 Next, lets pipe the function call into `as_loop()`.
@@ -209,16 +213,16 @@ To see the result we need to print `out`:
 ``` r
 out
 #> [[1]]
-#>  [1] -0.7200126  1.7311830  2.2690621 -0.2107278  2.4543609  2.3500439
-#>  [7]  2.2721887  1.0647378  0.4952374  1.7298569
+#>  [1]  0.3267879  0.4983870  1.2085033  0.8895642  2.2741151  1.0371970
+#>  [7] -1.1718397  1.3767759 -0.4451856  1.1054542
 #> 
 #> [[2]]
-#>  [1] 1.3039634 2.7448869 1.2602083 2.9542130 3.2978170 0.7099589 3.2346049
-#>  [8] 2.2093101 0.7843484 1.2772277
+#>  [1] 1.4029947 2.0199951 3.0544539 2.9820236 0.5358218 2.5511685 3.6756350
+#>  [8] 2.1871546 1.9150988 3.1270697
 #> 
 #> [[3]]
-#>  [1] 1.8397364 3.7574153 0.8742848 2.4375385 4.6123190 1.3133069 1.8128238
-#>  [8] 2.7940326 3.5215455 4.5140684
+#>  [1] 3.8912208 3.7897599 2.8600962 4.9544992 2.9034824 4.3065515 2.4570359
+#>  [8] 2.1244303 0.6712715 3.0975002
 ```
 
 ## Roadmap and Collaboration
