@@ -77,7 +77,7 @@
 #' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
 #' x <- list(1, c(1:2), c(1:3))
 #' as_loop(map(x, sum))        # wrap a call in `as_loop()`
-#' map(1:3, sum) %>% as_loop() # pipe a call into `as_loop()`
+#' map(x, sum) %>% as_loop() # pipe a call into `as_loop()`
 #'
 #' # --- convert: `map(x, sum)` as loop --- #
 #' out <- vector("list", length = length(x))
