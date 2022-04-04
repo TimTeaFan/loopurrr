@@ -2,6 +2,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Raleway&display=swap');
 
 
+
+ /* don't underline inline code*/
+
+ p > code > a {
+   text-decoration: none !important;
+ }
+
 /* don't display search form */
 form.form-inline {
   display: none;
@@ -24,16 +31,31 @@ a.navbar-brand {
 
 /* small box around version number*/
 small.nav-text {
-  color: #141414! important;
-  background-color: #d3e432;
+  color: #fff! important;
+  background-color: #d98205;
   padding-left: 5px;
   padding-right:5px;
   border-radius: 3px;
 }
 
-/* don't underline functions in code */
-span.fu > a {
+/* don't underline functions, library calls, operators in code */
+span.fu > a, span.va > a, span.op > a, span.kw > a  {
   text-decoration: none !important;
+}
+
+/* don't underline library calls and color them blue */
+span.kw > a {
+  color: rgb(10, 15, 233) !important;
+}
+
+/* color of strings */
+span.st {
+  color: #36a851 !important;
+}
+
+/* color of numbers */
+span.fl {
+  color: #e33535 !important;
 }
 
 /*
@@ -110,4 +132,8 @@ pre {
 
 code, kbd, pre, samp {
   font-family: "Source Code Pro", Menlo, Monaco, Consolas, "Courier New", monospace !important;
+}
+
+pre > code.sourceCode.R {
+  color: #111111 !important;
 }
