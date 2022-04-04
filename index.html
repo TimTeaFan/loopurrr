@@ -194,9 +194,9 @@
   <span class="fu"><a href="reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p>Depending on the automatically detected output settings, the result will either be:</p>
 <ol style="list-style-type: decimal">
-<li>directly <em>inserted in</em> the original R <em>script or the console</em>, given that the code is run in RStudio and the {rstudioapi} package is installed,</li>
+<li>directly <em>inserted in</em> the original R <em>script or the console</em>, given that the code is run in RStudio and the <a href="https://github.com/rstudio/rstudioapi" class="external-link">rstudioapi</a> package is installed,</li>
 <li>
-<em>copied to the clipboard</em>, given that the above conditions are not met and the {clipr} package is installed,</li>
+<em>copied to the clipboard</em>, given that the above conditions are not met and the <a href="https://github.com/mdlincoln/clipr" class="external-link">clipr</a> package is installed,</li>
 <li>or if none of the conditions above are met, the result will just be <em>printed to the console</em>.</li>
 </ol>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -240,7 +240,7 @@
 <div class="section level2">
 <h2 id="acknowledgements">Acknowledgements<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>
 </h2>
-<p>Credit goes to the creators and maintainers of the amazing <a href="http://purrr.tidyverse.org" class="external-link">purrr</a> package!<br><a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a> is just an add-on which would not exist without it.</p>
+<p>Credit goes to the creators and maintainers of the amazing <a href="http://purrr.tidyverse.org" class="external-link">purrr</a> package! <a href="https://github.com/TimTeaFan/loopurrrr" class="external-link">loopurrr</a> is just an add-on which would not exist without it.</p>
 <p>Further, credit goes to the <a href="https://github.com/rstudio/gradethis/%5D" class="external-link"><code>{gradethis}</code></a> package from which I adapted <a href="https://github.com/rstudio/gradethis/blob/main/R/unpipe.R" class="external-link">this code</a> to make <code><a href="reference/as_loop.html">as_loop()</a></code> work with piped expressions (function calls). <a href="https://github.com/rstudio/gradethis/blob/main/LICENSE.md" class="external-link"><code>{gradethis}</code></a> license and copyrights apply!</p>
 <p>I was further inpsired by Miles McBain’s <a href="https://github.com/MilesMcBain/datapasta" class="external-link"><code>{datapasta}</code></a>’s different output options. Looking at the code alone wasn’t enough, I also got help on <a href="https://stackoverflow.com/questions/70572072/how-to-use-indentation-with-rstudioapiinserttext" class="external-link">StackOverflow</a> from user @Waldi to make the {rstudioapi} package work.</p>
 <p>Finally, I adapted <a href="ttps://stackoverflow.com/a/33850689/9349302">this answer on StackOverflow</a> to replace the function arguments of the functions in <code>map(.f = )</code> with the actual objects that are being used.</p>
