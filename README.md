@@ -41,8 +41,6 @@ You might ask: *“Why would anyone want to do this?!”*
 The remainder of this readme will expand on the uses cases above, show
 how to get started, and give a brief outlook on the development roadmap.
 
-<br>
-
 ## Motivation and Use Cases
 
 #### 1. Learning and Teaching Functional Programming
@@ -109,8 +107,6 @@ by translating a call to `purrr::imap()` and a call to `purrr::map2()`
 we could easily build a `for` loop that loops over two vectors and an
 index, as if a function like `imap2()` existed.
 
-<br>
-
 ## Installation
 
 `{loopurrr}` is not on CRAN yet. You can install the latest version from
@@ -120,8 +116,6 @@ index, as if a function like `imap2()` existed.
 # install.packages("remotes")
 remotes::install_github("TimTeaFan/loopurrr")
 ```
-
-<br>
 
 ## Getting Started
 
@@ -193,10 +187,10 @@ Depending on the automatically detected output settings, the result will
 either be:
 
 1.  directly *inserted in* the original R *script or the console*, given
-    that the code is run in RStudio and the {rstudioapi} package is
+    that the code is run in RStudio and the `{rstudioapi}` package is
     installed,
 2.  *copied to the clipboard*, given that the above conditions are not
-    met and the {clipr} package is installed,
+    met and the `{clipr}` package is installed,
 3.  or if none of the conditions above are met, the result will just be
     *printed to the console*.
 
@@ -224,8 +218,6 @@ out
 #> [1] 6
 ```
 
-<br>
-
 ## Roadmap and Collaboration
 
 For future versions of `{loopurrr}` the following milestones are
@@ -243,8 +235,6 @@ milestones, any help is appreciated! Feel free to reach out to me, for
 example on Twitter
 <a href="https://twitter.com/timteafan" target="_blank">@TimTeaFan</a>.
 
-<br>
-
 ## History
 
 The idea of this package is based on an experience I had at work. After
@@ -256,13 +246,11 @@ functions work, was not enough to solve this, since things got more
 complicated when the code was throwing errors. `{loopurrr}` allows us to
 write clean code and translate it to regular `for` loops when needed.
 
-<br>
-
 ## Acknowledgements
 
 Credit goes to the creators and maintainers of the amazing `{purrr}`
-package!<br> `{loopurrr}` is just an add-on which would not exist
-without it.
+package! `{loopurrr}` is just an add-on which would not exist without
+it.
 
 Further, credit goes to the
 [`{gradethis}`](https://github.com/rstudio/gradethis/%5D) package from
@@ -283,8 +271,6 @@ Finally, I adapted [this answer on
 StackOverflow](ttps://stackoverflow.com/a/33850689/9349302) to replace
 the function arguments of the functions in `map(.f = )` with the actual
 objects that are being used.
-
-<br>
 
 ## Disclaimer
 
