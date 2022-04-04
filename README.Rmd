@@ -46,6 +46,8 @@ You might ask: *"Why would anyone want to do this?!"*
 The remainder of this readme will expand on the uses cases above, show how to get started, and give 
 a brief outlook on the development roadmap.
 
+<br>
+
 ## Motivation and Use Cases
 
 #### 1. Learning and Teaching Functional Programming
@@ -94,6 +96,7 @@ can easily be rearranged to create functions that are not included in the `{purr
 by translating a call to `purrr::imap()` and a call to `purrr::map2()` we could easily build a `for`
 loop that loops over two vectors and an index, as if a function like `imap2()` existed.
 
+<br>
 
 ## Installation
 
@@ -104,6 +107,8 @@ loop that loops over two vectors and an index, as if a function like `imap2()` e
 # install.packages("remotes")
 remotes::install_github("TimTeaFan/loopurrr")
 ```
+
+<br>
 
 ## Getting Started
 
@@ -152,6 +157,7 @@ To see the result we need to print `out`:
 out
 ```
 
+<br>
 
 ## Roadmap and Collaboration
 
@@ -165,6 +171,7 @@ For future versions of `{loopurrr}` the following milestones are planned:
 If anyone is interested in collaborating on one or more of those milestones, any help is appreciated!
 Feel free to reach out to me, for example on Twitter <a href="https://twitter.com/timteafan" target="_blank">@TimTeaFan</a>.
 
+<br>
 
 ## History
 
@@ -175,6 +182,7 @@ made things harder to understand. Learning once how `map` functions work, was no
 since things got more complicated when the code was throwing errors. `{loopurrr}` allows us to 
 write clean code and translate it to regular `for` loops when needed.
 
+<br>
 
 ## Acknowledgements
 
@@ -193,6 +201,7 @@ from user @Waldi to make the {rstudioapi} package work.
 Finally, I adapted [this answer on StackOverflow](ttps://stackoverflow.com/a/33850689/9349302) to
 replace the function arguments of the functions in `map(.f = )` with the actual objects that are being used.
 
+<br>
 
 ## Disclaimer
 
