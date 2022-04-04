@@ -122,7 +122,7 @@ regular for loop. Depending on the output context, the resulting for loop will e
 (i) inserted directly into a script in RStudio, (ii) copied to the clipboard or (iii)
 printed to the console.\if{html}{\out{<div class="r">}}\preformatted{x <- list(1, c(1:2), c(1:3))
 as_loop(map(x, sum))        # wrap a call in `as_loop()`
-map(1:3, sum) \%>\% as_loop() # pipe a call into `as_loop()`
+map(x, sum) \%>\% as_loop() # pipe a call into `as_loop()`
 
 # --- convert: `map(x, sum)` as loop --- #
 out <- vector("list", length = length(x))
@@ -130,8 +130,6 @@ out <- vector("list", length = length(x))
 for (i in seq_along(x)) \{
   out[[i]] <- sum(x[[i]])
 \}
-# --- end loop --- #
-
 # --- end loop --- #
 }\if{html}{\out{</div>}}
 
