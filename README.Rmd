@@ -115,33 +115,33 @@ library(loopurrr)
 get_supported_fns("as_loop")
 ```
 
-Now we can look at the documentation of `{purrr}` and start with translating the first example of
+Now lets take the first example of `{loopurrr}`'s documentation and start with translating a call to 
 `purrr::map()`. First, lets look at the result: 
 
 ```{r, eval = TRUE}
-1:3 %>% purrr::map(rnorm, n = 10)
+x <- list(1, c(1:2), c(1:3))
+x %>% purrr::map(sum)
 ```
 
 Next, lets pipe the function call into `as_loop()`.
 ```{r, eval = FALSE} 
-1:3 %>%
-  purrr::map(rnorm, n = 10) %>%
+x %>% 
+  purrr::map(sum) %>% 
   as_loop()
 ```
 
-Depending on the automatically detected output settings, the result will either be
+Depending on the automatically detected output settings, the result will either be:
 
-1. directly inserted in the original R script or the console, given that the code is run in RStudio and the {rstudioapi} package is installed,
-1. copied to the clipboard, given that the above conditions are not met and the {clipr} package is installed,
-1. or if none of the conditions above are met, the result will just be printed to the console.
+1. directly *inserted in* the original R *script or the console*, given that the code is run in RStudio and the {rstudioapi} package is installed,
+1. *copied to the clipboard*, given that the above conditions are not met and the {clipr} package is installed,
+1. or if none of the conditions above are met, the result will just be *printed to the console*.
 
 ```{r, eval = TRUE}
-# --- convert: `map(1:3, rnorm, n = 10)` as loop --- #
-.inp1 <- 1:3
-out <- vector("list", length = length(.inp1))
+# --- convert: `map(x, sum)` as loop --- #
+out <- vector("list", length = length(x))
 
-for (i in seq_along(.inp1)) {
-  out[[i]] <- rnorm(.inp1[[i]], n = 10)
+for (i in seq_along(x)) {
+  out[[i]] <- sum(x[[i]])
 }
 # --- end loop --- #
 ```

@@ -159,51 +159,48 @@ get_supported_fns("as_loop")
 #> [1] "reduce"  "reduce2"
 ```
 
-Now we can look at the documentation of `{purrr}` and start with
-translating the first example of `purrr::map()`. First, lets look at the
+Now lets take the first example of `{loopurrr}`’s documentation and
+start with translating a call to `purrr::map()`. First, lets look at the
 result:
 
 ``` r
-1:3 %>% purrr::map(rnorm, n = 10)
+x <- list(1, c(1:2), c(1:3))
+x %>% purrr::map(sum)
 #> [[1]]
-#>  [1]  0.07181943  1.18981223  0.94384612  0.90229242  0.35980099  2.66204894
-#>  [7] -0.03308787 -0.08859934  2.04706914  1.75509024
+#> [1] 1
 #> 
 #> [[2]]
-#>  [1]  1.6521812  1.1742058  2.4814834  3.9076006  3.4097487 -0.1066226
-#>  [7]  0.3048981  2.3913214  0.7936418  2.8344192
+#> [1] 3
 #> 
 #> [[3]]
-#>  [1] 3.168919 2.337927 4.256672 3.173084 2.820034 3.532885 3.601268 3.673353
-#>  [9] 2.481703 3.864463
+#> [1] 6
 ```
 
 Next, lets pipe the function call into `as_loop()`.
 
 ``` r
-1:3 %>%
-  purrr::map(rnorm, n = 10) %>%
+x %>% 
+  purrr::map(sum) %>% 
   as_loop()
 ```
 
 Depending on the automatically detected output settings, the result will
-either be
+either be:
 
-1.  directly inserted in the original R script or the console, given
+1.  directly *inserted in* the original R *script or the console*, given
     that the code is run in RStudio and the {rstudioapi} package is
     installed,
-2.  copied to the clipboard, given that the above conditions are not met
-    and the {clipr} package is installed,
+2.  *copied to the clipboard*, given that the above conditions are not
+    met and the {clipr} package is installed,
 3.  or if none of the conditions above are met, the result will just be
-    printed to the console.
+    *printed to the console*.
 
 ``` r
-# --- convert: `map(1:3, rnorm, n = 10)` as loop --- #
-.inp1 <- 1:3
-out <- vector("list", length = length(.inp1))
+# --- convert: `map(x, sum)` as loop --- #
+out <- vector("list", length = length(x))
 
-for (i in seq_along(.inp1)) {
-  out[[i]] <- rnorm(.inp1[[i]], n = 10)
+for (i in seq_along(x)) {
+  out[[i]] <- sum(x[[i]])
 }
 # --- end loop --- #
 ```
@@ -213,16 +210,13 @@ To see the result we need to print `out`:
 ``` r
 out
 #> [[1]]
-#>  [1]  1.33290338  0.51906205 -0.31554886 -0.27924798  1.67585959 -0.09397508
-#>  [7]  0.51263431  1.26604193  0.54228056 -0.65862901
+#> [1] 1
 #> 
 #> [[2]]
-#>  [1]  0.9078487  1.9202379  2.4798096  3.0073054  2.1667404 -0.0027212
-#>  [7]  2.8106874  1.5109797  3.0723905  0.8123738
+#> [1] 3
 #> 
 #> [[3]]
-#>  [1] 3.803046 2.041295 1.307985 2.936545 2.257143 3.925161 2.516380 2.932701
-#>  [9] 0.920239 2.662842
+#> [1] 6
 ```
 
 ## Roadmap and Collaboration
