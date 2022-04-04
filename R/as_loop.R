@@ -86,8 +86,6 @@
 #'   out[[i]] <- sum(x[[i]])
 #' }
 #' # --- end loop --- #
-#'
-#' # --- end loop --- #
 #' ```
 #'
 #' The `output_nm` argument lets us specify the name of the resulting output object. In the
