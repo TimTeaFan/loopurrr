@@ -1,6 +1,6 @@
 Package: loopurrr
 Title: Tranlate purrr iterator functions to regular for loops
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: 
     person(given = "Tim",
            family = "Tiefenbach",
