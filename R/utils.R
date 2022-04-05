@@ -129,23 +129,15 @@ calc_location <- function(context, x_ln) {
   start <- context$selection[[1]]$range$start
   end   <- context$selection[[1]]$range$end
 
-  print(start)
-  print(end)
-
   loc <- if (identical(start, end) && start[2] == 1L) {
-    print("1")
-    print(start[1])
     out <- calc_last_line(context, start)
     list(out, NULL)
   } else if (end[2] == 1L) {
-    print("2")
     return(list(end[1], NULL))
   } else {
-    # when expression is marked
-    print("3")
     list(end[1] + 1L, end[1] + 1L + x_ln)
   }
-  print(loc)
+
   loc
 }
 
@@ -158,11 +150,7 @@ calc_last_line <- function(context, loc) {
     dplyr::filter(dplyr::row_number() > loc[1]) %>%
     dplyr::pull(code)
 
-  print(following_lines)
-
   only_empty_lines <- !as.logical(sum(nchar(following_lines)))
-
-  print(only_empty_lines)
 
   last_filled_line <- if(only_empty_lines) {
     loc[1] - 1
@@ -172,8 +160,6 @@ calc_last_line <- function(context, loc) {
       dplyr::filter(dplyr::lead(line) == loc[1]) %>%
       dplyr::pull(line)
   }
-
-  print(last_filled_line + 1)
   last_filled_line + 1L
 }
 
