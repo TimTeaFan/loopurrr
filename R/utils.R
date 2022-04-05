@@ -128,6 +128,7 @@ line_length <- function(x) {
 calc_location <- function(context, x_ln) {
   start <- context$selection[[1]]$range$start
   end   <- context$selection[[1]]$range$end
+
   loc <- if (identical(start, end) && start[2] == 1L) {
     out <- calc_last_line(context, start)
     list(out, NULL)
@@ -136,16 +137,29 @@ calc_location <- function(context, x_ln) {
   } else {
     list(end[1] + 1L, end[1] + 1L + x_ln)
   }
+
   loc
 }
 
 calc_last_line <- function(context, loc) {
-  con <<- context$contents
+
+  con <- context$contents
   con_df <- dplyr::tibble(line = seq_along(con), code = con)
-  last_filled_line <- con_df %>%
-    dplyr::filter(nzchar(gsub("\\s+", "", code))) %>%
-    dplyr::filter(dplyr::lead(line) == loc[1]) %>%
-    dplyr::pull(line)
+
+  following_lines <- con_df %>%
+    dplyr::filter(dplyr::row_number() > loc[1]) %>%
+    dplyr::pull(code)
+
+  only_empty_lines <- !as.logical(sum(nchar(following_lines)))
+
+  last_filled_line <- if(only_empty_lines) {
+    loc[1] - 1
+  } else {
+    con_df %>%
+      dplyr::filter(nzchar(gsub("\\s+", "", code))) %>%
+      dplyr::filter(dplyr::lead(line) == loc[1]) %>%
+      dplyr::pull(line)
+  }
   last_filled_line + 1L
 }
 
