@@ -24,6 +24,6 @@ Suggests:
     covr
 Config/testthat/edition: 3
 Imports: 
-    rlang,
+    rlang (>= 1.0.0),
     dplyr,
     methods
