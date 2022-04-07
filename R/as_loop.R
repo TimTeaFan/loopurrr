@@ -130,6 +130,8 @@
 #' @export
 as_loop <- function(.expr,
                     simplify = TRUE,
+                    debug = FALSE,
+                    check_call = TRUE,
                     output_nm = "out",
                     idx = "i",
                     output_context = default_context(),
@@ -158,8 +160,11 @@ as_loop <- function(.expr,
     map_fn_chr <- gsub("^\\w+::", "", map_fn_chr)
   }
 
-  is_supported(map_fn_chr, "as_loop")
-  map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
+  if(check_call) {
+    is_supported(map_fn_chr, "as_loop")
+    map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
+  }
+
 
 
   # TODO: Add check
@@ -172,9 +177,12 @@ as_loop <- function(.expr,
   } else {
     output_fn <- create_output_fn(output_context)
   }
-
-  q_ex_std <- rlang::call_match(call = q_expr, fn = map_fn)
-  expr_ls <- as.list(q_ex_std)
+  if (check_call) {
+    q_ex_std <- rlang::call_match(call = q_expr, fn = map_fn)
+    expr_ls <- as.list(q_ex_std)
+  } else {
+    expr_ls <- as.list(q_expr[-1])
+  }
   q_env <- rlang::quo_get_env(q)
 
   # put these calls in a setup function
@@ -201,10 +209,20 @@ as_loop <- function(.expr,
 
   returns_null <- if(is_extr_fn || !simplify) TRUE else FALSE
 
+  #TODO: Think through which modes exist:
+  # debug: don't run `try_purrr_call`
+  # debug = TRUE doesn't work with simplify
+  # force = TRUE doesn't work
+
   # try purrr call, hide print output, check if result contains NULL:
   if (simplify) {
-    res <- try_purr_call(q, map_fn_chr)
+    # try will only throw error when debug = FALSE
+    res <- try_purr_call(q, map_fn_chr, debug)
+    throws_error <- if (inherits(res, "purrr-error")) TRUE else FALSE
     returns_null <- any(purrr::map_lgl(res, is.null))
+
+    # here add test for promise / lazy eval
+    # has_promise
   }
 
   # call dependent setup ---
@@ -222,7 +240,7 @@ as_loop <- function(.expr,
   }
 
   # function and arguments
-  map_fn_fmls <- rlang::fn_fmls_names(map_fn)
+  map_fn_fmls <- if (check_call) rlang::fn_fmls_names(map_fn) else names(expr_ls)
   non_dot_args <- map_fn_fmls[map_fn_fmls != "..."]
 
   all_args <- expr_ls[-1]
@@ -339,8 +357,13 @@ as_loop <- function(.expr,
     paste0('stopifnot(is.list(', output_nm,'[[', idx, ']]))\n')
     } else NULL
 
+  maybe_error <- if (throws_error) {
+    paste0("# --- WARNING: error detected --- #\n")
+  } else NULL
+
 
   str_out <- paste0('# --- convert: ', cl_chr, ' as loop --- #\n',
+                    maybe_error,
                     maybe_custom_inpts,
                     maybe_at,
                     maybe_if_selector,
