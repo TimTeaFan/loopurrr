@@ -74,11 +74,11 @@ replace_all_vars <- function(fn, arg_df, idx, brk_o) {
     fn_bdy <- replace_vars(fn_bdy, rep_var)
   }
 
-  deparse(fn_bdy)
+  fn_bdy
 
 }
 
-rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
+rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, force_eval, cl_chr,
                         .brk = NULL, .dot_args = NULL, is_accu = FALSE, has_init = FALSE,
                         is_back = FALSE, is_redu = FALSE) {
 
@@ -136,6 +136,15 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, cl_chr,
       )
 
     fn_bdy <- replace_all_vars(fn = fn, arg_df = arg_df, idx = .idx, brk_o = .brk$o)
+
+    # TODO: add replacement of i with `.(i)` here:
+    if (force_eval) {
+      new_idx <- str2lang(paste0(".(", .idx, ")"))
+      rep_var <- purrr::set_names(list(new_idx), .idx)
+      fn_bdy <- replace_vars(fn_bdy, rep_var)
+    }
+
+    return(deparse(fn_bdy))
 
   } else if (is_fun) {
     if (!length(.dot_args) == 0) {

@@ -286,11 +286,11 @@ add_selection <- function(map_fn, obj, obj_nms, output_nm, idx, at = NULL, p_fn 
 
     # map_if
   } else if (grepl("^l{0,1}map_if", map_fn, perl = TRUE) && !is.null(p_fn)) {
-    fn_str <- rewrite_fn(p_fn, obj, idx)
+    fn_str <- rewrite_fn(p_fn, obj, idx, force_eval = FALSE)
     add_else <- NULL
 
     if (!is.null(else_fn)) {
-      add_else <- rewrite_fn(else_fn, obj, idx)
+      add_else <- rewrite_fn(else_fn, obj, idx, force_eval = FALSE)
       else_str <- paste0(output_nm, '[[', idx, ']] <- ', add_else, '\n')
     } else {
       else_str <- paste0('.sel[', idx,'] <- TRUE\n')
@@ -349,11 +349,11 @@ add_if <- function(map_fn, obj, output_nm, idx, p_fn, else_fn, brk, fn_env) {
     return(NULL)
   }
 
-  fn_str <- rewrite_fn(p_fn, obj, idx, fn_env)
+  fn_str <- rewrite_fn(p_fn, obj, idx, fn_env, force_eval = FALSE)
   add_else <- NULL
 
   if (!is.null(else_fn)) {
-    add_else <- rewrite_fn(else_fn, obj, idx, fn_env, .brk = brk)
+    add_else <- rewrite_fn(else_fn, obj, idx, fn_env, force_eval = FALSE, .brk = brk)
     else_str <- paste0(output_nm, '[[', idx, ']] <- ', add_else, '\n')
   } else {
     else_str <- if (map_fn == "lmap_if") {

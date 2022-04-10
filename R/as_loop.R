@@ -129,14 +129,16 @@
 #'
 #' @export
 as_loop <- function(.expr,
-                    simplify = TRUE,
-                    debug = FALSE,
-                    check_call = TRUE,
-                    output_nm = "out",
-                    idx = "i",
+                    checks = TRUE, # TODO: add tests
+                    force = c("auto", "yes", "no"), # TODO: add tests
+                    null = c("auto", "yes", "no"), # TODO: add tests
+                    output_nm = "out", # TODO: add tests
+                    idx = "i", # TODO: add tests
                     output_context = default_context(),
                     return = c("string", "eval")) {
 
+  force <- match.arg(force)
+  null <- match.arg(null)
   return <- match.arg(return, several.ok = FALSE)
   output_context <- match.arg(output_context, several.ok = TRUE)
 
@@ -156,11 +158,11 @@ as_loop <- function(.expr,
   # TODO: deparse and remove namespace into function:
   map_fn_chr <- deparse(q_expr[[1]])
   # remove namespace
-  if(grepl("^\\w+::", map_fn_chr, perl = TRUE)) {
+  if (grepl("^\\w+::", map_fn_chr, perl = TRUE)) {
     map_fn_chr <- gsub("^\\w+::", "", map_fn_chr)
   }
 
-  if(check_call) {
+  if (checks) {
     is_supported(map_fn_chr, "as_loop")
     map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
   }
@@ -177,7 +179,7 @@ as_loop <- function(.expr,
   } else {
     output_fn <- create_output_fn(output_context)
   }
-  if (check_call) {
+  if (checks) {
     q_ex_std <- rlang::call_match(call = q_expr, fn = map_fn)
     expr_ls <- as.list(q_ex_std)
   } else {
@@ -207,22 +209,23 @@ as_loop <- function(.expr,
   is_redu    <- grepl("reduce", map_fn_chr, perl = TRUE)
   is_extr_fn <- check_extr_fn(fn_expr, q_env)
 
-  returns_null <- if(is_extr_fn || !simplify) TRUE else FALSE
 
-  #TODO: Think through which modes exist:
-  # debug: don't run `try_purrr_call`
-  # debug = TRUE doesn't work with simplify
-  # force = TRUE doesn't work
+  returns_null <- if (is_extr_fn || null == "yes") TRUE else FALSE
+
+  # even if force == "yes" it doesn't make sense for extractor functions
+  force_eval <- if (!is_extr_fn  && force == "yes") TRUE else FALSE
 
   # try purrr call, hide print output, check if result contains NULL:
-  if (simplify) {
-    # try will only throw error when debug = FALSE
-    res <- try_purr_call(q, map_fn_chr, debug)
+  if (checks) {
+    res <- try_purr_call(q, map_fn_chr)
     throws_error <- if (inherits(res, "purrr-error")) TRUE else FALSE
-    returns_null <- any(purrr::map_lgl(res, is.null))
 
-    # here add test for promise / lazy eval
-    # has_promise
+    if (null == "auto") {
+      returns_null <- any(purrr::map_lgl(res, is.null))
+    }
+
+    if (force == "auto")
+      force_eval <- any(purrr::map_lgl(res, ~ check_promise(.x, q_env)))
   }
 
   # call dependent setup ---
@@ -240,7 +243,7 @@ as_loop <- function(.expr,
   }
 
   # function and arguments
-  map_fn_fmls <- if (check_call) rlang::fn_fmls_names(map_fn) else names(expr_ls)
+  map_fn_fmls <- if (checks) rlang::fn_fmls_names(map_fn) else names(expr_ls)
   non_dot_args <- map_fn_fmls[map_fn_fmls != "..."]
 
   all_args <- expr_ls[-1]
@@ -290,6 +293,7 @@ as_loop <- function(.expr,
                          names(inp_objs),
                          idx,
                          q_env,
+                         force_eval,
                          cl_chr,
                          brk,
                          dot_args,
@@ -351,6 +355,12 @@ as_loop <- function(.expr,
                        '} else {\n',
                        obj,'[', idx, ']\n',
                        '}\n')
+  }
+
+  if (force_eval) {
+    apply_fn <- paste0('eval(bquote(\n',
+                       apply_fn, '\n',
+                       '))')
   }
 
   maybe_lmap_stop <- if (is_lmap) {

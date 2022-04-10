@@ -74,7 +74,7 @@ call2chr <- function(expr) {
 }
 
 
-try_purr_call <- function(x, map_fn_chr, debug) {
+try_purr_call <- function(x, map_fn_chr) {
   tryCatch({
     sink(nullfile()) # "/dev/null"
     on.exit(sink(), add = TRUE)
@@ -83,16 +83,16 @@ try_purr_call <- function(x, map_fn_chr, debug) {
     tmp
   }, error = function(e) {
     # only throw error if debug = FALSE
-    if (!debug) {
+    # if (!debug) {
       rlang::abort(c("Problem with `as_loop()` input `.expr`.",
                    i = paste0("The underlying call to `purrr::", map_fn_chr,"` threw the following error:"),
                    x = e$message,
                    i = "Please provide a working call to `as_loop`.")
       )
     # if debug = TRUE and error is thrown
-    } else {
+    # } else {
       structure(paste0("map", " error"), class = "purrr-error")
-      }
+      # }
   })
 }
 
@@ -215,3 +215,17 @@ check_extr_fn <- function(fn_expr, e) {
   check
 }
 
+
+# This function checks if a function maybe a promise
+# when applied to the output elements of `map` a promise might be hidden
+# in another structure, in this case it won't be detected
+#' @importFrom codetools findGlobals
+check_promise <- function(x, q_env) {
+  out <- FALSE
+  if (is.function(x)) {
+    global_vars <- codetools::findGlobals(x)
+    res <- try(mget(global_vars, envir = q_env, inherits = TRUE), silent = TRUE)
+    out <- if (inherits(res, "try-error")) TRUE
+  }
+  out
+}
