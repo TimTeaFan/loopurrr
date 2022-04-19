@@ -129,11 +129,11 @@
 #'
 #' @export
 as_loop <- function(.expr,
-                    checks = TRUE, # TODO: add tests
-                    force = c("auto", "yes", "no"), # TODO: add tests
-                    null = c("auto", "yes", "no"), # TODO: add tests
-                    output_nm = "out", # TODO: add tests
-                    idx = "i", # TODO: add tests
+                    checks = TRUE, # TODO: add tests // add docs
+                    force = c("auto", "yes", "no"), # TODO: add tests // add docs
+                    null = c("auto", "yes", "no"), # TODO: add tests // add docs
+                    output_nm = "out", # TODO: add tests // add docs
+                    idx = "i", # TODO: add tests // add docs
                     output_context = default_context(),
                     return = c("string", "eval")) {
 
@@ -225,7 +225,7 @@ as_loop <- function(.expr,
     }
 
     if (force == "auto")
-      force_eval <- any(purrr::map_lgl(res, ~ check_promise(.x, q_env)))
+      force_eval <- any(purrr::map_lgl(res, ~ check_lazy(.x, q_env)))
   }
 
   # call dependent setup ---

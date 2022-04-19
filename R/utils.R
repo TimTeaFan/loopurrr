@@ -220,12 +220,18 @@ check_extr_fn <- function(fn_expr, e) {
 # when applied to the output elements of `map` a promise might be hidden
 # in another structure, in this case it won't be detected
 #' @importFrom codetools findGlobals
-check_promise <- function(x, q_env) {
+check_lazy <- function(x, q_env) {
   out <- FALSE
+  # if function: check that all global vars are accessible (if not: maybe lazy)
   if (is.function(x)) {
     global_vars <- codetools::findGlobals(x)
     res <- try(mget(global_vars, envir = q_env, inherits = TRUE), silent = TRUE)
     out <- if (inherits(res, "try-error")) TRUE
+  }
+  # if ggplot: check that mappings can be found in data (if not: maybe lazy)
+  if (inherits(x, "ggplot")) {
+    data_e <- as.environment(x$data)
+    out <- any(purrr::map_lgl(x$mapping, ~ !exists(deparse(rlang::quo_get_expr(.x)), data_e)))
   }
   out
 }
