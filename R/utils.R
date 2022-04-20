@@ -29,7 +29,7 @@ get_supported_fns <- function(fn) {
       imap = c("imap", "imap_chr", "imap_dbl", "imap_dfc", "imap_dfr", "imap_int", "imap_lgl",
                "imap_raw"),
 
-      map = c("map2", "map2_chr", "map2_dbl", "map2_df", "map2_dfc", "map2_dfr", "map2_int",
+      map2 = c("map2", "map2_chr", "map2_dbl", "map2_df", "map2_dfc", "map2_dfr", "map2_int",
               "map2_lgl",  "map2_raw"),
 
       pmap = c("pmap", "pmap_chr", "pmap_dbl", "pmap_df", "pmap_dfc", "pmap_dfr", "pmap_int",
