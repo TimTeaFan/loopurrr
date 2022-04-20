@@ -368,7 +368,7 @@ as_loop <- function(.expr,
     } else NULL
 
   maybe_error <- if (throws_error) {
-    paste0("# --- WARNING: error detected --- #\n")
+    paste0("# --- WARNING: error detected in the call above --- #\n")
   } else NULL
 
 
