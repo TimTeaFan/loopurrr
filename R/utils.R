@@ -73,26 +73,26 @@ call2chr <- function(expr) {
   dep_cl
 }
 
+call_as_chr <- function(expr) {
+
+  cl <- paste(trimws(deparse(expr)), collapse = " ")
+  cl_ticks <- paste0("`", cl, "`")
+
+  if (nchar(cl_ticks) > 50) {
+    cl_ticks <- paste0(substr(cl_ticks, 1, 46), '...`')
+  }
+
+  cl_ticks
+}
 
 try_purr_call <- function(x, map_fn_chr) {
   tryCatch({
-    sink(nullfile()) # "/dev/null"
+    sink(nullfile())
     on.exit(sink(), add = TRUE)
     tmp <- rlang::eval_tidy(x)
-    # sink()
     tmp
   }, error = function(e) {
-    # only throw error if debug = FALSE
-    # if (!debug) {
-      rlang::abort(c("Problem with `as_loop()` input `.expr`.",
-                   i = paste0("The underlying call to `purrr::", map_fn_chr,"` threw the following error:"),
-                   x = e$message,
-                   i = "Please provide a working call to `as_loop`.")
-      )
-    # if debug = TRUE and error is thrown
-    # } else {
       structure(paste0("map", " error"), class = "purrr-error")
-      # }
   })
 }
 
