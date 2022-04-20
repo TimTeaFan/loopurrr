@@ -144,7 +144,12 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, force_eval, cl_chr,
       fn_bdy <- replace_vars(fn_bdy, rep_var)
     }
 
-    return(deparse(fn_bdy))
+    if (length(fn_bdy) > 1) {
+      out <- paste(deparse(fn_bdy), collapse = "\n")
+    } else {
+      out <- deparse(fn_bdy)
+    }
+    return(out)
 
   } else if (is_fun) {
     if (!length(.dot_args) == 0) {
