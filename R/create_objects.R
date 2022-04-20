@@ -165,18 +165,6 @@ create_obj_names <- function(obj, output_nm, obj_nms, is_lmap, is_modify, is_wal
   paste0('\nnames(', output_nm, ') <- ', nms, '\n')
 }
 
-call_as_chr <- function(expr) {
-
-  cl <- deparse_expr(expr)
-  cl_ticks <- paste0("`", cl, "`")
-
-  if (nchar(cl_ticks) > 50) {
-    cl_ticks <- paste0(substr(cl_ticks, 1, 46), '...`')
-  }
-
-  cl_ticks
-}
-
 
 create_null_return <- function(maybe_assign, returns_null, is_redu, is_lmap, is_extr_fn, def) {
 
@@ -244,62 +232,6 @@ post_process <- function(obj, fn_env, output_nm, is_lmap, is_accu, is_accu2) {
 
   } else NULL
 
-}
-
-
-add_selection <- function(map_fn, obj, obj_nms, output_nm, idx, at = NULL, p_fn = NULL, else_fn = NULL) {
-
-  # map_at
-  if (grepl("^l{0,1}map_at", map_fn, perl = TRUE) && !is.null(at)) {
-
-    # FIXME: Problem if deparse is used
-    is_char <- is.character(eval(at))
-    if (!is_char && !is.numeric(eval(at))) {
-      stop("unrecognised index type")
-    }
-
-    # is char
-    if (is_char) {
-
-      # map_at
-      if (map_fn == "map_at") {
-        return(
-          paste0('.at <- ', call2chr(at), '\n',
-                 '.sel <- which(names(', obj,') %in% .at)\n')
-        )
-        # lmap_at
-      } else {
-        return(
-          paste0('.sel <- names(', obj,') %in% ', call2chr(at), '\n')
-        )
-      }
-      # os numeric
-    } else {
-      # map_at
-      if (map_fn == "map_at") {
-        return(paste0('.sel <- ', call2chr(at), '\n'))
-        # lmap_at
-      } else {
-        return(paste0('.sel <- seq_along(', obj, ') %in% ', call2chr(at), '\n'))
-      }
-    }
-
-    # map_if
-  } else if (grepl("^l{0,1}map_if", map_fn, perl = TRUE) && !is.null(p_fn)) {
-    fn_str <- rewrite_fn(p_fn, obj, idx, force_eval = FALSE)
-    add_else <- NULL
-
-    if (!is.null(else_fn)) {
-      add_else <- rewrite_fn(else_fn, obj, idx, force_eval = FALSE)
-      else_str <- paste0(output_nm, '[[', idx, ']] <- ', add_else, '\n')
-    } else {
-      else_str <- paste0('.sel[', idx,'] <- TRUE\n')
-    }
-
-    return(paste0('if (!', fn_str, ') {\n',
-                  else_str,
-                  'next\n', '}\n'))
-  }
 }
 
 
