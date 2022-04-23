@@ -55,13 +55,34 @@ test_that("as_loop works with different ways of supplying .f", {
                "does not support anonymous functions"
   )
 
-  # not supported yet: lists, numeric or character vectors in .f as extractor functions:
+  # characters and numerics as extractors
 
   l2 <- list(
     list(num = 1:3,     letters[1:3]),
     list(num = 101:103, letters[4:6]),
     list()
   )
+
+  # character
+  expect_equal(map(l2, c("num", "test")),
+               as_loop(map(l2, c("num", "test")),
+                       return = "eval")
+  )
+
+  # numeric
+  expect_equal(map(l2, c(1, 3)),
+               as_loop(map(l2, c(1, 3)),
+                       return = "eval")
+  )
+
+  # .defaults
+
+  expect_equal(map(l2, c(1, 3), .default = "nothing"),
+               as_loop(map(l2, c(1, 3), .default = "nothing"),
+                       return = "eval")
+  )
+
+  # not supported yet: lists, numeric or character vectors in .f as extractor functions:
 
   expect_error(as_loop(map(l2, list("num", 3)),
                        return = "eval"),
@@ -1121,5 +1142,117 @@ test_that("as_loop throws an error when called with non-purrr or non-supported f
   expect_error(as_loop(lapply(x, sum), return = "eval"),
                "doesn't support functions from base R's apply family"
   )
+
+})
+
+# non-working map call
+
+test_that("as_loop does not throw an error when used on non-working map functions", {
+
+  x <- list("a", "b", "c")
+
+  expect_snapshot_output(
+    as_loop(
+      map(x, log),
+      return = "string",
+      output_context = "console")
+  )
+
+})
+
+# as_loop works with long functions
+test_that("as_loop works with long functions", {
+
+  x <- list(a = c(1,2), b = c("a","b"), c = c(3,4))
+
+  exp <- map_if(x,
+                function(y) {
+                  1 + 1
+                  is.numeric(y)
+                },
+                function(x) {
+                  k <- 5
+                  x + k
+                }
+        )
+
+  out <- map_if(x,
+               function(y) {
+                 1 + 1
+                 is.numeric(y)
+               },
+               function(x) {
+                 k <- 5
+                 x + k
+               }
+  ) %>%
+    as_loop(., return = "eval")
+
+  expect_equal(exp, out)
+
+})
+
+# throw error when idx, .inp, sel or at in one of the functions
+test_that("as_loop throws an error when internal variables are used in functions", {
+
+  x <- list(a = c(1,2), b = c("a","b"), c = c(3,4))
+
+  # idx
+  expect_error(
+    map_if(x, is.numeric, function(x) {
+                  i <- 5
+                  x + i
+                }) %>%
+    as_loop(., return = "eval"),
+    "must not contain the same variable"
+  )
+
+  expect_error(
+    map_if(x,
+           .p = function(x) {
+             i <- 5
+             TRUE
+           },
+           .f = ~ 1) %>%
+      as_loop(., return = "eval"),
+    "must not contain the same variable"
+  )
+
+  # .sel in .f
+  expect_error(
+    map_if(x, is.numeric, function(x) {
+      .sel <- 5
+      x
+    }) %>%
+      as_loop(., return = "eval"),
+    "must not contain `.sel"
+  )
+
+  # .sel in .p
+  expect_error(
+    map_if(x, function(p) {
+      .sel <- 3
+      is.numeric(p)
+    }, function(x) {
+      x
+    }) %>%
+      as_loop(., return = "eval"),
+    "must not contain `.sel"
+  )
+
+  # .sel in .else
+  expect_error(
+    map_if(x, is.numeric, .f = ~ 1, .else = function(x) {
+      .sel <- 5
+      x
+    }) %>%
+      as_loop(., return = "eval"),
+    "must not contain `.sel"
+  )
+
+  # .at
+
+
+  # .inp1
 
 })
