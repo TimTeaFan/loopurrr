@@ -110,7 +110,7 @@
 #' nor the expected output. In this case the resulting `for` loop is more verbose. This is because we
 #' need to take the case of `NULL` in the return values into account. In the example below we further
 #' see what happens, when we use an unnamed object, such as `1:3`, in the call to `purrr::map()`.
-#' `as_loop()` assign unnamed objects an internal name. In the example below `.inp1`.
+#' `as_loop()` assigns unnamed objects an internal name. In the example below `.inp1`.
 #'
 #' ```{r, comment = "#>", collapse = TRUE, eval = FALSE}
 #' map(1:3, sum) %>% as_loop(., simplify = FALSE)
@@ -141,6 +141,14 @@ as_loop <- function(.expr,
   null <- match.arg(null)
   return <- match.arg(return, several.ok = FALSE)
   output_context <- match.arg(output_context, several.ok = TRUE)
+
+  if (idx == output_nm) {
+    rlang::abort(
+      c("Problem with `as_loop()` input `.expr`.",
+        x = paste0('Index `idx` must not have the same variable name as output: "', output_nm, '".'),
+        i = "Please rename `as_loop()`'s `output_nm` or `idx` argument.")
+    )
+  }
 
   q <- rlang::enquo(.expr)
 
@@ -188,6 +196,7 @@ as_loop <- function(.expr,
   q_env <- rlang::quo_get_env(q)
 
   # put these calls in a setup function
+  # named vector map(vec, ~ expr_ls[[.x]])
   fn_expr   <- expr_ls[[".f"]]
   init      <- expr_ls[[".init"]]
   at_idx    <- expr_ls[[".at"]]
@@ -198,7 +207,11 @@ as_loop <- function(.expr,
   def       <- expr_ls[[".default"]]
 
   # put these calls in another setup function
+  has_at     <- !is.null(at_idx)
+  has_p      <- !is.null(p_fn)
+  has_else   <- !is.null(else_fn)
   has_init   <- !is.null(init)
+
   is_back    <- !is.null(dir) && dir == "backward"
   is_lmap    <- grepl("^lmap", map_fn_chr, perl = TRUE)
   is_walk    <- grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE)
@@ -209,8 +222,8 @@ as_loop <- function(.expr,
   is_redu    <- grepl("reduce", map_fn_chr, perl = TRUE)
   is_extr_fn <- check_extr_fn(fn_expr, q_env)
 
-
   returns_null <- if (is_extr_fn || null == "yes") TRUE else FALSE
+  has_tmp      <- if ((returns_null && !is_redu && !is_lmap) || is_extr_fn) TRUE else FALSE
 
   # even if force == "yes" it doesn't make sense for extractor functions
   force_eval <- if (!is_extr_fn  && force == "yes") TRUE else FALSE
@@ -250,7 +263,10 @@ as_loop <- function(.expr,
   dot_args <- all_args[!names(all_args) %in% non_dot_args]
 
   # object and input object calls and names
-  inp_objs <- create_inp_objs(inp_ls)
+  inp_objs <- create_inp_objs(inp_ls, output_nm, idx)
+  bare_inp_nms <- names(inp_objs)
+
+  var_nms <- create_var_nms(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, cl_chr, output_nm)
 
   # TODO:  add this to `create_inp_objs`
   if (!is.null(inp_objs) && is_modify) {
@@ -290,17 +306,21 @@ as_loop <- function(.expr,
   }
 
   apply_fn <- rewrite_fn(fn_expr,
-                         names(inp_objs),
-                         idx,
-                         q_env,
-                         force_eval,
-                         cl_chr,
-                         brk,
-                         dot_args,
-                         is_accu,
-                         has_init,
-                         is_back,
-                         is_redu)
+                         .inp_objs = names(inp_objs),
+                         .idx = idx,
+                         output_nm = output_nm,
+                         var_nms = var_nms,
+                         fn_env = q_env,
+                         force_eval = force_eval,
+                         cl_chr = cl_chr,
+                         .brk = brk,
+                         .dot_args = dot_args,
+                         is_accu = is_accu,
+                         has_init = has_init,
+                         is_back = is_back,
+                         is_redu = is_redu,
+                         has_sel = has_p,
+                         has_at = has_at)
 
 
   maybe_lmap_stop <- NULL
@@ -320,8 +340,9 @@ as_loop <- function(.expr,
                      p_fn    = p_fn,
                      else_fn = else_fn,
                      brk     = brk,
-                     fn_env  = q_env
-                     )
+                     fn_env  = q_env,
+                     cl_chr  = cl_chr,
+                     var_nms = var_nms)
 
   maybe_output <- create_out_obj(map_fn_chr, obj, output_nm, has_init, init, is_back)
 
@@ -399,7 +420,7 @@ as_loop <- function(.expr,
                     '# --- end loop --- #\n')
 
   if (return != "string") {
-    str_eval <- paste0(str_out, if(is_walk) {
+    str_eval <- paste0(str_out, if (is_walk) {
       paste0('\n', 'invisible(', obj, ')')
       } else {
         paste0('\n', output_nm)

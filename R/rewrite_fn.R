@@ -34,13 +34,20 @@ create_arg_df <- function(.inps_objs, is_lambda, fn_fmls) {
 
 # slightly adapted from https://stackoverflow.com/a/33850689/9349302
 replace_vars <- function(expr, keyvals) {
+  # if expression is length 0 return NULL
   if (!length(expr)) return()
+  # if expression is just a symbol length == 1
+  if (is.name(expr) && length(expr) == 1) {
+    key_vl <- keyvals[[deparse(expr)]]
+    expr <- key_vl
+  }
+  # all other cases
   for (i in seq_along(expr)) {
     if (is.call(expr[[i]])) expr[[i]][-1L] <- Recall(expr[[i]][-1L], keyvals)
     if (is.name(expr[[i]]) && deparse(expr[[i]]) %in% names(keyvals)) {
       key_vl <- keyvals[[deparse(expr[[i]])]]
       is_call <- is.call(key_vl)
-      expr[[i]] <- if(is_call) {
+      expr[[i]] <- if (is_call) {
         key_vl
       } else {
         as.name(key_vl)
@@ -48,7 +55,7 @@ replace_vars <- function(expr, keyvals) {
     }
 
   }
-  return( expr )
+  return(expr)
 }
 
 
@@ -78,9 +85,10 @@ replace_all_vars <- function(fn, arg_df, idx, brk_o) {
 
 }
 
-rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, force_eval, cl_chr,
-                        .brk = NULL, .dot_args = NULL, is_accu = FALSE, has_init = FALSE,
-                        is_back = FALSE, is_redu = FALSE) {
+rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, force_eval, cl_chr,
+                       .brk = NULL, .dot_args = NULL, is_accu = FALSE, has_init = FALSE,
+                       is_back = FALSE, is_redu = FALSE, has_sel = FALSE, has_at = FALSE,
+                       add_if = FALSE, add_else = FALSE) {
 
   if (is.null(.brk)) {
     .brk <- list(o = '[[',
@@ -99,6 +107,37 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, force_eval, cl_chr,
   is_anonym <- !is.null(attributes(fn)$srcref) && !is.name(fn_expr)
 
   if (is_lambda || is_anonym) {
+
+    fn_nm <- "`.f`"
+    if (add_if) fn_nm <- "`.p`"
+    if (add_else) fn_nm <- "`.else`"
+
+    if (.idx %in% all.vars(body(fn))) {
+      rlang::abort(
+        c("Problem with `as_loop()` input `.expr`.",
+          x = paste0(fn_nm, " in ", cl_chr, " must not contain the same variable name which is used as loop index in `idx`: ", '"', .idx, '".'),
+          i = "Please rename `as_loop()`'s `idx` argument to an index name which is not used inside ", fn_nm, ".")
+      )
+    }
+
+    if (output_nm %in% all.vars(body(fn))) {
+      rlang::abort(
+        c("Problem with `as_loop()` input `.expr`.",
+          x = paste0(fn_nm, " in ", cl_chr, " must not contain the same variable name which is used as output name in `output_nm`: ", '"', output_nm, '".'),
+          i = paste0("Please rename `as_loop()`'s `output_nm` argument to a name which is not used inside ", fn_nm, "."))
+      )
+    }
+
+    if (return == "string" && any(var_nms %in% all.vars(body(fn)))) {
+
+      rlang::abort(
+        c("Problem with `as_loop()` input `.expr`.",
+          x = paste0(fn_nm, " in ", cl_chr, " must not contain variable names which are used as temporary variables in the resulting `for` loop."),
+          i = paste0("The following variables have been used in ", fn_nm, ": ",
+                     paste(paste0('`', var_nms[var_nms %in% all.vars(body(fn))], '`'), collapse = ", "), ".")
+          )
+      )
+    }
 
     fn_fmls   <- rlang::fn_fmls_names(fn)
 
@@ -128,7 +167,7 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, force_eval, cl_chr,
 
         (is_redu & !is_back & id == 1L) | (is_redu & is_back & id == 2L) ~ NA_character_,
 
-        is_accu & is_back & id == 2L ~ "+1", # ((!is_back & id == 1L) |
+        is_accu & is_back & id == 2L ~ "+1",
 
         id != 2L & (is_accu | is_redu) & !has_init  & !is_back ~ "-1",
 
@@ -137,7 +176,6 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, force_eval, cl_chr,
 
     fn_bdy <- replace_all_vars(fn = fn, arg_df = arg_df, idx = .idx, brk_o = .brk$o)
 
-    # TODO: add replacement of i with `.(i)` here:
     if (force_eval) {
       new_idx <- str2lang(paste0(".(", .idx, ")"))
       rep_var <- purrr::set_names(list(new_idx), .idx)
@@ -192,7 +230,8 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, fn_env, force_eval, cl_chr,
 
     extr_str <- paste0('tryCatch({',
                        .inp_objs[[1]], .brk$o, .idx, .brk$c, '[[', .inp_objs[[2]], ']]\n',
-                       '}, error = function(e) {})')
+                       '}, error = function(e) {})'
+                       )
 
     return(extr_str)
 

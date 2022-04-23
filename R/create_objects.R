@@ -6,9 +6,11 @@ names_or_idx <- function(obj, obj_nms) {
   }
 }
 
-create_inp_objs <- function(obj_ls) {
+create_inp_objs <- function(obj_ls, output_nm, idx) {
 
   comp_obj_ls <- purrr::compact(obj_ls)
+  symb_chr_ls <- as.character(purrr::keep(comp_obj_ls, is.symbol))
+
   ln <- length(comp_obj_ls)
   res <- vector(mode = "list", length = ln)
   res_nm <- vector(mode = "list", length = ln)
@@ -16,6 +18,9 @@ create_inp_objs <- function(obj_ls) {
 
   for (i in seq_len(ln)) {
     if (!is.name(obj_ls[[i]])) {
+      while (paste0(".inp", k) %in% symb_chr_ls) {
+        k <- k + 1
+      }
       res_nm[[i]] <- paste0(".inp", k)
       res[[i]] <- deparse_expr(obj_ls[[i]])
       k <- k + 1L
@@ -23,7 +28,28 @@ create_inp_objs <- function(obj_ls) {
       res[[i]] <- res_nm[[i]] <- as.character(obj_ls[[i]])
     }
   }
-  purrr::set_names(res, res_nm)
+
+  inp_ls <- purrr::set_names(res, res_nm)
+
+  # check if output name in input list
+  if (output_nm %in% names(inp_ls)) {
+    rlang::abort(
+      c("Problem with `as_loop()` input `.expr`.",
+        x = paste0('Input object must not have the same variable name as output: "', output_nm, '".'),
+        i = "Please rename `as_loop()`'s `output_nm` argument to an output name which is not used as input.")
+    )
+  }
+
+  # check if index name in input list
+  if (idx %in% names(inp_ls)) {
+    rlang::abort(
+      c("Problem with `as_loop()` input `.expr`.",
+        x = paste0('Input object must not have the same variable name as index: "', idx, '".'),
+        i = "Please rename `as_loop()`'s `idx` argument to a name which is not used as input.")
+    )
+  }
+
+  inp_ls
 }
 
 create_custom_inpts <- function(obs_ls) {
@@ -275,17 +301,36 @@ add_at <- function(map_fn, obj, output_nm, idx, at, fn_env) {
 }
 
 
-add_if <- function(map_fn, obj, output_nm, idx, p_fn, else_fn, brk, fn_env) {
+add_if <- function(map_fn, obj, output_nm, idx, p_fn, else_fn, brk, fn_env, cl_chr, var_nms) {
 
   if (is.null(p_fn)) {
     return(NULL)
   }
 
-  fn_str <- rewrite_fn(p_fn, obj, idx, fn_env, force_eval = FALSE)
+  fn_str <- rewrite_fn(fn_expr = p_fn,
+                       .inp_objs = obj,
+                       .idx = idx,
+                       output_nm = output_nm,
+                       var_nms = var_nms,
+                       fn_env = fn_env,
+                       force_eval = FALSE,
+                       cl_chr = cl_chr,
+                       add_if = TRUE)
+
   add_else <- NULL
 
   if (!is.null(else_fn)) {
-    add_else <- rewrite_fn(else_fn, obj, idx, fn_env, force_eval = FALSE, .brk = brk)
+
+    add_else <- rewrite_fn(fn_expr = else_fn,
+                           .inps_objs = obj,
+                           .idx = idx,
+                           output_nm = output_nm,
+                           var_nms = var_nms,
+                           fn_env = fn_env,
+                           force_eval = FALSE,
+                           cl_chr = cl_chr,
+                           add_else = TRUE)
+
     else_str <- paste0(output_nm, '[[', idx, ']] <- ', add_else, '\n')
   } else {
     else_str <- if (map_fn == "lmap_if") {
@@ -300,3 +345,34 @@ add_if <- function(map_fn, obj, output_nm, idx, p_fn, else_fn, brk, fn_env) {
                 'next\n', '}\n'))
 }
 
+
+# create vector with names of variables used in for loop
+create_var_nms <- function(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, cl_chr, output_nm) {
+  var_nms <- c(if (has_at && !is_lmap) ".at",
+               if (has_p || has_at) ".sel",
+               if (has_tmp) ".tmp",
+               bare_inp_nms)
+
+  if (length(var_nms) != length(unique(var_nms))) {
+
+    x <- var_nms[duplicated(var_nms)]
+
+      rlang::abort(
+        c("Problem with `as_loop()` input `.expr`.",
+          x = paste0("Input objects in ", cl_chr, " must not share the same name with temporary variables in the resulting `for` loop."),
+          i = paste0("The following input objects need to be renamed: ", paste(paste0('`', x, '`'), collapse = ", "), ".")
+        )
+      )
+  }
+
+  if (output_nm %in% var_nms) {
+
+    rlang::abort(
+      c("Problem with `as_loop()` input `.expr`.",
+        x = paste0('A temporary variable in the resulting `for` loop shares the same name as the output object specified in `output_nm`: "', output_nm, '",'),
+        i = paste0("Please rename `as_loop()`'s `output_nm` argument to a name which is not used as temporary variable inside the resulting `for` loop.")
+      )
+    )
+  }
+
+}
