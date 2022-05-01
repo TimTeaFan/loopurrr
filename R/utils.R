@@ -208,7 +208,8 @@ is_supported <- function(map_fn, loopurrr_fn, silent = FALSE) {
         c("Problem with `as_loop()` input `.expr`.",
           i = "Currently `as_loop` does only support certain {purrr} functions.",
           x = paste0("`", map_fn, "` is not supported yet."),
-          i = "For an overview of all currently supported {purrr} functions see the documentation `?as_loop`.")
+          i = paste0('For an overview of all currently supported {purrr} functions see the documentation `?as_loop` or ',
+                     'run `get_supported_fns("as_loop")`'))
       )
     } else {
       FALSE
