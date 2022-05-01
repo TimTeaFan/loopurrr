@@ -240,6 +240,14 @@ as_loop <- function(.expr,
       force_eval <- any(purrr::map_lgl(res, ~ check_lazy(.x, q_env)))
   } else {
     throws_error <- NULL
+    if (is.null(names(expr_ls)) || any(nchar(names(expr_ls)) == 0L)) {
+      rlang::abort(
+        c("Problem with `as_loop()` input `.expr`.",
+          i = "When `as_loop` is called with `checks = FALSE` all arguments of the underlying {purrr} call must be named.",
+          x = "Not all arguments in the underlying {purrr} call are named.",
+          i = "Please name all arguments, e.g. `map(.x = ..., .f = ...).")
+      )
+    }
   }
 
   # call dependent setup ---
