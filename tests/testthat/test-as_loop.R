@@ -1161,7 +1161,7 @@ test_that("as_loop does not throw an error when used on non-working map function
   # but it won't throw a check error when `check = FALSE`
   expect_snapshot_output(
     as_loop(
-      map(x, log),
+      map(.x = x, .f = log),
       checks = FALSE,
       return = "string",
       output_context = "console")
@@ -1430,7 +1430,7 @@ test_that("as_loop throws an error when temorary variable is used in one of the 
 
 
 
-
+#> other checks -----
 # index name is input name
 test_that("as_loop throws an error when index name is input name", {
 
@@ -1486,4 +1486,27 @@ test_that("as_loop throws an error when index name is output name", {
     "same variable name as"
   )
 })
+
+
+# input name is same as tmp var
+test_that("as_loop throws an error when input name is the same as temp var", {
+
+  .sel <- list(a = c(1,2), b = c("a","b"), c = c(3,4))
+
+  expect_error(
+    map_if(.sel, is.numeric, sum) %>%
+      as_loop(return = "eval"),
+    "same name with"
+  )
+
+  .at <- .sel
+  expect_error(
+    map_at(.at, "a", sum) %>%
+      as_loop(return = "eval"),
+    "same name with"
+  )
+
+
+})
+
 

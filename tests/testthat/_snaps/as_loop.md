@@ -11,7 +11,7 @@
 
 ---
 
-    # --- convert: `map(x, log)` as loop --- #
+    # --- convert: `map(.x = x, .f = log)` as loop --- #
     # --- WARNING: above call has not been checked --- #
     out <- vector("list", length = length(x))
     
