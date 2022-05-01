@@ -322,7 +322,7 @@ add_if <- function(map_fn, obj, output_nm, idx, p_fn, else_fn, brk, fn_env, cl_c
   if (!is.null(else_fn)) {
 
     add_else <- rewrite_fn(fn_expr = else_fn,
-                           .inps_objs = obj,
+                           .inp_objs = obj,
                            .idx = idx,
                            output_nm = output_nm,
                            var_nms = var_nms,
@@ -340,17 +340,19 @@ add_if <- function(map_fn, obj, output_nm, idx, p_fn, else_fn, brk, fn_env, cl_c
     }
   }
 
-  return(paste0('if (!', fn_str, ') {\n',
+  return(paste0('if (!(', fn_str, ')) {\n',
                 else_str,
                 'next\n', '}\n'))
 }
 
 
 # create vector with names of variables used in for loop
-create_var_nms <- function(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, cl_chr, output_nm) {
+create_var_nms <- function(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, is_i, cl_chr, output_nm) {
+
   var_nms <- c(if (has_at && !is_lmap) ".at",
                if (has_p || has_at) ".sel",
                if (has_tmp) ".tmp",
+               if (is_i) ".idx",
                bare_inp_nms)
 
   if (length(var_nms) != length(unique(var_nms))) {
@@ -374,5 +376,7 @@ create_var_nms <- function(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, cl_chr
       )
     )
   }
+
+  var_nms
 
 }
