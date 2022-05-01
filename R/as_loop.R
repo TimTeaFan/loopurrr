@@ -139,7 +139,7 @@ as_loop <- function(.expr,
 
   force <- match.arg(force)
   null <- match.arg(null)
-  return <- match.arg(return, several.ok = FALSE)
+  return <- match.arg(return)
   output_context <- match.arg(output_context, several.ok = TRUE)
 
   if (idx == output_nm) {
@@ -170,25 +170,22 @@ as_loop <- function(.expr,
     map_fn_chr <- gsub("^\\w+::", "", map_fn_chr)
   }
 
-  if (checks) {
-    is_supported(map_fn_chr, "as_loop")
+  if (is_supported(map_fn_chr, "as_loop", silent = !checks)) {
     map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
+  } else {
+    map_fn <- NULL
   }
-
-
-
-  # TODO: Add check
-  # error: output_nm may not be `.at` or `.sel` or `.inp`
-  # warn: output_nm and `.at`, `.sel` `.inp` should not exist in global environment
-
 
   if (return == "eval") {
     output_fn <- NULL
   } else {
     output_fn <- create_output_fn(output_context)
   }
-  if (checks) {
-    q_ex_std <- rlang::call_match(call = q_expr, fn = map_fn)
+
+  if (!is.null(map_fn)) {
+    q_ex_std <- match.call(definition = map_fn, call = q_expr)
+    # TODO: check if we really don't need this function
+    # q_ex_std <- rlang::call_match(call = q_expr, fn = map_fn)
     expr_ls <- as.list(q_ex_std)
   } else {
     expr_ls <- as.list(q_expr[-1])
@@ -222,6 +219,8 @@ as_loop <- function(.expr,
   is_redu    <- grepl("reduce", map_fn_chr, perl = TRUE)
   is_extr_fn <- check_extr_fn(fn_expr, q_env)
 
+
+
   returns_null <- if (is_extr_fn || null == "yes") TRUE else FALSE
   has_tmp      <- if ((returns_null && !is_redu && !is_lmap) || is_extr_fn) TRUE else FALSE
 
@@ -239,6 +238,8 @@ as_loop <- function(.expr,
 
     if (force == "auto")
       force_eval <- any(purrr::map_lgl(res, ~ check_lazy(.x, q_env)))
+  } else {
+    throws_error <- NULL
   }
 
   # call dependent setup ---
@@ -266,13 +267,14 @@ as_loop <- function(.expr,
   inp_objs <- create_inp_objs(inp_ls, output_nm, idx)
   bare_inp_nms <- names(inp_objs)
 
-  var_nms <- create_var_nms(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, cl_chr, output_nm)
+  var_nms <- create_var_nms(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, is_i, cl_chr, output_nm)
 
   # TODO:  add this to `create_inp_objs`
   if (!is.null(inp_objs) && is_modify) {
     names(inp_objs)[1] <- output_nm
   }
   obj_nms <- get_obj_names(inp_objs[1], q_env)
+  # TODO: check if obj is still needed
   obj <- names(inp_objs)[1]
 
   # if imap
@@ -334,7 +336,7 @@ as_loop <- function(.expr,
                      )
 
   maybe_if <- add_if(map_fn  = map_fn_chr,
-                     obj     = obj,
+                     obj     = names(inp_objs),
                      output_nm = output_nm,
                      idx     = idx,
                      p_fn    = p_fn,
@@ -388,7 +390,9 @@ as_loop <- function(.expr,
     paste0('stopifnot(is.list(', output_nm,'[[', idx, ']]))\n')
     } else NULL
 
-  maybe_error <- if (throws_error) {
+  maybe_error <- if (is.null(throws_error)) {
+    paste0("# --- WARNING: above call has not been checked --- #\n")
+    } else if (throws_error) {
     paste0("# --- WARNING: error detected in the call above --- #\n")
   } else NULL
 
