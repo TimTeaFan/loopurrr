@@ -34,13 +34,19 @@ create_arg_df <- function(.inps_objs, is_lambda, fn_fmls) {
 
 # slightly adapted from https://stackoverflow.com/a/33850689/9349302
 replace_vars <- function(expr, keyvals) {
+
   # if expression is length 0 return NULL
   if (!length(expr)) return()
+
   # if expression is just a symbol length == 1
   if (is.name(expr) && length(expr) == 1) {
+    if (deparse(expr) %in% names(keyvals)) {
     key_vl <- keyvals[[deparse(expr)]]
     expr <- key_vl
+    }
+    return(expr)
   }
+
   # all other cases
   for (i in seq_along(expr)) {
     if (is.call(expr[[i]])) expr[[i]][-1L] <- Recall(expr[[i]][-1L], keyvals)
@@ -53,7 +59,6 @@ replace_vars <- function(expr, keyvals) {
         as.name(key_vl)
       }
     }
-
   }
   return(expr)
 }
@@ -108,11 +113,15 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, for
 
   if (is_lambda || is_anonym) {
 
+    fn_fmls <- rlang::fn_fmls_names(fn)
+    fn_vars <- all.vars(body(fn))
+    fn_tmp_vars <- setdiff(fn_vars, fn_fmls)
+
     fn_nm <- "`.f`"
     if (add_if) fn_nm <- "`.p`"
     if (add_else) fn_nm <- "`.else`"
 
-    if (.idx %in% all.vars(body(fn))) {
+    if (.idx %in% fn_vars) {
       rlang::abort(
         c("Problem with `as_loop()` input `.expr`.",
           x = paste0(fn_nm, " in ", cl_chr, " must not contain the same variable name which is used as loop index in `idx`: ", '"', .idx, '".'),
@@ -120,7 +129,7 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, for
       )
     }
 
-    if (output_nm %in% all.vars(body(fn))) {
+    if (output_nm %in% fn_vars) {
       rlang::abort(
         c("Problem with `as_loop()` input `.expr`.",
           x = paste0(fn_nm, " in ", cl_chr, " must not contain the same variable name which is used as output name in `output_nm`: ", '"', output_nm, '".'),
@@ -128,7 +137,7 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, for
       )
     }
 
-    if (return == "string" && any(var_nms %in% all.vars(body(fn)))) {
+    if (any(var_nms %in% fn_tmp_vars)) {
 
       rlang::abort(
         c("Problem with `as_loop()` input `.expr`.",
@@ -138,8 +147,6 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, for
           )
       )
     }
-
-    fn_fmls   <- rlang::fn_fmls_names(fn)
 
     if (length(.dot_args) != 0) {
       rlang::abort(
