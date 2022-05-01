@@ -9,3 +9,14 @@
     }
     # --- end loop --- #
 
+---
+
+    # --- convert: `map(x, log)` as loop --- #
+    # --- WARNING: above call has not been checked --- #
+    out <- vector("list", length = length(x))
+    
+    for (i in seq_along(x)) {
+    out[[i]] <- log(x[[i]])
+    }
+    # --- end loop --- #
+

@@ -1158,6 +1158,15 @@ test_that("as_loop does not throw an error when used on non-working map function
       output_context = "console")
   )
 
+  # but it won't throw a check error when `check = FALSE`
+  expect_snapshot_output(
+    as_loop(
+      map(x, log),
+      checks = FALSE,
+      return = "string",
+      output_context = "console")
+  )
+
 })
 
 # as_loop works with long functions
@@ -1192,12 +1201,34 @@ test_that("as_loop works with long functions", {
 
 })
 
-# throw error when idx, .inp, sel or at in one of the functions
-test_that("as_loop throws an error when internal variables are used in functions", {
+# as_loop works with short functions
+test_that("as_loop works with short functions", {
 
   x <- list(a = c(1,2), b = c("a","b"), c = c(3,4))
 
-  # idx
+  exp <- map(x, ~ 1)
+  out <- map(x, ~ 1) %>% as_loop(return = "eval")
+  expect_equal(exp, out)
+
+  exp2 <- map(x, ~ .x)
+  out2 <- map(x, ~ .x) %>% as_loop(return = "eval")
+  expect_equal(exp2, out2)
+
+  exp3 <- map(x, ~ .)
+  out3 <- map(x, ~ .) %>% as_loop(return = "eval")
+  expect_equal(exp3, out3)
+
+})
+
+# check variable names ----
+
+#> idx in funs ------
+# throw error when idx, in one of the functions
+test_that("as_loop throws an error when idx name is used in functions", {
+
+  x <- list(a = c(1,2), b = c("a","b"), c = c(3,4))
+
+  # idx in .f
   expect_error(
     map_if(x, is.numeric, function(x) {
                   i <- 5
@@ -1207,6 +1238,7 @@ test_that("as_loop throws an error when internal variables are used in functions
     "must not contain the same variable"
   )
 
+  # idx in .p
   expect_error(
     map_if(x,
            .p = function(x) {
@@ -1218,6 +1250,71 @@ test_that("as_loop throws an error when internal variables are used in functions
     "must not contain the same variable"
   )
 
+  # idx in .p
+  expect_error(
+    map_if(x,
+           .p = is.numeric,
+           .else = function(x) {
+             i <- 5
+             TRUE
+           },
+           .f = ~ 1) %>%
+      as_loop(., return = "eval"),
+    "must not contain the same variable"
+  )
+
+})
+
+
+#> output nm in funs ------
+# throw error when output name, is used in one of the functions
+test_that("as_loop throws an error when output name is used in functions", {
+
+  x <- list(a = c(1,2), b = c("a","b"), c = c(3,4))
+
+  # output_nm in .f
+  expect_error(
+    map_if(x, is.numeric, function(x) {
+      out <- 5
+      x + out
+    }) %>%
+      as_loop(., return = "eval"),
+    "must not contain the same variable"
+  )
+
+  # output_nm in .p
+  expect_error(
+    map_if(x,
+           .p = function(x) {
+             i <- 5
+             TRUE
+           },
+           .f = ~ 1) %>%
+      as_loop(., return = "eval"),
+    "must not contain the same variable"
+  )
+
+  # output_nm in .els
+  expect_error(
+    map_if(x,
+           .p = is.numeric,
+           .else = function(x) {
+             i <- 5
+             TRUE
+           },
+           .f = ~ 1) %>%
+      as_loop(., return = "eval"),
+    "must not contain the same variable"
+  )
+
+})
+
+#> temp vars in funs ----
+# as_loop throws an error when temorary variable is used in one of the functions
+test_that("as_loop throws an error when temorary variable is used in one of the functions", {
+
+  x <- list(a = c(1,2), b = c("a","b"), c = c(3,4))
+
   # .sel in .f
   expect_error(
     map_if(x, is.numeric, function(x) {
@@ -1225,7 +1322,7 @@ test_that("as_loop throws an error when internal variables are used in functions
       x
     }) %>%
       as_loop(., return = "eval"),
-    "must not contain `.sel"
+    "must not contain variable"
   )
 
   # .sel in .p
@@ -1237,7 +1334,7 @@ test_that("as_loop throws an error when internal variables are used in functions
       x
     }) %>%
       as_loop(., return = "eval"),
-    "must not contain `.sel"
+    "must not contain variable"
   )
 
   # .sel in .else
@@ -1247,12 +1344,146 @@ test_that("as_loop throws an error when internal variables are used in functions
       x
     }) %>%
       as_loop(., return = "eval"),
-    "must not contain `.sel"
+    "must not contain variable"
   )
 
-  # .at
+  # .at in .f
+  expect_error(
+    map_at(x, "a", function(x) {
+      .at <- 5
+      x
+    }) %>%
+      as_loop(., return = "eval"),
+    "must not contain variable"
+  )
 
+  # .tmp in .f
+  expect_error(
+    map_if(x, is.numeric, function(x) {
+      .tmp <- 5
+      x
+    }) %>%
+      as_loop(., return = "eval", null = "yes"),
+    "must not contain variable"
+  )
 
-  # .inp1
+  # .tmp in .p
+  expect_error(
+    map_if(x, function(p) {
+      .tmp <- 3
+      is.numeric(p)
+    }, function(x) {
+      x
+    }) %>%
+      as_loop(., return = "eval", null = "yes"),
+    "must not contain variable"
+  )
+
+  # .tmp in .else
+  expect_error(
+    map_if(x, is.numeric, .f = ~ 1, .else = function(x) {
+      .tmp <- 5
+      x
+    }) %>%
+      as_loop(., return = "eval", null = "yes"),
+    "must not contain variable"
+  )
+
+  # .inputs
+  # expect no error when input is in formals
+  expect_error(
+    map(x, function(x) {
+      paste(x, collapse = ", ")
+      }) %>%
+      as_loop(return = "eval"),
+    NA
+  )
+
+  # .idx
+  # expect no error when .idx is in formals
+  expect_error(
+    imap(x, function(.idx, y) {
+      paste(.idx, y, collapse = ", ")
+    }) %>% as_loop(return = "eval"),
+    NA
+  )
+
+  # but if input is a temporary var name then throw error
+  expect_error(
+    map(x, function(y) {
+      x <- 4
+      paste(y, collapse = ", ")
+    }) %>% as_loop(return = "eval"),
+    "must not contain variable"
+  )
+
+  # and if input is a temporary var name then throw error
+  expect_error(
+    imap(x, function(x, y) {
+      .idx <- 4
+      paste(x, y, collapse = ", ")
+    }) %>% as_loop(return = "eval"),
+    "must not contain variable"
+  )
 
 })
+
+
+
+
+# index name is input name
+test_that("as_loop throws an error when index name is input name", {
+
+  expect_error(
+    map(1:3, sum) %>%
+      as_loop(idx = ".inp1", return = "eval"),
+    "same variable name as"
+  )
+
+  test <- 1:3
+
+  expect_error(
+    map(test, sum) %>%
+      as_loop(idx = "test", return = "eval"),
+    "same variable name as"
+  )
+
+})
+
+
+
+
+# .inp1 can be used as input name
+test_that("as_loop throws an error when the same input name is used twice", {
+
+  .inp1 <- c(1:3)
+
+  expect_error(
+    map2(.inp1, 1:3, function(x, y) x + y) %>%
+      as_loop(return = "eval"),
+    NA
+  )
+})
+
+# input name = output name
+test_that("as_loop throws an error when input name is output name", {
+
+  out <- 1:3
+
+  expect_error(
+    map(out, function(x) x) %>%
+      as_loop(return = "eval"),
+    "same variable name as"
+  )
+})
+
+# index name is output name
+test_that("as_loop throws an error when index name is output name", {
+
+  expect_error(
+    map(1:3, sum) %>%
+      as_loop(idx = "out", return = "eval"),
+    "same variable name as"
+  )
+})
+
