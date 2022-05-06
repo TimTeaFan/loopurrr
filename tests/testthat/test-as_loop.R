@@ -1509,4 +1509,34 @@ test_that("as_loop throws an error when input name is the same as temp var", {
 
 })
 
+# check eval_force ------
+
+test_that("as_loop detect lazy evaluation correctly", {
+
+  make_add <- function(n) {
+    function(x) {
+      x + n
+    }
+  }
+
+  idx <- as.list(1:5)
+
+  exp <- map(idx, make_add) %>%
+    map(do.call, list(1))
+
+  tmp1 <- map(idx, ~ make_add(.x)) %>%
+    as_loop(return = "eval")
+  res1 <- map(tmp1, do.call, list(1))
+
+  expect_equal(res1, exp)
+
+  # TODO: force_eval when bare function name
+
+  tmp2 <- map(idx, make_add) %>%
+    as_loop(return = "eval")
+  res2 <- map(tmp2, do.call, list(1))
+
+  expect_equal(res2, exp)
+
+})
 
