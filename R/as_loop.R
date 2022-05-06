@@ -154,7 +154,9 @@ as_loop <- function(.expr,
 
   # TODO: wrap this block into one function
   # check: magrittr pipe expression
-  new_expr <- check_and_unpipe(sys.calls(), is_dot = match.call()$`.expr` == ".")
+  new_expr <- check_and_unpipe(sys.calls(),
+                               is_dot = match.call()$`.expr` == ".",
+                               calling_fn = "as_loop")
   if (!is.null(new_expr)) {
     q <- rlang::quo_set_expr(q, new_expr)
   }
@@ -236,8 +238,10 @@ as_loop <- function(.expr,
       returns_null <- any(purrr::map_lgl(res, is.null))
     }
 
-    if (force == "auto")
-      force_eval <- any(purrr::map_lgl(res, ~ check_lazy(.x, q_env)))
+    if (force == "auto") {
+      # TODO: replace this expression with something faster:
+      force_eval <- any(purrr::map_lgl(res[1:2], ~ check_lazy(.x, q_env)))
+    }
   } else {
     throws_error <- NULL
     if (is.null(names(expr_ls[-1])) || any(nchar(names(expr_ls[-1])) == 0L)) {
