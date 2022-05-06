@@ -211,6 +211,10 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, for
 
     objs_vec <- vector("character", length = length(.inp_objs))
 
+    if (force_eval) {
+      .idx <- paste0(".(", .idx, ")")
+    }
+
     for (i in seq_along(.inp_objs)) {
       objs_vec[i] <- paste0(.inp_objs[[i]],
                             if(!(is_redu && !is_back && i == 1L) && !(is_redu && is_back && i == 2L)) {
