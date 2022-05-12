@@ -51,6 +51,7 @@ unpipe_all <- function(code_expr, .top_level = TRUE) {
 check_and_unpipe <- function(sc, is_dot, calling_fn) {
 
   # TODO: create recursive function that goes through the whole call stack:
+  # TODO: add stop that stops preventing `.f` from getting unpiped
   if (length(sc) > 1 && is_dot) {
     last_cl <- as.list(sc[length(sc) -1L][[1]])
 
