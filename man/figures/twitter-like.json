@@ -3,5 +3,6 @@
   "label": "Likes on Twitter",
   "message": "594",
   "color": "blue",
-  "namedLogo": "Twitter"
+  "logo": "Twitter",
+  "style": "social"
 }
