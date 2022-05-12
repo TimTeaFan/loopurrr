@@ -112,6 +112,31 @@ test_that("as_loop works with magrittr pipe", {
   expect_equal(exp3, out3)
 })
 
+test_that("as_loop works with long pipes", {
+
+  x <- list(c(1,2))
+
+  x2 <- x %>%
+    append(list(c(2,3)))
+
+  exp1 <- x2 %>% map(sum)
+  out1 <- x %>% append(list(c(2,3))) %>% map(sum) %>% as_loop(., return = "eval")
+
+  expect_equal(exp1, out1)
+
+  exp2 <- x2 %>% append(list(c(3:4))) %>% map(sum)
+  out2 <- x %>%
+    append(list(c(2,3))) %>%
+    append(list(c(3:4))) %>%
+    map(sum) %>%
+    as_loop(return = "eval")
+
+  expect_equal(exp2, out2)
+
+})
+
+
+
 test_that("as_loop works with namespaced map calls", {
 
   x <- list(c(1,2), c(2,3), c(3,4))
