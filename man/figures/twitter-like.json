@@ -1,9 +1,7 @@
 {
   "schemaVersion": 1,
-  "label": "Likes on Twitter",
+  "label": "Likes",
   "message": "594",
-  "color": "blue",
-  "labelColor": "lightgrey",
   "namedLogo": "Twitter",
   "style": "social"
 }
