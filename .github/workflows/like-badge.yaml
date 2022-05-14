@@ -2,16 +2,17 @@ name: like-banner
 
 on:
   schedule:
-    - cron:  '0 */4 * * *' 
+    - cron:  '*/1 * * * *' 
 
 jobs:
   get-likes:
     runs-on: macOS-latest
-    if: github.ref == 'refs/heads/twitter-like-badge'
     env:
       TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: twitter-like-badge
       - name: git config
         run: |
           git config user.email github-actions@github.com
