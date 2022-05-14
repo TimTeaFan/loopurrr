@@ -8,7 +8,6 @@ jobs:
   get-likes:
     runs-on: macOS-latest
     env:
-      # GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
     steps:
       - uses: actions/checkout@v2
