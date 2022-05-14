@@ -14,6 +14,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 coverage](https://codecov.io/gh/TimTeaFan/loopurrr/branch/main/graph/badge.svg)](https://codecov.io/gh/TimTeaFan/loopurrr?branch=main)
 [![CodeFactor](https://www.codefactor.io/repository/github/timteafan/loopurrr/badge)](https://www.codefactor.io/repository/github/timteafan/loopurrr)
 ![CRAN status](https://img.shields.io/badge/CRAN-not%20published-red)
+[<img src="https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/TimTeaFan/loopurrr/twitter-like-badge/likes&label=Likes&query=$.data..public_metrics.like_count&style=social&logo=Twitter">](https://twitter.com/timteafan/status/1511034067344572422?s=21)
 <!-- badges: end -->
 
 ## Overview
