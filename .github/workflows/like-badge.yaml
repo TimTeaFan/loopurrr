@@ -18,7 +18,7 @@ jobs:
           git config user.name github-actions
       - name: TWITTER API with curl
         run: |
-          curl 'https://api.twitter.com/2/tweets?ids=1511034067344572422&tweet.fields=public_metrics&expansions=attachments.media_keys&media.fields=public_metrics' --header 'Authorization: Bearer $TWITTER_BEARER_TOKEN' -o likes
+          curl 'https://api.twitter.com/2/tweets?ids=1511034067344572422&tweet.fields=public_metrics&expansions=attachments.media_keys&media.fields=public_metrics' --header 'Authorization: Bearer ${{ secrets.TWITTER_BEARER_TOKEN }}' -o likes
         shell: bash
       - name: Commit and Push changes
         run: |
