@@ -2,7 +2,7 @@ name: like-banner
 
 on:
   push:
-    branches: enhanced_loop
+    branches: enhanced_asloop
 
 jobs:
   get-likes:
