@@ -23,9 +23,5 @@ jobs:
         shell: bash
       - name: Commit and Push changes
         run: |
-          git add --all
-          git commit -am 'Automatic commit to update latest twitter likes data'
-      - name: Push changes
-        run: |
-          git push
+          git diff-index --quiet HEAD || (git commit -a -m'[bot]: update latest twitter likes data' --allow-empty && git push -f)
 
