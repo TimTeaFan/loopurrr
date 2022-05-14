@@ -1,8 +1,8 @@
 name: like-banner
 
 on:
-  push:
-    branches: enhanced_asloop
+  schedule:
+    - cron:  '0 */12 * * *'
 
 jobs:
   get-likes:
@@ -10,7 +10,9 @@ jobs:
     env:
       TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: twitter-like-badge
       - name: git config
         run: |
           git config user.email github-actions@github.com
@@ -21,9 +23,4 @@ jobs:
         shell: bash
       - name: Commit and Push changes
         run: |
-          git add --all
-          git commit -am 'Automatic commit to update latest twitter likes data'
-      - name: Push changes
-        run: |
-          git push
-
+          git diff-index --quiet HEAD || (git commit -a -m'[bot]: update latest twitter likes data' --allow-empty && git push -f)
