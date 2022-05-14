@@ -1,14 +1,14 @@
 name: like-banner
 
 on:
-  push:
-    branches: enhanced_asloop
+  schedule:
+    - cron:  '0 */4 * * *' 
 
 jobs:
   get-likes:
     runs-on: macOS-latest
+    if: github.ref == 'refs/heads/twitter-like-badge'
     env:
-      # GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
     steps:
       - uses: actions/checkout@v2
