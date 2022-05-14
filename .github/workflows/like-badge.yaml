@@ -16,7 +16,6 @@ jobs:
         run: |
           git config user.email github-actions@github.com
           git config user.name github-actions
-          git checkout twitter-like-badge
       - name: TWITTER API with curl
         run: |
           curl 'https://api.twitter.com/2/tweets?ids=1511034067344572422&tweet.fields=public_metrics&expansions=attachments.media_keys&media.fields=public_metrics' --header 'Authorization: Bearer $TWITTER_BEARER_TOKEN' -o likes
