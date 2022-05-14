@@ -22,6 +22,7 @@ knitr::opts_chunk$set(
 [![Codecov test coverage](https://codecov.io/gh/TimTeaFan/loopurrr/branch/main/graph/badge.svg)](https://codecov.io/gh/TimTeaFan/loopurrr?branch=main)
 [![CodeFactor](https://www.codefactor.io/repository/github/timteafan/loopurrr/badge)](https://www.codefactor.io/repository/github/timteafan/loopurrr)
 ![CRAN status](https://img.shields.io/badge/CRAN-not%20published-red)
+[<img alt="Custom badge" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FTimTeaFan%2Floopurrr%2Ftwitter-like-badge%2Fman%2Ffigures%2Ftwitter-like.json">](https://twitter.com/timteafan/status/1511034067344572422?s=21)
 <!-- badges: end -->
 
 ## Overview
