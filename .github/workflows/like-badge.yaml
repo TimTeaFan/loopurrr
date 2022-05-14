@@ -2,7 +2,7 @@ name: like-banner
 
 on:
   schedule:
-    - cron:  '* * * * *' 
+    - cron:  '*/6 * * * *' 
 
 jobs:
   get-likes:
