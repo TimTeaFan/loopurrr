@@ -1,284 +1,130 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# loopurrr
+# loopurrr’s Twitter Like Social Badge
 
 <!-- badges: start -->
 
-![Release
-status](https://img.shields.io/badge/status-first%20release-yellow)
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![R-CMD-check](https://github.com/TimTeaFan/loopurrr/workflows/R-CMD-check/badge.svg)](https://github.com/TimTeaFan/loopurrr/actions)
-[![Codecov test
-coverage](https://codecov.io/gh/TimTeaFan/loopurrr/branch/main/graph/badge.svg)](https://codecov.io/gh/TimTeaFan/loopurrr?branch=main)
-[![CodeFactor](https://www.codefactor.io/repository/github/timteafan/loopurrr/badge)](https://www.codefactor.io/repository/github/timteafan/loopurrr)
-![CRAN status](https://img.shields.io/badge/CRAN-not%20published-red)
+![GitHub Workflow
+Status](https://img.shields.io/github/workflow/status/TimTeaFan/loopurrr/like-banner?label=bot%20status&logo=Github%20Actions&logoColor=white&style=flat-square)
+![GH
+Actions](https://img.shields.io/static/v1?label=automated%20with&message=GitHub%20Actions&color=2088FF&logo=GitHub%20Actions&style=flat-square&labelColor=52535e)
+[<img src="https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/TimTeaFan/loopurrr/twitter-like-badge/likes&label=Likes&query=$.data..public_metrics.like_count&style=social&logo=Twitter">](https://twitter.com/timteafan/status/1511034067344572422?s=21)
 <!-- badges: end -->
 
-## Overview
+## About
 
-<p id="logop">
-<a id="logo" href="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/logo_big.png"><img src="https://raw.githubusercontent.com/TimTeaFan/loopurrr/main/man/figures/logo.png" alt="loopurrr's logo a cat sleeping in the form of a circle" align="right"></a>
-</p>
+This branch creates the “Twitter Like Social Badge” as displayed above.
+The badge shows the number of likes the [tweet that announced the
+loopurrr
+package](https://twitter.com/timteafan/status/1511034067344572422?s=21&t=WEhGBqj-5dtsFIYCuAtmpg)
+has received so far.
 
-`{loopurrr}` makes `{purrr}`’s iterator functions more understandable
-and easier to debug. In this initial version, `{loopurrr}` consists only
-of *one* main function: `as_loop()`.
+This README documents how I built the badge using shields.io and Github
+Action. This is not only for my future self (who won’t remember), but
+also for anyone who is interested in building a similar badge.
 
-`as_loop()` takes a function call to one of `{purrr}`’s iterator
-functions, such as `purrr::map()`, and translates it into a regular
-`for` loop.
+The setup consists of four steps:
 
-You might ask: *“Why would anyone want to do this?!”*
+1.  sign up for the Twitter API
+2.  get the number of likes of a specific Tweet
+3.  build a GitHub Actions workflow that gets the Twitter data and saves
+    it to a dedicated branch
+4.  add an image based on a dynamic shields.io URL to the README
 
-`as_loop()` has at least three use cases:
+#### 1. Twitter Developer Plattform
 
-1.  Learning and Teaching Functional Programming
-2.  Debugging
-3.  Accessing and Extending `{purrr}` Functions
+This step was pretty straightforward: just sign up
+[here](https://developer.twitter.com). Since the number of likes of a
+Tweet can be accessed via the API v2, “essential access” is enough - we
+do not need to apply for the more restrictive “elevated access”.
 
-The remainder of this readme will expand on the uses cases above, show
-how to get started, and give a brief outlook on the development roadmap.
+#### 2. The Twitter API
 
-## Motivation and Use Cases
+Looking at the
+[docs](https://developer.twitter.com/en/docs/twitter-api/tweets/likes/introduction)
+I thought `GET /2/tweets/:id/liking_users` would be the way to go about
+it, but this returns a list of all user names, whereas I only needed the
+number of likes. The following was what I was looking for:
 
-#### 1. Learning and Teaching Functional Programming
+`GET /2/tweets?ids=<tweetID>&tweet.fields=public_metrics`
 
-Beginners, and especially users new to functional-style programming,
-often have a hard time getting their head around R’s rather opaque
-iterator functions, such as base R’s `lapply()` or `purrr::map()`. `for`
-loops, on the other hand, are fairly well understood, even by users new
-to R.
+Originally I wanted to use the {rtweet} package, but realizing that I
+only need one command to get the data I figured a call to `curl` from
+the command line was enough for my needs, especially since we can save
+the output with `curl <URL> -o my.file`
 
-`as_loop()` translates a function call to one of `{purrr}`’s iterator
-functions into a regular `for` loop. Through this `as_loop()` shows how
-`{purrr}`’s iterator functions work under the hood. After reading about
-what iterator functions do (for example
-[here](https://r4ds.had.co.nz/iteration.html#the-map-functions)),
-LearneRs can start playing around with calling `as_loop()` on the
-examples in the `{purrr}` documentation. TeacheRs, on the other hand,
-can use `as_loop()` interactively when introducing the different types
-of iterator functions in the `{purrr}` package.
+#### 3. Github Actions
 
-Finally, this package is not only for beginners and users new to R. When
-writing this package I was fairly confident in my understanding of
-`{purrr}`’s iterator functions. Nevertheless, translating each of them
-into a `for` loop was quite revealing, especially with the more complex
-functions, such as `purrr::reduce()` (specifically when the direction is
-set to `"backward"`).
+This was the toughest part. Up until now I just used existing \#RStats
+Github Action Workflows like RMD Check or pkgdown. They were easy to set
+up, but looking at the YAML I had no idea how to customize them further,
+let alone create one from scratch. First, I started with the OS. Since I
+use a Mac at home I chose: `runs-on: macOS-latest` to be able to test
+single steps in a similar environment I later switched this to
+`ubuntu-latest`).
 
-#### 2. Debugging
+Next, I wanted to run the workflow on a dedicated branch. To do this we
+need `uses: actions/checkout@v3` because from version 3 on we can
+specify
 
-Once learneRs know what an iterator function does and how to use it, the
-next hurdle to take is dealing with failure. Iterator functions
-introduce an additional layer of complexity, because special knowledge
-is required to debug non-running code (see also
-[here](https://r4ds.had.co.nz/iteration.html#dealing-with-failure)). By
-translating an iterator function into a regular `for` loop, `as_loop()`
-can help with debugging. Usually a `for` loop will run over an index,
-for example `i`. When executed in the global environment, useRs can
-easily inspect the code in the console at index `i` once the code throws
-an error - without any special knowledge of how to use a debugger,
-`browser()` or `purrr::safely()`.
-
-Of course, useRs are still highly encouraged to learn how to use R’s and
-`{purrr}`’s debugging tools and functions. However, in data science
-teams with different levels of programming knowledge, the possibility to
-translate complex iterator functions to regular `for` loops can help
-mitigate temporary knowledge gaps.
-
-#### 3. Accessing and Extending `{purrr}` Functions
-
-After getting used to `{purrr}`’s functions, they easily come to mind,
-when dealing with iteration problems. However, sometimes the `{purrr}`
-package is not available, for example in a production environment where
-new packages cannot easily be installed, or when writing a package that
-doesn’t depend on `{purrr}`. Although base R equivalents exist for
-`{purrr}`’s major functions, there are functions like `purrr::imap()` or
-`purrr::reduce2()` which are not available in base R and need to be
-constructed. In those cases, `as_loop()` provides a ready-to-use
-alternative.
-
-Further, by translating `{purrr}`’s iterator functions into `for` loops,
-the underlying building blocks can easily be rearranged to create
-functions that are not included in the `{purrr}` package. For example,
-by translating a call to `purrr::imap()` and a call to `purrr::map2()`
-we could easily build a `for` loop that loops over two vectors and an
-index, as if a function like `imap2()` existed.
-
-## Installation
-
-`{loopurrr}` is not on CRAN yet. You can install the latest version from
-[GitHub](https://github.com/TimTeaFan/loopurrr) with:
-
-``` r
-# install.packages("remotes")
-remotes::install_github("TimTeaFan/loopurrr")
+``` yaml
+with:
+    ref: mybranch
 ```
 
-## Getting Started
+Since I later wanted to commit and push the data, it was necessary to
+set-up git first (thanks to [@Lluis_Revilla’s
+help](https://twitter.com/lluis_revilla/status/1524805074337288194?s=21&t=WEhGBqj-5dtsFIYCuAtmpg)
+on this)
 
-First, lets use `get_supported_fns("as_loop")` to get a glimpse of which
-iterator functions from the `{purrr}` package are currently supported by
-`as_loop()`:
-
-``` r
-library(loopurrr)
-get_supported_fns("as_loop")
-#> $map
-#>  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df"  "map_dfc" "map_dfr"
-#>  [8] "map_if"  "map_int" "map_lgl" "map_raw"
-#> 
-#> $imap
-#> [1] "imap"     "imap_chr" "imap_dbl" "imap_dfc" "imap_dfr" "imap_int" "imap_lgl"
-#> [8] "imap_raw"
-#> 
-#> $map
-#> [1] "map2"     "map2_chr" "map2_dbl" "map2_df"  "map2_dfc" "map2_dfr" "map2_int"
-#> [8] "map2_lgl" "map2_raw"
-#> 
-#> $pmap
-#> [1] "pmap"     "pmap_chr" "pmap_dbl" "pmap_df"  "pmap_dfc" "pmap_dfr" "pmap_int"
-#> [8] "pmap_lgl" "pmap_raw"
-#> 
-#> $lmap
-#> [1] "lmap"    "lmap_at"
-#> 
-#> $modify
-#> [1] "modify"    "modify_at" "modify_if" "modify2"   "imodify"  
-#> 
-#> $walk
-#> [1] "iwalk" "pwalk" "walk"  "walk2"
-#> 
-#> $accumulate
-#> [1] "accumulate"  "accumulate2"
-#> 
-#> $reduce
-#> [1] "reduce"  "reduce2"
+``` yaml
+run: |
+  git config user.email github-actions@guthub.com
+  git config user.name github-actions`
 ```
 
-Now lets take the first example of `{loopurrr}`’s documentation and
-start with translating a call to `purrr::map()`. First, lets look at the
-result:
+Getting the actual data from Twitter is just one call to curl. Here I
+wasn’t sure how to access the Bearer Token but looking at other
+workflows helped a lot:
 
-``` r
-x <- list(1, c(1:2), c(1:3))
-x %>% purrr::map(sum)
-#> [[1]]
-#> [1] 1
-#> 
-#> [[2]]
-#> [1] 3
-#> 
-#> [[3]]
-#> [1] 6
+``` sh
+curl 'https://api.twitter.com/2/tweets?ids=1511034067344572422&tweet.fields=public_metrics&expansions=attachments.media_keys&media.fields=public_metrics' --header 'Authorization: Bearer ${{ secrets.TWITTER_BEARER_TOKEN }}' -o likes
 ```
 
-Next, lets pipe the function call into `as_loop()`.
+Finally, I wanted to commit and push the data. This yielded an error in
+cases, where there was no change to the data. I found the following
+helpful command:
 
-``` r
-x %>% 
-  purrr::map(sum) %>% 
-  as_loop()
+``` sh
+git diff-index --quiet HEAD || (git commit -a -m'[bot]: update latest twitter likes data' --allow-empty && git push -f)`
 ```
 
-Depending on the automatically detected output settings, the result will
-either be:
+Apparently we can just use Boolean operators. I’m not exactly sure how
+the single elements evaluate, but it seems like: Either there is no
+difference between the latest commit and the working tree or commit and
+push.
 
-1.  directly *inserted in* the original R *script or the console*, given
-    that the code is run in RStudio and the `{rstudioapi}` package is
-    installed,
-2.  *copied to the clipboard*, given that the above conditions are not
-    met and the `{clipr}` package is installed,
-3.  or if none of the conditions above are met, the result will just be
-    *printed to the console*.
+After figuring out how to run the job, I scheduled it to be executed
+every 12 hours: `'0 */12 * * *'`
 
-``` r
-# --- convert: `map(x, sum)` as loop --- #
-out <- vector("list", length = length(x))
+The whole YAML script can be found
+[here](https://github.com/TimTeaFan/loopurrr/blob/main/.github/workflows/like-badge.yaml).
 
-for (i in seq_along(x)) {
-  out[[i]] <- sum(x[[i]])
-}
-# --- end loop --- #
-```
+#### 4. shields.io
 
-To see the result we need to print `out`:
+The final step was to create a dynamic [shields.io](https://shields.io)
+badge. Here the only tricky part was the “query” specification. It
+helped to transform the json file from the Twitter API into an R list
+object and subset it to get the likes:
 
-``` r
-out
-#> [[1]]
-#> [1] 1
-#> 
-#> [[2]]
-#> [1] 3
-#> 
-#> [[3]]
-#> [1] 6
-```
+`data[[1]]$public_metrics$like_count` in R corresponds to
+`.data..public_metrics.like_count`.
 
-## Roadmap and Collaboration
+This is the full URL:
 
-For future versions of `{loopurrr}` the following milestones are
-planned:
+`https://img․shields․io/badge/dynamic/json?url=https://raw․githubusercontent․com/TimTeaFan/loopurrr/twitter-like-badge/likes&label=Likes&query=$.data..public_metrics.like_count&style=social&logo=Twitter`
 
--   release `{loopurrr}` on CRAN
--   enable support for more iterator functions from `{purrr}`
-    (e.g. `cross()` etc.)
--   support base R’s `apply` family in `as_loop()`
--   translate `{purrr}`’s iterators to base R equivalents with
-    `as_base()` (yet to be created)
-
-If anyone is interested in collaborating on one or more of those
-milestones, any help is appreciated! Feel free to reach out to me, for
-example on Twitter
-<a href="https://twitter.com/timteafan" target="_blank">@TimTeaFan</a>.
-
-## History
-
-The idea of this package is based on an experience I had at work. After
-diving deeper into `{purrr}`’s iterator functions I started refactoring
-some old code by replacing loops with `map` functions. To my surprise,
-although the code was much cleaner now, not everybody liked it. For some
-users it made things harder to understand. Learning once how `map`
-functions work, was not enough to solve this, since things got more
-complicated when the code was throwing errors. `{loopurrr}` allows us to
-write clean code and translate it to regular `for` loops when needed.
-
-## Acknowledgements
-
-Credit goes to the creators and maintainers of the amazing `{purrr}`
-package! `{loopurrr}` is just an add-on which would not exist without
-it.
-
-Further, credit goes to the
-[`{gradethis}`](https://github.com/rstudio/gradethis/%5D) package from
-which I adapted [this
-code](https://github.com/rstudio/gradethis/blob/main/R/unpipe.R) to make
-`as_loop()` work with piped expressions (function calls).
-[`{gradethis}`](https://github.com/rstudio/gradethis/blob/main/LICENSE.md)
-license and copyrights apply!
-
-I was further inpsired by Miles McBain’s
-[`{datapasta}`](https://github.com/MilesMcBain/datapasta)’s different
-output options. Looking at the code alone wasn’t enough, I also got help
-on
-[StackOverflow](https://stackoverflow.com/questions/70572072/how-to-use-indentation-with-rstudioapiinserttext)
-from user @Waldi to make the {rstudioapi} package work.
-
-Finally, I adapted [this answer on
-StackOverflow](ttps://stackoverflow.com/a/33850689/9349302) to replace
-the function arguments of the functions in `map(.f = )` with the actual
-objects that are being used.
-
-## Disclaimer
-
-This package does not promote `for` loops over iterator functions.
-Rather the opposite is true. I love the `{purrr}` package and would be
-happy if people would use it more.
-
-Although this package contains tests with more than 1000 lines of code,
-there are definitely a number of edge cases which won’t work correctly.
-If you find one, I’d be happy if you file an issue
-[here](https://github.com/TimTeaFan/loopurrr/issues).
+We can just add this URL to the source attribute of `<img src = …>` in
+the README.Rmd and the badge will be rendered on Github as well as on
+the pkgdown website.
