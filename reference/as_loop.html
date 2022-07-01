@@ -86,14 +86,14 @@ package to be installed.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">as_loop</span><span class="op">(</span>
-  <span class="va">.expr</span>,
-  simplify <span class="op">=</span> <span class="cn">TRUE</span>,
-  output_nm <span class="op">=</span> <span class="st">"out"</span>,
-  idx <span class="op">=</span> <span class="st">"i"</span>,
-  output_context <span class="op">=</span> <span class="fu"><a href="output_options.html">default_context</a></span><span class="op">(</span><span class="op">)</span>,
-  return <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"string"</span>, <span class="st">"eval"</span><span class="op">)</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">as_loop</span><span class="op">(</span></span>
+<span>  <span class="va">.expr</span>,</span>
+<span>  simplify <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  output_nm <span class="op">=</span> <span class="st">"out"</span>,</span>
+<span>  idx <span class="op">=</span> <span class="st">"i"</span>,</span>
+<span>  output_context <span class="op">=</span> <span class="fu"><a href="output_options.html">default_context</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  return <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"string"</span>, <span class="st">"eval"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -101,6 +101,8 @@ package to be installed.</p>
     <dl><dt>.expr</dt>
 <dd><p>A function call to a <code>{purrr}</code> iterator function. See the "Supported functions"
 section below for an overview of which <code>{purrr}</code> iterator functions are currently supported.</p></dd>
+
+
 <dt>simplify</dt>
 <dd><p>When TRUE, the default, <code>as_loop()</code> will run the function call in <code>.expr</code> to
 check two things: (1) Whether the call is valid. If not, an error will be thrown, pointing out
@@ -109,10 +111,16 @@ that the underlying function call is invalid. (2) Whether the resulting return v
 the function call in <code>.expr</code> is not checked for errors and the resulting for loop will be more
 verbose even if <code>NULL</code> is not among the return values. It is recommended to set <code>simplify</code> to
 <code>FALSE</code> for calculation-heavy function calls.</p></dd>
+
+
 <dt>output_nm</dt>
 <dd><p>sets the name of the resulting output object. The default name is <code>out</code>.</p></dd>
+
+
 <dt>idx</dt>
 <dd><p>sets the name of the index of the for loop. The default index is <code>i</code>.</p></dd>
+
+
 <dt>output_context</dt>
 <dd><p>An optional output context that defines the output target. Possible values
 are one or several of:</p><ul><li><p><code>"rstudio"</code>: This will insert the translation to the location where <code>as_loop()</code> was run. If it
@@ -127,16 +135,21 @@ Note that the <code>{rstudioapi}</code> package is required for this option.</p>
 options from left to right (starting with <code>"rstudio"</code>) until successful. If neither the
 rstudioapi package nor the clipr package are installed, the output context will fall back
 to <code>"console"</code>.</p></dd>
+
+
 <dt>return</dt>
 <dd><p>When set to <code>"string"</code>, the default, <code>as_loop()</code> will return the translated code as
 character strings to the location specified in <code>output_context</code>. When set to <code>"eval"</code>, the
 translated code will be evaluated in a dedicated environment and the output object will be
 returned. This option is especially for testing whether <code>as_loop()</code> works as expected. It should
 be irrelevant for most users.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Depending on the <code>return</code> argument the return value is:</p><ol><li><p>When <code>output = "string"</code>: <code>NULL</code>. As a side-effect, the translated for loop will be
+    
+
+<p>Depending on the <code>return</code> argument the return value is:</p><ol><li><p>When <code>output = "string"</code>: <code>NULL</code>. As a side-effect, the translated for loop will be
 returned to the specified output context.</p></li>
 <li><p>When <code>output = "eval"</code>: Usually the return value of the output object that is constructed
 with the for loop. In case of a call to <code>walk</code>, <code>walk2</code> etc. the (first) input object will be
@@ -147,40 +160,40 @@ returned.</p></li>
     
 
 
-<p>The following iterator functions from the <code>{purrr}</code> package are currently supported:</p><div class="r"><div class="sourceCode"><pre><code><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">60</span><span class="op">)</span>
-<span class="fu"><a href="../reference/get_supported_fns.html">get_supported_fns</a></span><span class="op">(</span><span class="st">"as_loop"</span><span class="op">)</span>
-<span class="co">#&gt; $map</span>
-<span class="co">#&gt;  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df" </span>
-<span class="co">#&gt;  [6] "map_dfc" "map_dfr" "map_if"  "map_int" "map_lgl"</span>
-<span class="co">#&gt; [11] "map_raw"</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $imap</span>
-<span class="co">#&gt; [1] "imap"     "imap_chr" "imap_dbl" "imap_dfc" "imap_dfr"</span>
-<span class="co">#&gt; [6] "imap_int" "imap_lgl" "imap_raw"</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $map</span>
-<span class="co">#&gt; [1] "map2"     "map2_chr" "map2_dbl" "map2_df"  "map2_dfc"</span>
-<span class="co">#&gt; [6] "map2_dfr" "map2_int" "map2_lgl" "map2_raw"</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $pmap</span>
-<span class="co">#&gt; [1] "pmap"     "pmap_chr" "pmap_dbl" "pmap_df"  "pmap_dfc"</span>
-<span class="co">#&gt; [6] "pmap_dfr" "pmap_int" "pmap_lgl" "pmap_raw"</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $lmap</span>
-<span class="co">#&gt; [1] "lmap"    "lmap_at"</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $modify</span>
-<span class="co">#&gt; [1] "modify"    "modify_at" "modify_if" "modify2"  </span>
-<span class="co">#&gt; [5] "imodify"  </span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $walk</span>
-<span class="co">#&gt; [1] "iwalk" "pwalk" "walk"  "walk2"</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $accumulate</span>
-<span class="co">#&gt; [1] "accumulate"  "accumulate2"</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $reduce</span>
-<span class="co">#&gt; [1] "reduce"  "reduce2"</span></code></pre></div><p></p></div>
+<p>The following iterator functions from the <code>{purrr}</code> package are currently supported:</p><div class="r"><div class="sourceCode"><pre><code><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">60</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/get_supported_fns.html">get_supported_fns</a></span><span class="op">(</span><span class="st">"as_loop"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $map</span></span>
+<span><span class="co">#&gt;  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df" </span></span>
+<span><span class="co">#&gt;  [6] "map_dfc" "map_dfr" "map_if"  "map_int" "map_lgl"</span></span>
+<span><span class="co">#&gt; [11] "map_raw"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $imap</span></span>
+<span><span class="co">#&gt; [1] "imap"     "imap_chr" "imap_dbl" "imap_dfc" "imap_dfr"</span></span>
+<span><span class="co">#&gt; [6] "imap_int" "imap_lgl" "imap_raw"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $map</span></span>
+<span><span class="co">#&gt; [1] "map2"     "map2_chr" "map2_dbl" "map2_df"  "map2_dfc"</span></span>
+<span><span class="co">#&gt; [6] "map2_dfr" "map2_int" "map2_lgl" "map2_raw"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $pmap</span></span>
+<span><span class="co">#&gt; [1] "pmap"     "pmap_chr" "pmap_dbl" "pmap_df"  "pmap_dfc"</span></span>
+<span><span class="co">#&gt; [6] "pmap_dfr" "pmap_int" "pmap_lgl" "pmap_raw"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $lmap</span></span>
+<span><span class="co">#&gt; [1] "lmap"    "lmap_at"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $modify</span></span>
+<span><span class="co">#&gt; [1] "modify"    "modify_at" "modify_if" "modify2"  </span></span>
+<span><span class="co">#&gt; [5] "imodify"  </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $walk</span></span>
+<span><span class="co">#&gt; [1] "iwalk" "pwalk" "walk"  "walk2"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $accumulate</span></span>
+<span><span class="co">#&gt; [1] "accumulate"  "accumulate2"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $reduce</span></span>
+<span><span class="co">#&gt; [1] "reduce"  "reduce2"</span></span></code></pre></div><p></p></div>
     </div>
     <div class="section level2">
     <h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a></h2>
@@ -190,46 +203,46 @@ returned.</p></li>
 <p>If we wrap or pipe a call to <code><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">purrr::map()</a></code> into <code>as_loop()</code> it will be translated into a
 regular for loop. Depending on the output context, the resulting for loop will either be
 (i) inserted directly into a script in RStudio, (ii) copied to the clipboard or (iii)
-printed to the console.</p><div class="r"><div class="sourceCode"><pre><code><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">sum</span><span class="op">)</span><span class="op">)</span>        <span class="co"># wrap a call in `as_loop()`</span>
-<span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">sum</span><span class="op">)</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># pipe a call into `as_loop()`</span>
-
-<span class="co"># --- convert: `map(x, sum)` as loop --- #</span>
-<span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"list"</span>, length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span>
-
-<span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span>
-  <span class="va">out</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="op">}</span>
-<span class="co"># --- end loop --- #</span></code></pre></div><p></p></div>
+printed to the console.</p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">sum</span><span class="op">)</span><span class="op">)</span>        <span class="co"># wrap a call in `as_loop()`</span></span>
+<span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">sum</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># pipe a call into `as_loop()`</span></span>
+<span></span>
+<span><span class="co"># --- convert: `map(x, sum)` as loop --- #</span></span>
+<span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"list"</span>, length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">out</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co"># --- end loop --- #</span></span></code></pre></div><p></p></div>
 <p>The <code>output_nm</code> argument lets us specify the name of the resulting output object. In the
 example below <code>".res"</code>. The <code>idx</code> argument lets us specify the index to be used. In the example
-below <code>"j"</code>.</p><div class="r"><div class="sourceCode"><pre><code><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_dbl</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">sum</span><span class="op">)</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
-  <span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="va">.</span>, output_nm <span class="op">=</span> <span class="st">".res"</span>, idx <span class="op">=</span> <span class="st">"j"</span><span class="op">)</span>
-
-<span class="co"># --- convert: `map_dbl(x, sum)` as loop --- #</span>
-<span class="va">.res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"double"</span>, length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span>
-
-<span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span>
-  <span class="va">.res</span><span class="op">[[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">[[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="op">}</span>
-<span class="co"># --- end loop --- #</span></code></pre></div><p></p></div>
+below <code>"j"</code>.</p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_dbl</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">sum</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="va">.</span>, output_nm <span class="op">=</span> <span class="st">".res"</span>, idx <span class="op">=</span> <span class="st">"j"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># --- convert: `map_dbl(x, sum)` as loop --- #</span></span>
+<span><span class="va">.res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"double"</span>, length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">.res</span><span class="op">[[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">[[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co"># --- end loop --- #</span></span></code></pre></div><p></p></div>
 <p>When <code>simplify</code> is set <code>FALSE</code> <code>as_loop</code> will neither check the validity of the underlying call
 nor the expected output. In this case the resulting <code>for</code> loop is more verbose. This is because we
 need to take the case of <code>NULL</code> in the return values into account. In the example below we further
 see what happens, when we use an unnamed object, such as <code>1:3</code>, in the call to <code><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">purrr::map()</a></code>.
-<code>as_loop()</code> assign unnamed objects an internal name. In the example below <code>.inp1</code>.</p><div class="r"><div class="sourceCode"><pre><code><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="va">sum</span><span class="op">)</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="va">.</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
-
-<span class="co"># --- convert: `map(1:3, sum)` as loop --- #</span>
-<span class="va">.inp1</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>
-<span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"list"</span>, length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">.inp1</span><span class="op">)</span><span class="op">)</span>
-
-<span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">.inp1</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span>
-  <span class="va">.tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">.inp1</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">.tmp</span><span class="op">)</span><span class="op">)</span>
-    <span class="va">out</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">.tmp</span>
-<span class="op">}</span>
-<span class="co"># --- end loop --- #</span></code></pre></div><p></p></div>
+<code>as_loop()</code> assign unnamed objects an internal name. In the example below <code>.inp1</code>.</p><div class="r"><div class="sourceCode"><pre><code><span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="va">sum</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/as_loop.html">as_loop</a></span><span class="op">(</span><span class="va">.</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># --- convert: `map(1:3, sum)` as loop --- #</span></span>
+<span><span class="va">.inp1</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span></span>
+<span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"list"</span>, length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">.inp1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">.inp1</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">.tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">.inp1</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">.tmp</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">out</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">.tmp</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co"># --- end loop --- #</span></span></code></pre></div><p></p></div>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
@@ -241,7 +254,7 @@ see what happens, when we use an unnamed object, such as <code>1:3</code>, in th
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
     </footer></div>

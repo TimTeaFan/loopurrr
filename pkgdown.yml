@@ -1,8 +1,8 @@
 pandoc: 2.7.3
-pkgdown: 2.0.3
+pkgdown: 2.0.5
 pkgdown_sha: ~
 articles: {}
-last_built: 2022-05-14T23:37Z
+last_built: 2022-07-01T21:30Z
 urls:
   reference: https://timteafan.github.io/loopurrr/reference
   article: https://timteafan.github.io/loopurrr/articles
