@@ -3,10 +3,11 @@ name: like-banner
 on:
   schedule:
     - cron:  '0 */12 * * *' 
+  workflow_dispatch:
 
 jobs:
   get-likes:
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     env:
       TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
     steps:
