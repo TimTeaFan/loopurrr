@@ -185,7 +185,6 @@ as_loop <- function(.expr,
   def       <- expr_ls[[".default"]]
   l_arg     <- expr_ls[[".l"]]
 
-
   is <- extract_is_args(map_fn_chr, dir, fn_expr, q_env)
 
   returns_null <- if (is$extr_fn || null == "yes") TRUE else FALSE
@@ -334,6 +333,7 @@ as_loop <- function(.expr,
                        '}\n')
   }
 
+  # TODO: rewrite with
   if (force_eval) {
     apply_fn <- paste0('eval(bquote(\n',
                        apply_fn, '\n',
