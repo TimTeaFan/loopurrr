@@ -1565,4 +1565,3 @@ test_that("as_loop detect lazy evaluation correctly", {
   expect_equal(res2, exp)
 
 })
-

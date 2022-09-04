@@ -326,20 +326,32 @@ extract_is_args <- function(map_fn_chr, dir, fn_expr, q_env) {
 
 check_and_try_call <- function(checks, null, force, q, map_fn_chr, q_env, args_ls) {
 
+  par_frame <- parent.frame()
+
   if (checks) {
     res <- try_purr_call(q, map_fn_chr)
-    yields_error <<- if (inherits(res, "purrr-error")) TRUE else FALSE
+
+    if (inherits(res, "purrr-error")) {
+      assign("yields_error", TRUE, envir = par_frame)
+    } else {
+      assign("yields_error", FALSE, envir = par_frame)
+    }
 
     if (null == "auto") {
-      returns_null <<- any(purrr::map_lgl(res, is.null))
+      assign("return_null",
+             any(purrr::map_lgl(res, is.null)),
+             envir = par_frame)
     }
 
     if (force == "auto") {
       # TODO: replace this expression with something faster:
-      force_eval <<- any(purrr::map_lgl(res[1:2], ~ check_lazy(.x, q_env)))
+
+      assign("force_eval",
+             any(purrr::map_lgl(res[1:2], ~ check_lazy(.x, q_env))),
+             envir = par_frame)
     }
   } else {
-    yields_error <<- NULL
+    assign("yields_error", NULL, envir = par_frame)
     if (is.null(names(args_ls)) || any(nchar(names(args_ls)) == 0L)) {
       rlang::abort(
         c("Problem with `as_loop()` input `.expr`.",
