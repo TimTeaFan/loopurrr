@@ -282,3 +282,39 @@ reformat_expr_ls <- function(q_expr, fn) {
   }
 
 }
+
+extract_has_args <- function() {
+
+  var_nms <- c("at"   = "at_idx",
+               "p"    = "p_fn",
+               "else" = "else_fn",
+               "init" = "init")
+
+  null_ls <- rep(list(NULL), length(var_nms))
+
+  ifnotfound_ls <- purrr::set_names(null_ls,
+                                    var_nms)
+
+  has <- mget(var_nms,
+              ifnotfound = ifnotfound_ls,
+              envir = parent.frame())
+
+  purrr::map(var_nms, ~ !is.null(has[[.x]]))
+}
+
+extract_is_args <- function(map_fn_chr, dir, fn_expr, q_env) {
+
+  fn_ls <- list("back"    = !is.null(dir) && dir == "backward",
+                "lmap"    = grepl("^lmap", map_fn_chr, perl = TRUE),
+                "walk"    = grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE),
+                "i"       = grepl("(^imap)|(^iwalk)|(^imodify)", map_fn_chr, perl = TRUE),
+                "modify"  = grepl("modify", map_fn_chr, perl = TRUE),
+                "accu"    = grepl("accumulate", map_fn_chr, perl = TRUE),
+                "accu2"   = grepl("^accumulate2$", map_fn_chr, perl = TRUE),
+                "redu"    = grepl("reduce", map_fn_chr, perl = TRUE),
+                "extr_fn" = check_extr_fn(fn_expr, q_env)
+               )
+
+  fn_ls
+
+}

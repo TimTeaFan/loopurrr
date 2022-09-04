@@ -173,7 +173,6 @@ as_loop <- function(.expr,
   q_env <- rlang::quo_get_env(q)
 
   # put these calls in a setup function
-  # named vector map(vec, ~ expr_ls[[.x]])
   fn_expr   <- expr_ls[[".f"]]
   init      <- expr_ls[[".init"]]
   at_idx    <- expr_ls[[".at"]]
@@ -183,29 +182,15 @@ as_loop <- function(.expr,
   dir       <- expr_ls[[".dir"]]
   def       <- expr_ls[[".default"]]
 
-  # put these calls in another setup function
-  has_at     <- !is.null(at_idx)
-  has_p      <- !is.null(p_fn)
-  has_else   <- !is.null(else_fn)
-  has_init   <- !is.null(init)
+  has <- extract_has_args()
 
-  is_back    <- !is.null(dir) && dir == "backward"
-  is_lmap    <- grepl("^lmap", map_fn_chr, perl = TRUE)
-  is_walk    <- grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE)
-  is_i       <- grepl("(^imap)|(^iwalk)|(^imodify)", map_fn_chr, perl = TRUE)
-  is_modify  <- grepl("modify", map_fn_chr, perl = TRUE)
-  is_accu    <- grepl("accumulate", map_fn_chr, perl = TRUE)
-  is_accu2   <- grepl("^accumulate2$", map_fn_chr, perl = TRUE)
-  is_redu    <- grepl("reduce", map_fn_chr, perl = TRUE)
-  is_extr_fn <- check_extr_fn(fn_expr, q_env)
+  is <- extract_is_args(map_fn_chr, dir, fn_expr, q_env)
 
-
-
-  returns_null <- if (is_extr_fn || null == "yes") TRUE else FALSE
-  has_tmp      <- if ((returns_null && !is_redu && !is_lmap) || is_extr_fn) TRUE else FALSE
+  returns_null <- if (is$extr_fn || null == "yes") TRUE else FALSE
+  has_tmp      <- if ((returns_null && !is$redu && !is$lmap) || is$extr_fn) TRUE else FALSE
 
   # even if force == "yes" it doesn't make sense for extractor functions
-  force_eval <- if (!is_extr_fn  && force == "yes") TRUE else FALSE
+  force_eval <- if (!is$extr_fn  && force == "yes") TRUE else FALSE
 
   # try purrr call, hide print output, check if result contains NULL:
   if (checks) {
@@ -238,7 +223,7 @@ as_loop <- function(.expr,
   # define input list
   if (!is.null(expr_ls[[".l"]])) {
     inp_ls <- as.list(expr_ls[[".l"]][-1])
-  } else if (is_extr_fn) {
+  } else if (is$extr_fn) {
     inp_ls <- list(.x = expr_ls[[".x"]],
                    .y = fn_expr)
   } else {
@@ -257,10 +242,10 @@ as_loop <- function(.expr,
   inp_objs <- create_inp_objs(inp_ls, output_nm, idx)
   bare_inp_nms <- names(inp_objs)
 
-  var_nms <- create_var_nms(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, is_i, cl_chr, output_nm)
+  var_nms <- create_var_nms(has$at, has$p, has_tmp, bare_inp_nms, is$lmap, is$i, cl_chr, output_nm)
 
   # TODO:  add this to `create_inp_objs`
-  if (!is.null(inp_objs) && is_modify) {
+  if (!is.null(inp_objs) && is$modify) {
     names(inp_objs)[1] <- output_nm
   }
   obj_nms <- get_obj_names(inp_objs[1], q_env)
@@ -268,12 +253,12 @@ as_loop <- function(.expr,
   obj <- names(inp_objs)[1]
 
   # if imap
-  if (is_i) {
+  if (is$i) {
     inp_objs <- append(inp_objs,
                        list(.idx = names_or_idx(obj, obj_nms)))
   }
-  if (is_accu || is_redu) {
-    inp_objs <- if(!is_back) {
+  if (is$accu || is$redu) {
+    inp_objs <- if(!is$back) {
       purrr::prepend(inp_objs,
                      rlang::list2("{output_nm}" := output_nm))
     } else {
@@ -289,7 +274,7 @@ as_loop <- function(.expr,
   maybe_custom_inpts <- create_custom_inpts(custom_inp_objs)
 
   # TODO: wrap into funciton
-  if (is_lmap) {
+  if (is$lmap) {
     brk <- list(o = '[',
                 c = ']')
   } else {
@@ -307,12 +292,12 @@ as_loop <- function(.expr,
                          cl_chr = cl_chr,
                          .brk = brk,
                          .dot_args = dot_args,
-                         is_accu = is_accu,
-                         has_init = has_init,
-                         is_back = is_back,
-                         is_redu = is_redu,
-                         has_sel = has_p,
-                         has_at = has_at)
+                         is_accu = is$accu,
+                         has_init = has$init,
+                         is_back = is$back,
+                         is_redu = is$redu,
+                         has_sel = has$p,
+                         has_at = has$at)
 
 
   maybe_lmap_stop <- NULL
@@ -336,33 +321,33 @@ as_loop <- function(.expr,
                      cl_chr  = cl_chr,
                      var_nms = var_nms)
 
-  maybe_output <- create_out_obj(map_fn_chr, obj, output_nm, has_init, init, is_back)
+  maybe_output <- create_out_obj(map_fn_chr, obj, output_nm, has$init, init, is$back)
 
-  maybe_accu <- prep_accu_out(map_fn_chr, obj, output_nm, init, has_init, is_back)
+  maybe_accu <- prep_accu_out(map_fn_chr, obj, output_nm, init, has$init, is$back)
 
-  maybe_assign <- create_assign(map_fn_chr, output_nm, obj, idx, is_accu, has_init, is_back, is_redu)
+  maybe_assign <- create_assign(map_fn_chr, output_nm, obj, idx, is$accu, has$init, is$back, is$redu)
 
   maybe_bind_rows_cols <- bind_rows_cols(map_fn_chr, output_nm, id_arg)
 
-  maybe_name_obj <- create_obj_names(obj, output_nm, obj_nms, is_lmap, is_modify, is_walk, is_accu, has_init, is_back)
+  maybe_name_obj <- create_obj_names(obj, output_nm, obj_nms, is$lmap, is$modify, is$walk, is$accu, has$init, is$back)
 
-  maybe_post_process <- post_process(obj, q_env, output_nm, is_lmap, is_accu, is_accu2)
+  maybe_post_process <- post_process(obj, q_env, output_nm, is$lmap, is$accu, is$accu2)
 
-  maybe_return_null <- create_null_return(maybe_assign, returns_null, is_redu, is_lmap, is_extr_fn, def)
+  maybe_return_null <- create_null_return(maybe_assign, returns_null, is$redu, is$lmap, is$extr_fn, def)
 
   # TODO: wrap those parts in functions:
-  maybe_if_selector <- if (!is.null(maybe_if) && is.null(else_fn) && !is_lmap) paste0('.sel <- vector("logical", length = length(', obj,'))\n')
+  maybe_if_selector <- if (!is.null(maybe_if) && is.null(else_fn) && !is$lmap) paste0('.sel <- vector("logical", length = length(', obj,'))\n')
 
-  forloop_start <- paste0('\nfor (',idx,' in ', if(is_back) 'rev(', 'seq_along(', obj, ')', if(is_back) ')')
+  forloop_start <- paste0('\nfor (',idx,' in ', if(is$back) 'rev(', 'seq_along(', obj, ')', if(is$back) ')')
 
-  maybe_at_nonselected <- if (!is.null(maybe_at) && !is_lmap) paste0('\n', output_nm, '[-.sel] <- ', obj,'[-.sel]\n')
+  maybe_at_nonselected <- if (!is.null(maybe_at) && !is$lmap) paste0('\n', output_nm, '[-.sel] <- ', obj,'[-.sel]\n')
 
-  maybe_if_nonselected <- if (!is.null(maybe_if) && is.null(else_fn) && !is_lmap) paste0('\n', output_nm, '[.sel] <- ', obj,'[.sel]\n')
+  maybe_if_nonselected <- if (!is.null(maybe_if) && is.null(else_fn) && !is$lmap) paste0('\n', output_nm, '[.sel] <- ', obj,'[.sel]\n')
 
-  maybe_null_or_extractor_fn <- if((returns_null && !is_redu && !is_lmap) || is_extr_fn) '.tmp <-' else maybe_assign
+  maybe_null_or_extractor_fn <- if((returns_null && !is$redu && !is$lmap) || is$extr_fn) '.tmp <-' else maybe_assign
 
   # FIXME: add this to rewrite_fn
-  if (is_lmap && !is.null(maybe_at)) {
+  if (is$lmap && !is.null(maybe_at)) {
     apply_fn <- paste0('if (.sel[[', idx, ']]) {\n',
                        apply_fn,'\n',
                        '} else {\n',
@@ -376,7 +361,7 @@ as_loop <- function(.expr,
                        '))')
   }
 
-  maybe_lmap_stop <- if (is_lmap) {
+  maybe_lmap_stop <- if (is$lmap) {
     paste0('stopifnot(is.list(', output_nm,'[[', idx, ']]))\n')
     } else NULL
 
@@ -396,8 +381,8 @@ as_loop <- function(.expr,
                     maybe_accu,
                     forloop_start,
                     # this part to forloop_start
-                    if (!is.null(maybe_at) && !is_lmap) '[.sel]',
-                    if ((is_redu || is_accu) && !has_init) '[-1]',
+                    if (!is.null(maybe_at) && !is$lmap) '[.sel]',
+                    if ((is$redu || is$accu) && !has$init) '[-1]',
                     ') {\n',
                     # the part above to forloop_start
                     maybe_if,
@@ -414,7 +399,7 @@ as_loop <- function(.expr,
                     '# --- end loop --- #\n')
 
   if (return != "string") {
-    str_eval <- paste0(str_out, if (is_walk) {
+    str_eval <- paste0(str_out, if (is$walk) {
       paste0('\n', 'invisible(', obj, ')')
       } else {
         paste0('\n', output_nm)
