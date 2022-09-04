@@ -197,9 +197,7 @@ as_loop <- function(.expr,
 
   yields_error <- NULL
 
-  # TODO: outsource into function
   # try purrr call, hide print output, check if result contains NULL:
-
   check_and_try_call(checks,
                      null,
                      force,

@@ -304,6 +304,7 @@ extract_has_args <- function(returns_null, is_redu, is_lmap, is_extr_fn) {
   has$tmp <- if ((returns_null && !is_redu && !is_lmap) || is_extr_fn) TRUE else FALSE
 
   has
+
 }
 
 extract_is_args <- function(map_fn_chr, dir, fn_expr, q_env) {
@@ -322,7 +323,6 @@ extract_is_args <- function(map_fn_chr, dir, fn_expr, q_env) {
   fn_ls
 
 }
-
 
 check_and_try_call <- function(checks, null, force, q, map_fn_chr, q_env, args_ls) {
 
