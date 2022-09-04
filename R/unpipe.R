@@ -72,3 +72,17 @@ is_pipe <- function(x) {
 is_dot <- function(name) {
   length(name) == 1 && as.character(name) == "."
 }
+
+
+# replace piped expression
+
+unpipe_expr <- function(quo_expr, sc, is_dot, calling_fn) {
+  new_expr <- check_and_unpipe(sc,
+                               is_dot = is_dot,
+                               calling_fn = calling_fn)
+  if (!is.null(new_expr)) {
+    quo_expr <- rlang::quo_set_expr(quo_expr, new_expr)
+  }
+  quo_expr
+}
+

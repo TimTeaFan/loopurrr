@@ -152,14 +152,11 @@ as_loop <- function(.expr,
 
   q <- rlang::enquo(.expr)
 
-  # TODO: wrap this block into one function
   # check: magrittr pipe expression
-  new_expr <- check_and_unpipe(sys.calls(),
-                               is_dot = match.call()$`.expr` == ".",
-                               calling_fn = "as_loop")
-  if (!is.null(new_expr)) {
-    q <- rlang::quo_set_expr(q, new_expr)
-  }
+  q <- unpipe_expr(q,
+                   sc = sys.calls(),
+                   is_dot = match.call()$`.expr` == ".",
+                   calling_fn = "as_loop")
 
   # basic setup
   q_expr <- rlang::quo_get_expr(q)
