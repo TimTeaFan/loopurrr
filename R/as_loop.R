@@ -218,47 +218,24 @@ as_loop <- function(.expr,
   dot_args <- all_args[!names(all_args) %in% non_dot_args]
 
   # object and input object calls and names
-  inp_objs <- create_inp_objs(inp_ls, output_nm, idx)
-  bare_inp_nms <- names(inp_objs)
+  obj_nms <- NULL
+  obj <- NULL
+  bare_inp_nms <- NULL
+  inp_objs <- create_inp_objs(inp_ls,
+                              output_nm,
+                              idx,
+                              is_modify = is$modify,
+                              is_i = is$i,
+                              is_accu = is$accu,
+                              is_redu = is$redu,
+                              is_back = is$back,
+                              q_env = q_env)
 
   var_nms <- create_var_nms(has$at, has$p, has$tmp, bare_inp_nms, is$lmap, is$i, cl_chr, output_nm)
 
-  # TODO:  add this to `create_inp_objs`
-  if (!is.null(inp_objs) && is$modify) {
-    names(inp_objs)[1] <- output_nm
-  }
-  obj_nms <- get_obj_names(inp_objs[1], q_env)
-  obj <- names(inp_objs)[1]
+  maybe_custom_inpts <- create_custom_inpts(inp_objs)
 
-  # if imap
-  if (is$i) {
-    inp_objs <- append(inp_objs,
-                       list(.idx = names_or_idx(obj, obj_nms)))
-  }
-  if (is$accu || is$redu) {
-    inp_objs <- if(!is$back) {
-      purrr::prepend(inp_objs,
-                     rlang::list2("{output_nm}" := output_nm))
-    } else {
-      append(inp_objs,
-             rlang::list2("{output_nm}" := output_nm),
-             after = 1)
-    }
-  }
-  # add all the above to `create_inp_objs` and let it return list with multiple outputs
-
-  # TODO: add this line to `create_custom_inpts`:
-  custom_inp_objs <- inp_objs[names(inp_objs) != inp_objs]
-  maybe_custom_inpts <- create_custom_inpts(custom_inp_objs)
-
-  # TODO: wrap into funciton
-  if (is$lmap) {
-    brk <- list(o = '[',
-                c = ']')
-  } else {
-    brk <- list(o = '[[',
-                c = ']]')
-  }
+  brk <- set_brackets(is$lmap)
 
   apply_fn <- rewrite_fn(fn_expr,
                          .inp_objs = names(inp_objs),
@@ -276,7 +253,6 @@ as_loop <- function(.expr,
                          is_redu = is$redu,
                          has_sel = has$p,
                          has_at = has$at)
-
 
   maybe_lmap_stop <- NULL
 
@@ -340,6 +316,7 @@ as_loop <- function(.expr,
                        '))')
   }
 
+  # TODO: outsource to functions
   maybe_lmap_stop <- if (is$lmap) {
     paste0('stopifnot(is.list(', output_nm,'[[', idx, ']]))\n')
     } else NULL
@@ -359,7 +336,7 @@ as_loop <- function(.expr,
                     maybe_output,
                     maybe_accu,
                     forloop_start,
-                    # this part to forloop_start
+                    # TODO: this part to forloop_start
                     if (!is.null(maybe_at) && !is$lmap) '[.sel]',
                     if ((is$redu || is$accu) && !has$init) '[-1]',
                     ') {\n',

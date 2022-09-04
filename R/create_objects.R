@@ -23,8 +23,9 @@ create_inp_ls <- function(fn_expr, l_arg, x_arg, y_arg, is_extr_fn) {
   inp_ls
 }
 
-create_inp_objs <- function(obj_ls, output_nm, idx) {
+create_inp_objs <- function(obj_ls, output_nm, idx, is_modify, is_i, is_accu, is_redu, is_back, q_env) {
 
+  par_frame <- parent.frame()
   comp_obj_ls <- purrr::compact(obj_ls)
   symb_chr_ls <- as.character(purrr::keep(comp_obj_ls, is.symbol))
 
@@ -66,10 +67,49 @@ create_inp_objs <- function(obj_ls, output_nm, idx) {
     )
   }
 
+  # assign bare input names to parent enviroment before changing them
+  assign("bare_inp_nms",
+         names(inp_ls),
+         par_frame)
+
+  if (!is.null(inp_ls) && is_modify) {
+    names(inp_ls)[1] <- output_nm
+  }
+
+  # create object names and assign to parent environment
+  obj_nms <- get_obj_names(inp_ls[1], q_env)
+  assign("obj_nms",
+         obj_nms,
+         par_frame)
+
+  # create first obj name and assign to parent environment
+  obj <- names(inp_ls)[1]
+  assign("obj",
+         obj,
+         par_frame)
+
+  # if imap
+  if (is_i) {
+    inp_ls <- append(inp_ls,
+                     list(.idx = names_or_idx(obj, obj_nms)))
+  }
+  # if accumlate or reduce
+  if (is_accu || is_redu) {
+    inp_ls <- if (!is_back) {
+      purrr::prepend(inp_ls,
+                     rlang::list2("{output_nm}" := output_nm))
+    } else {
+      append(inp_ls,
+             rlang::list2("{output_nm}" := output_nm),
+             after = 1)
+    }
+  }
   inp_ls
 }
 
 create_custom_inpts <- function(obs_ls) {
+  obs_ls <- obs_ls[names(obs_ls) != obs_ls]
+
   if (length(obs_ls) == 0) {
     return(NULL)
   } else {
@@ -396,4 +436,16 @@ create_var_nms <- function(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, is_i, 
 
   var_nms
 
+}
+
+
+set_brackets <- function(is_lmap) {
+  if (is_lmap) {
+    brk <- list(o = '[',
+                c = ']')
+  } else {
+    brk <- list(o = '[[',
+                c = ']]')
+  }
+  brk
 }
