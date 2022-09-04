@@ -248,3 +248,37 @@ check_lazy <- function(x, q_env) {
   }
   out
 }
+
+# check map_fn depending on arguments
+mabye_check_map_fn <- function(fn, calling_fn, checks) {
+  if (is_supported(fn, calling_fn, silent = !checks)) {
+    fn <- get(fn, envir = rlang::as_environment("purrr"))
+  } else {
+    fn <- NULL
+  }
+  fn
+}
+
+# deparse and remove namespace
+deparse_and_rm_nmspace <- function(x) {
+
+  map_fn_chr <- deparse(x)
+
+  # remove namespace
+  if (grepl("^\\w+::", map_fn_chr, perl = TRUE)) {
+    map_fn_chr <- gsub("^\\w+::", "", map_fn_chr)
+  }
+  map_fn_chr
+}
+
+
+reformat_expr_ls <- function(q_expr, fn) {
+
+  if (is.null(fn)) {
+    return(as.list(q_expr[-1]))
+  } else {
+    q_ex_std <- match.call(definition = fn, call = q_expr)
+    return(as.list(q_ex_std))
+  }
+
+}

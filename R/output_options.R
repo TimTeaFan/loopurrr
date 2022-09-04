@@ -69,7 +69,11 @@ default_context <- function() {
 
 
 # depending on output_context check and create final output function
-create_output_fn <- function(output) {
+create_output_fn <- function(output, return) {
+
+  if (return == "eval") {
+    return(NULL)
+  }
 
   has_rstudioapi <- requireNamespace("rstudioapi", quietly = TRUE)
   has_clipr <- requireNamespace("clipr", quietly = TRUE)

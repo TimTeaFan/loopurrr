@@ -162,33 +162,14 @@ as_loop <- function(.expr,
   q_expr <- rlang::quo_get_expr(q)
   cl_chr <- call_as_chr(q_expr)
 
-  # TODO: deparse and remove namespace into function:
-  map_fn_chr <- deparse(q_expr[[1]])
-  # remove namespace
-  if (grepl("^\\w+::", map_fn_chr, perl = TRUE)) {
-    map_fn_chr <- gsub("^\\w+::", "", map_fn_chr)
-  }
+  map_fn_chr <- deparse_and_rm_nmspace(q_expr[[1]])
 
-  if (is_supported(map_fn_chr, "as_loop", silent = !checks)) {
-    map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
-  } else {
-    map_fn <- NULL
-  }
+  map_fn <- mabye_check_map_fn(map_fn_chr, "as_loop", checks)
 
-  if (return == "eval") {
-    output_fn <- NULL
-  } else {
-    output_fn <- create_output_fn(output_context)
-  }
+  output_fn <- create_output_fn(output_context, return)
 
-  if (!is.null(map_fn)) {
-    q_ex_std <- match.call(definition = map_fn, call = q_expr)
-    # TODO: check if we really don't need this function
-    # q_ex_std <- rlang::call_match(call = q_expr, fn = map_fn)
-    expr_ls <- as.list(q_ex_std)
-  } else {
-    expr_ls <- as.list(q_expr[-1])
-  }
+  expr_ls <- reformat_expr_ls(q_expr = q_expr, fn = map_fn)
+
   q_env <- rlang::quo_get_env(q)
 
   # put these calls in a setup function
