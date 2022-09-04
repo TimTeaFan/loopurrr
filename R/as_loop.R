@@ -172,8 +172,10 @@ as_loop <- function(.expr,
 
   q_env <- rlang::quo_get_env(q)
 
-  # put these calls in a setup function
+  # basic arguments
   fn_expr   <- expr_ls[[".f"]]
+  x_arg     <- expr_ls[[".x"]]
+  y_arg     <- expr_ls[[".y"]]
   init      <- expr_ls[[".init"]]
   at_idx    <- expr_ls[[".at"]]
   p_fn      <- expr_ls[[".p"]]
@@ -181,55 +183,35 @@ as_loop <- function(.expr,
   id_arg    <- expr_ls[[".id"]]
   dir       <- expr_ls[[".dir"]]
   def       <- expr_ls[[".default"]]
+  l_arg     <- expr_ls[[".l"]]
 
-  has <- extract_has_args()
 
   is <- extract_is_args(map_fn_chr, dir, fn_expr, q_env)
 
   returns_null <- if (is$extr_fn || null == "yes") TRUE else FALSE
-  has_tmp      <- if ((returns_null && !is$redu && !is$lmap) || is$extr_fn) TRUE else FALSE
+
+  has <- extract_has_args(returns_null, is$redu, is$lmap, is$extr_fn)
 
   # even if force == "yes" it doesn't make sense for extractor functions
   force_eval <- if (!is$extr_fn  && force == "yes") TRUE else FALSE
 
+  yields_error <- NULL
+
+  # TODO: outsource into function
   # try purrr call, hide print output, check if result contains NULL:
-  if (checks) {
-    res <- try_purr_call(q, map_fn_chr)
-    throws_error <- if (inherits(res, "purrr-error")) TRUE else FALSE
 
-    if (null == "auto") {
-      returns_null <- any(purrr::map_lgl(res, is.null))
-    }
-
-    if (force == "auto") {
-      # TODO: replace this expression with something faster:
-      force_eval <- any(purrr::map_lgl(res[1:2], ~ check_lazy(.x, q_env)))
-    }
-  } else {
-    throws_error <- NULL
-    if (is.null(names(expr_ls[-1])) || any(nchar(names(expr_ls[-1])) == 0L)) {
-      rlang::abort(
-        c("Problem with `as_loop()` input `.expr`.",
-          i = "When `as_loop` is called with `checks = FALSE` all arguments of the underlying {purrr} call must be named.",
-          x = "Not all arguments in the underlying {purrr} call are named.",
-          i = "Please name all arguments, e.g. `map(.x = ..., .f = ...).")
-      )
-    }
-  }
+  check_and_try_call(checks,
+                     null,
+                     force,
+                     q,
+                     map_fn_chr,
+                     q_env,
+                     args_ls = expr_ls[-1])
 
   # call dependent setup ---
 
-  # wrap this logic into a function that return `inp_ls
   # define input list
-  if (!is.null(expr_ls[[".l"]])) {
-    inp_ls <- as.list(expr_ls[[".l"]][-1])
-  } else if (is$extr_fn) {
-    inp_ls <- list(.x = expr_ls[[".x"]],
-                   .y = fn_expr)
-  } else {
-    inp_ls <- list(.x = expr_ls[[".x"]],
-                   .y = expr_ls[[".y"]])
-  }
+  inp_ls <- create_inp_ls(fn_expr, l_arg, x_arg, y_arg, is$extr_fn)
 
   # function and arguments
   map_fn_fmls <- if (checks) rlang::fn_fmls_names(map_fn) else names(expr_ls)
@@ -242,14 +224,13 @@ as_loop <- function(.expr,
   inp_objs <- create_inp_objs(inp_ls, output_nm, idx)
   bare_inp_nms <- names(inp_objs)
 
-  var_nms <- create_var_nms(has$at, has$p, has_tmp, bare_inp_nms, is$lmap, is$i, cl_chr, output_nm)
+  var_nms <- create_var_nms(has$at, has$p, has$tmp, bare_inp_nms, is$lmap, is$i, cl_chr, output_nm)
 
   # TODO:  add this to `create_inp_objs`
   if (!is.null(inp_objs) && is$modify) {
     names(inp_objs)[1] <- output_nm
   }
   obj_nms <- get_obj_names(inp_objs[1], q_env)
-  # TODO: check if obj is still needed
   obj <- names(inp_objs)[1]
 
   # if imap
@@ -365,9 +346,9 @@ as_loop <- function(.expr,
     paste0('stopifnot(is.list(', output_nm,'[[', idx, ']]))\n')
     } else NULL
 
-  maybe_error <- if (is.null(throws_error)) {
+  maybe_error <- if (is.null(yields_error)) {
     paste0("# --- WARNING: above call has not been checked --- #\n")
-    } else if (throws_error) {
+    } else if (yields_error) {
     paste0("# --- WARNING: error detected in the call above --- #\n")
   } else NULL
 

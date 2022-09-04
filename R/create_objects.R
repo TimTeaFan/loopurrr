@@ -6,6 +6,23 @@ names_or_idx <- function(obj, obj_nms) {
   }
 }
 
+create_inp_ls <- function(fn_expr, l_arg, x_arg, y_arg, is_extr_fn) {
+
+  # if pmap
+  if (!is.null(l_arg)) {
+    inp_ls <- as.list(l_arg[-1])
+  # if extractor function
+  } else if (is_extr_fn) {
+    inp_ls <- list(.x = x_arg,
+                   .y = fn_expr)
+  # all other cases
+  } else {
+    inp_ls <- list(.x = x_arg,
+                   .y = y_arg)
+  }
+  inp_ls
+}
+
 create_inp_objs <- function(obj_ls, output_nm, idx) {
 
   comp_obj_ls <- purrr::compact(obj_ls)

@@ -283,7 +283,7 @@ reformat_expr_ls <- function(q_expr, fn) {
 
 }
 
-extract_has_args <- function() {
+extract_has_args <- function(returns_null, is_redu, is_lmap, is_extr_fn) {
 
   var_nms <- c("at"   = "at_idx",
                "p"    = "p_fn",
@@ -299,7 +299,11 @@ extract_has_args <- function() {
               ifnotfound = ifnotfound_ls,
               envir = parent.frame())
 
-  purrr::map(var_nms, ~ !is.null(has[[.x]]))
+  has <- purrr::map(var_nms, ~ !is.null(has[[.x]]))
+
+  has$tmp <- if ((returns_null && !is_redu && !is_lmap) || is_extr_fn) TRUE else FALSE
+
+  has
 }
 
 extract_is_args <- function(map_fn_chr, dir, fn_expr, q_env) {
@@ -316,5 +320,34 @@ extract_is_args <- function(map_fn_chr, dir, fn_expr, q_env) {
                )
 
   fn_ls
+
+}
+
+
+check_and_try_call <- function(checks, null, force, q, map_fn_chr, q_env, args_ls) {
+
+  if (checks) {
+    res <- try_purr_call(q, map_fn_chr)
+    yields_error <<- if (inherits(res, "purrr-error")) TRUE else FALSE
+
+    if (null == "auto") {
+      returns_null <<- any(purrr::map_lgl(res, is.null))
+    }
+
+    if (force == "auto") {
+      # TODO: replace this expression with something faster:
+      force_eval <<- any(purrr::map_lgl(res[1:2], ~ check_lazy(.x, q_env)))
+    }
+  } else {
+    yields_error <<- NULL
+    if (is.null(names(args_ls)) || any(nchar(names(args_ls)) == 0L)) {
+      rlang::abort(
+        c("Problem with `as_loop()` input `.expr`.",
+          i = "When `as_loop` is called with `checks = FALSE` all arguments of the underlying {purrr} call must be named.",
+          x = "Not all arguments in the underlying {purrr} call are named.",
+          i = "Please name all arguments, e.g. `map(.x = ..., .f = ...).")
+      )
+    }
+  }
 
 }
