@@ -90,7 +90,7 @@ replace_all_vars <- function(fn, arg_df, idx, brk_o) {
 
 }
 
-rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, force_eval, cl_chr,
+rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, cl_chr,
                        .brk = NULL, .dot_args = NULL, is_accu = FALSE, has_init = FALSE,
                        is_back = FALSE, is_redu = FALSE, has_sel = FALSE, has_at = FALSE,
                        add_if = FALSE, add_else = FALSE) {
@@ -183,12 +183,6 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, for
 
     fn_bdy <- replace_all_vars(fn = fn, arg_df = arg_df, idx = .idx, brk_o = .brk$o)
 
-    if (force_eval) {
-      new_idx <- str2lang(paste0(".(", .idx, ")"))
-      rep_var <- purrr::set_names(list(new_idx), .idx)
-      fn_bdy <- replace_vars(fn_bdy, rep_var)
-    }
-
     if (length(fn_bdy) > 1) {
       out <- paste(deparse(fn_bdy), collapse = "\n")
     } else {
@@ -210,10 +204,6 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, for
     }
 
     objs_vec <- vector("character", length = length(.inp_objs))
-
-    if (force_eval) {
-      .idx <- paste0(".(", .idx, ")")
-    }
 
     for (i in seq_along(.inp_objs)) {
       objs_vec[i] <- paste0(.inp_objs[[i]],
