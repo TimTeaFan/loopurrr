@@ -132,8 +132,8 @@ as_loop <- function(.expr,
                     checks = TRUE, # TODO: add tests // add docs
                     force = c("auto", "yes", "no"), # TODO: add tests // add docs
                     null = c("auto", "yes", "no"), # TODO: add tests // add docs
-                    output_nm = "out", # TODO: add tests // add docs
-                    idx = "i", # TODO: add tests // add docs
+                    output_nm = "out", # TODO: add tests
+                    idx = "i", # TODO: add tests
                     output_context = default_context(),
                     return = c("string", "eval")) {
 
@@ -237,13 +237,13 @@ as_loop <- function(.expr,
 
   brk <- set_brackets(is$lmap)
 
+  # rewrite function for use in for loop
   apply_fn <- rewrite_fn(fn_expr,
                          .inp_objs = names(inp_objs),
                          .idx = idx,
                          output_nm = output_nm,
                          var_nms = var_nms,
                          fn_env = q_env,
-                         force_eval = force_eval,
                          cl_chr = cl_chr,
                          .brk = brk,
                          .dot_args = dot_args,
@@ -289,16 +289,15 @@ as_loop <- function(.expr,
 
   maybe_return_null <- create_null_return(maybe_assign, returns_null, is$redu, is$lmap, is$extr_fn, def)
 
-  # TODO: wrap those parts in functions:
-  maybe_if_selector <- if (!is.null(maybe_if) && is.null(else_fn) && !is$lmap) paste0('.sel <- vector("logical", length = length(', obj,'))\n')
+  maybe_if_selector <- create_if_selector(obj, maybe_if, else_fn, is$lmap)
 
-  forloop_start <- paste0('\nfor (',idx,' in ', if(is$back) 'rev(', 'seq_along(', obj, ')', if(is$back) ')')
+  forloop_start <- create_loop_start(idx, obj, maybe_at, is$back, is$lmap, is$redu, is$accu, has$init)
 
-  maybe_at_nonselected <- if (!is.null(maybe_at) && !is$lmap) paste0('\n', output_nm, '[-.sel] <- ', obj,'[-.sel]\n')
+  maybe_at_nonselected <- create_at_nonselected(maybe_at, is$lmap, output_nm, obj)
 
-  maybe_if_nonselected <- if (!is.null(maybe_if) && is.null(else_fn) && !is$lmap) paste0('\n', output_nm, '[.sel] <- ', obj,'[.sel]\n')
+  maybe_if_nonselected <- create_if_nonselected(maybe_if, else_fn, is$lmap, output_nm, obj)
 
-  maybe_null_or_extractor_fn <- if((returns_null && !is$redu && !is$lmap) || is$extr_fn) '.tmp <-' else maybe_assign
+  maybe_assign <- create_tmp_output(maybe_assign, returns_null, is$redu, is$lmap, is$extr_fn)
 
   # FIXME: add this to rewrite_fn
   if (is$lmap && !is.null(maybe_at)) {
@@ -311,22 +310,15 @@ as_loop <- function(.expr,
 
   # TODO: rewrite with
   if (force_eval) {
-    apply_fn <- paste0('eval(bquote(\n',
+    apply_fn <- paste0('local({\n',
+                       idx, ' <- ', idx, '\n',
                        apply_fn, '\n',
-                       '))')
+                       '})')
   }
 
-  # TODO: outsource to functions
-  maybe_lmap_stop <- if (is$lmap) {
-    paste0('stopifnot(is.list(', output_nm,'[[', idx, ']]))\n')
-    } else NULL
+  maybe_lmap_stop <- create_lmap_stop(is$lmap, output_nm, idx)
 
-  maybe_error <- if (is.null(yields_error)) {
-    paste0("# --- WARNING: above call has not been checked --- #\n")
-    } else if (yields_error) {
-    paste0("# --- WARNING: error detected in the call above --- #\n")
-  } else NULL
-
+  maybe_error <- create_warning(yields_error)
 
   str_out <- paste0('# --- convert: ', cl_chr, ' as loop --- #\n',
                     maybe_error,
@@ -336,13 +328,8 @@ as_loop <- function(.expr,
                     maybe_output,
                     maybe_accu,
                     forloop_start,
-                    # TODO: this part to forloop_start
-                    if (!is.null(maybe_at) && !is$lmap) '[.sel]',
-                    if ((is$redu || is$accu) && !has$init) '[-1]',
-                    ') {\n',
-                    # the part above to forloop_start
                     maybe_if,
-                    maybe_null_or_extractor_fn,
+                    maybe_assign,
                     apply_fn, '\n',
                     maybe_return_null,
                     maybe_lmap_stop,

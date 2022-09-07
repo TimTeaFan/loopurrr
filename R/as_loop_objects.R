@@ -276,6 +276,59 @@ create_null_return <- function(maybe_assign, returns_null, is_redu, is_lmap, is_
   return(NULL)
 }
 
+create_if_selector <- function(obj, maybe_if, else_fn, is_lmap) {
+  if (!is.null(maybe_if) && is.null(else_fn) && !is_lmap) {
+    paste0('.sel <- vector("logical", length = length(', obj,'))\n')
+  } else {
+    NULL
+  }
+}
+
+create_loop_start <- function(idx, obj, maybe_at, is_back, is_lmap, is_redu, is_accu, has_init) {
+  paste0('\nfor (',idx,' in ',
+          if (is_back) 'rev(',
+         'seq_along(', obj, ')',
+          if (is_back) ')',
+          if (!is.null(maybe_at) && !is_lmap) '[.sel]',
+          if ((is_redu || is_accu) && !has_init) '[-1]',
+         ') {\n'
+         )
+}
+
+create_at_nonselected <- function(maybe_at, is_lmap, output_nm, obj) {
+  if (!is.null(maybe_at) && !is_lmap) paste0('\n', output_nm, '[-.sel] <- ', obj,'[-.sel]\n')
+}
+
+create_if_nonselected <- function(maybe_if, else_fn, is_lmap, output_nm, obj) {
+  if (!is.null(maybe_if) && is.null(else_fn) && !is_lmap) paste0('\n', output_nm, '[.sel] <- ', obj,'[.sel]\n')
+}
+
+create_tmp_output <- function(maybe_assign, returns_null, is_redu, is_lmap, is_extr_fn) {
+  if ((returns_null && !is_redu && !is_lmap) || is_extr_fn) {
+    '.tmp <-'
+  } else {
+    maybe_assign
+  }
+}
+
+create_lmap_stop <- function(is_lmap, output_nm, idx) {
+  if (is_lmap) {
+    paste0('stopifnot(is.list(', output_nm,'[[', idx, ']]))\n')
+  } else {
+    NULL
+  }
+}
+
+create_warning <- function(yields_error) {
+  if (is.null(yields_error)) {
+    paste0("# --- WARNING: above call has not been checked --- #\n")
+  } else if (yields_error) {
+    paste0("# --- WARNING: error detected in the call above --- #\n")
+  } else {
+    NULL
+  }
+}
+
 bind_rows_cols <- function(map_fn, output_nm, id_arg) {
 
   do_cl <- switch(map_fn,
@@ -370,7 +423,6 @@ add_if <- function(map_fn, obj, output_nm, idx, p_fn, else_fn, brk, fn_env, cl_c
                        output_nm = output_nm,
                        var_nms = var_nms,
                        fn_env = fn_env,
-                       force_eval = FALSE,
                        cl_chr = cl_chr,
                        add_if = TRUE)
 
@@ -384,7 +436,6 @@ add_if <- function(map_fn, obj, output_nm, idx, p_fn, else_fn, brk, fn_env, cl_c
                            output_nm = output_nm,
                            var_nms = var_nms,
                            fn_env = fn_env,
-                           force_eval = FALSE,
                            cl_chr = cl_chr,
                            add_else = TRUE)
 
