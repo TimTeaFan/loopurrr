@@ -264,7 +264,8 @@ as_loop <- function(.expr,
                      fn_env  = q_env
                      )
 
-  maybe_if <- add_if(map_fn  = map_fn_chr,
+  apply_fn <- add_if(fn_str  = apply_fn,
+                     # map_fn  = map_fn_chr,
                      obj     = names(inp_objs),
                      output_nm = output_nm,
                      idx     = idx,
@@ -274,6 +275,17 @@ as_loop <- function(.expr,
                      fn_env  = q_env,
                      cl_chr  = cl_chr,
                      var_nms = var_nms)
+
+  # maybe_if <- add_if(map_fn  = map_fn_chr,
+  #                    obj     = names(inp_objs),
+  #                    output_nm = output_nm,
+  #                    idx     = idx,
+  #                    p_fn    = p_fn,
+  #                    else_fn = else_fn,
+  #                    brk     = brk,
+  #                    fn_env  = q_env,
+  #                    cl_chr  = cl_chr,
+  #                    var_nms = var_nms)
 
   maybe_output <- create_out_obj(map_fn_chr, obj, output_nm, has$init, init, is$back)
 
@@ -289,13 +301,13 @@ as_loop <- function(.expr,
 
   maybe_return_null <- create_null_return(maybe_assign, returns_null, is$redu, is$lmap, is$extr_fn, def)
 
-  maybe_if_selector <- create_if_selector(obj, maybe_if, else_fn, is$lmap)
+  # maybe_if_selector <- create_if_selector(obj, maybe_if, else_fn, is$lmap)
 
   forloop_start <- create_loop_start(idx, obj, maybe_at, is$back, is$lmap, is$redu, is$accu, has$init)
 
   maybe_at_nonselected <- create_at_nonselected(maybe_at, is$lmap, output_nm, obj)
 
-  maybe_if_nonselected <- create_if_nonselected(maybe_if, else_fn, is$lmap, output_nm, obj)
+  # maybe_if_nonselected <- create_if_nonselected(maybe_if, else_fn, is$lmap, output_nm, obj)
 
   maybe_assign <- create_tmp_output(maybe_assign, returns_null, is$redu, is$lmap, is$extr_fn)
 
@@ -324,18 +336,18 @@ as_loop <- function(.expr,
                     maybe_error,
                     maybe_custom_inpts,
                     maybe_at,
-                    maybe_if_selector,
+                    # maybe_if_selector,
                     maybe_output,
                     maybe_accu,
                     forloop_start,
-                    maybe_if,
+                    # maybe_if,
                     maybe_assign,
                     apply_fn, '\n',
                     maybe_return_null,
                     maybe_lmap_stop,
                     '}\n',
                     maybe_at_nonselected,
-                    maybe_if_nonselected,
+                    # maybe_if_nonselected,
                     maybe_name_obj,
                     maybe_bind_rows_cols,
                     maybe_post_process,
