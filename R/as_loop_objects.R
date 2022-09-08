@@ -451,49 +451,6 @@ add_if <- function(fn_str, obj, output_nm, idx, p_fn,
 }
 
 
-# add_if <- function(map_fn, obj, output_nm, idx, p_fn, else_fn, brk, fn_env, cl_chr, var_nms) {
-#
-#   if (is.null(p_fn)) {
-#     return(NULL)
-#   }
-#
-#   fn_str <- rewrite_fn(fn_expr = p_fn,
-#                        .inp_objs = obj,
-#                        .idx = idx,
-#                        output_nm = output_nm,
-#                        var_nms = var_nms,
-#                        fn_env = fn_env,
-#                        cl_chr = cl_chr,
-#                        add_if = TRUE)
-#
-#   add_else <- NULL
-#
-#   if (!is.null(else_fn)) {
-#
-#     add_else <- rewrite_fn(fn_expr = else_fn,
-#                            .inp_objs = obj,
-#                            .idx = idx,
-#                            output_nm = output_nm,
-#                            var_nms = var_nms,
-#                            fn_env = fn_env,
-#                            cl_chr = cl_chr,
-#                            add_else = TRUE)
-#
-#     else_str <- paste0(output_nm, '[[', idx, ']] <- ', add_else, '\n')
-#   } else {
-#     else_str <- if (map_fn == "lmap_if") {
-#       paste0(output_nm, '[[', idx, ']] <- ', obj, brk$o, idx, brk$c, '\n')
-#     } else {
-#       paste0('.sel[', idx,'] <- TRUE\n')
-#     }
-#   }
-#
-#   return(paste0('if (!(', fn_str, ')) {\n',
-#                 else_str,
-#                 'next\n', '}\n'))
-# }
-
-
 # create vector with names of variables used in for loop
 create_var_nms <- function(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, is_i, cl_chr, output_nm) {
 
