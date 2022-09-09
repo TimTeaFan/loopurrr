@@ -194,7 +194,7 @@ as_loop <- function(.expr,
   # even if force == "yes" it doesn't make sense for extractor functions
   force_eval <- if (!is$extr_fn  && force == "yes") TRUE else FALSE
 
-  yields_error <- NULL
+  yields_error <- NULL # reassigned in check_and_try_call()
 
   # try purrr call, hide print output, check if result contains NULL:
   check_and_try_call(checks,
@@ -217,10 +217,10 @@ as_loop <- function(.expr,
   all_args <- expr_ls[-1]
   dot_args <- all_args[!names(all_args) %in% non_dot_args]
 
-  # object and input object calls and names
-  obj_nms <- NULL
-  obj <- NULL
-  bare_inp_nms <- NULL
+  # object and input calls and names
+  obj_nms <- NULL # reassigned in create_inp_objs()
+  obj <- NULL # reassigned in create_inp_objs()
+  bare_inp_nms <- NULL # reassigned in create_inp_objs()
   inp_objs <- create_inp_objs(inp_ls,
                               output_nm,
                               idx,
@@ -254,8 +254,6 @@ as_loop <- function(.expr,
                          has_sel = has$p,
                          has_at = has$at)
 
-  maybe_lmap_stop <- NULL
-
   maybe_at <- add_at(map_fn  = map_fn_chr,
                      obj     = obj,
                      output_nm = output_nm,
@@ -265,7 +263,6 @@ as_loop <- function(.expr,
                      )
 
   apply_fn <- add_if(fn_str  = apply_fn,
-                     # map_fn  = map_fn_chr,
                      obj     = names(inp_objs),
                      output_nm = output_nm,
                      idx     = idx,
@@ -284,7 +281,8 @@ as_loop <- function(.expr,
 
   maybe_bind_rows_cols <- bind_rows_cols(map_fn_chr, output_nm, id_arg)
 
-  maybe_name_obj <- create_obj_names(obj, output_nm, obj_nms, is$lmap, is$modify, is$walk, is$accu, has$init, is$back)
+  maybe_name_obj <- create_obj_names(obj, output_nm, obj_nms, is$lmap, is$modify,
+                                     is$walk, is$accu, has$init, is$back)
 
   maybe_post_process <- post_process(obj, q_env, output_nm, is$lmap, is$accu, is$accu2)
 
@@ -296,22 +294,9 @@ as_loop <- function(.expr,
 
   maybe_assign <- create_tmp_output(maybe_assign, returns_null, is$redu, is$lmap, is$extr_fn)
 
-  # FIXME: add this to rewrite_fn
-  if (is$lmap && !is.null(maybe_at)) {
-    apply_fn <- paste0('if (.sel[[', idx, ']]) {\n',
-                       apply_fn,'\n',
-                       '} else {\n',
-                       obj,'[', idx, ']\n',
-                       '}\n')
-  }
+  apply_fn <- add_lmap_at(apply_fn, maybe_at, is$lmap, idx, obj)
 
-  # TODO: rewrite with
-  if (force_eval) {
-    apply_fn <- paste0('local({\n',
-                       idx, ' <- ', idx, '\n',
-                       apply_fn, '\n',
-                       '})')
-  }
+  apply_fn <- maybe_add_forced_eval(apply_fn, force_eval, idx)
 
   maybe_lmap_stop <- create_lmap_stop(is$lmap, output_nm, idx)
 

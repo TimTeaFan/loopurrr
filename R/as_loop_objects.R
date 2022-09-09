@@ -410,6 +410,19 @@ add_at <- function(map_fn, obj, output_nm, idx, at, fn_env) {
   }
 }
 
+add_lmap_at <- function(fn_str, maybe_at, is_lmap, idx, obj) {
+
+  if (is_lmap && !is.null(maybe_at)) {
+    fn_str <- paste0('if (.sel[[', idx, ']]) {\n',
+                       fn_str,'\n',
+                       '} else {\n',
+                       obj,'[', idx, ']\n',
+                       '}\n')
+    return(fn_str)
+  } else {
+    fn_str
+  }
+}
 add_if <- function(fn_str, obj, output_nm, idx, p_fn,
                    else_fn, brk, fn_env, cl_chr, var_nms) {
 
@@ -450,6 +463,19 @@ add_if <- function(fn_str, obj, output_nm, idx, p_fn,
                 '}\n'))
 }
 
+maybe_add_forced_eval <- function(fn_str, force_eval, idx) {
+
+  if (!force_eval) {
+
+    return(fn_str)
+
+  } else {
+    fn_str <- paste0('local({\n',
+                     idx, ' <- ', idx, '\n',
+                     fn_str, '\n',
+                     '})')
+  }
+}
 
 # create vector with names of variables used in for loop
 create_var_nms <- function(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, is_i, cl_chr, output_nm) {
