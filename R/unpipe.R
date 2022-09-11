@@ -35,6 +35,7 @@ unpipe <- function(code) {
 }
 
 # Unpipe nested calls:
+# TODO: add stop that stops preventing `.f` from getting unpiped
 unpipe_all <- function(code_expr, .top_level = TRUE) {
   code_expr_len <- length(code_expr)
   if (code_expr_len == 0) return(code_expr)
@@ -45,24 +46,6 @@ unpipe_all <- function(code_expr, .top_level = TRUE) {
   code_expr <- re_call(purrr::map(as.list(code_expr), unpipe_all, .top_level = FALSE))
   unpipe(code_expr)
 }
-
-
-# Check if call to `as_loop` uses pipes, and if, unpipe it.
-check_and_unpipe <- function(sc, is_dot, calling_fn) {
-
-  # TODO: create recursive function that goes through the whole call stack:
-  # TODO: add stop that stops preventing `.f` from getting unpiped
-  if (length(sc) > 1 && is_dot) {
-    last_cl <- as.list(sc[length(sc) -1L][[1]])
-
-    if (as.character(last_cl[[1]])[[1]] == "%>%" && as.character(last_cl[[3]])[[1]] == calling_fn) {
-      return(unpipe_all(last_cl[[2]]))
-    } else if (as.character(last_cl[[2]][[1]])[[1]] == "%>%" && as.character(last_cl[[2]][[3]])[[1]] == calling_fn) {
-      return(unpipe_all(last_cl[[2]][[2]]))
-    }
-  }
-}
-
 
 # Helper functions
 is_pipe <- function(x) {
@@ -77,12 +60,33 @@ is_dot <- function(name) {
 # replace piped expression
 
 unpipe_expr <- function(quo_expr, sc, is_dot, calling_fn) {
-  new_expr <- check_and_unpipe(sc,
-                               is_dot = is_dot,
-                               calling_fn = calling_fn)
-  if (!is.null(new_expr)) {
-    quo_expr <- rlang::quo_set_expr(quo_expr, new_expr)
+  if (is_dot) {
+    piped_call <- find_piped_call(sc, calling_fn)
+    new_expr <- unpipe_all(piped_call)
+    if (!is.null(new_expr)) {
+      quo_expr <- rlang::quo_set_expr(quo_expr, new_expr)
+    }
   }
   quo_expr
 }
 
+
+find_piped_call <- function(call, calling_fn, target = NULL) {
+  if (is.null(target)) {
+    target <- environment()
+  }
+  out <- NULL
+  for (cl in call) {
+    cl_ls <- as.list(cl)
+    cl_ln <- length(cl_ls)
+    if (is.symbol(cl_ls)) next
+    if (cl_ln == 3) {
+      if (as.character(cl_ls[[1]])[[1]] == "%>%" && as.character(cl_ls[[3]])[[1]] == calling_fn) {
+        res <- cl_ls[[2]]
+        assign("out", res, envir = target)
+      }
+      Recall(cl_ls, calling_fn, target = target)
+    }
+  }
+  out
+}
