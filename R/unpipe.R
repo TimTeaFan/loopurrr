@@ -83,6 +83,7 @@ find_piped_call <- function(call, calling_fn, target = NULL) {
     if (cl_ln == 3) {
       if (as.character(cl_ls[[1]])[[1]] == "%>%" && as.character(cl_ls[[3]])[[1]] == calling_fn) {
         res <- cl_ls[[2]]
+        # TODO: include if else to check if "out" is non-null and if raise error
         assign("out", res, envir = target)
       }
       Recall(cl_ls, calling_fn, target = target)
