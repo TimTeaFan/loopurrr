@@ -1,5 +1,7 @@
 # TODO: document and export this function
+# TODO: add better error messages
 # TODO: add tests
+
 # Tests:
 # a <- list(1, 1:2, 1:3)
 # map(a, sum) %>% ping(1)
@@ -8,15 +10,15 @@
 # ping rewritten based on wrap
 ping <- function(.expr, i = 1L, simplify = TRUE) {
 
-  check_names <- check_i(i)
-
   q <- rlang::enquo(.expr)
 
   # check and unpipe
   q <- unpipe_expr(q,
                    sc = sys.calls(),
                    is_dot = match.call()$`.expr` == ".",
-                   calling_fn = "ping2")
+                   calling_fn = "ping")
+
+  check_names <- check_i(i, "ping")
 
   out <- wrap(.expr = q,
               .x = index_fn(i),
@@ -35,6 +37,48 @@ ping <- function(.expr, i = 1L, simplify = TRUE) {
 
 }
 
+probe <- function(.expr) {
+  browser()
+  q <- rlang::enquo(.expr)
+
+  # check and unpipe
+  q <- unpipe_expr(q,
+                   sc = sys.calls(),
+                   is_dot = match.call()$`.expr` == ".",
+                   calling_fn = "probe")
+
+  i <- first_error_imp(q)
+
+  if (is.null(i)) {
+    return(rlang::inform(paste0("No error detected.")))
+  } else {
+
+    q_expr <- rlang::quo_get_expr(q)
+    q_env <- rlang::quo_get_env(q)
+
+    map_fn_chr <- deparse(q_expr[[1]])
+
+    if (grepl("^\\w+::", map_fn_chr, perl = TRUE)) {
+      map_fn_chr <- gsub("^\\w+::", "", map_fn_chr)
+    }
+
+    map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
+    q_ex_std <- match.call(definition = map_fn, call = q_expr)
+
+    expr_ls <- as.list(q_ex_std)
+
+    obj_x <- eval(expr_ls[[".x"]], envir = q_env)
+
+    last_call <- as.character(as.list(as.list(sys.calls())[length(sys.calls())][[1]])[[1]]) == "probe"
+
+    if (last_call) {
+      rlang::inform(paste0("The first error is thrown by element no. ", i, ".\n",
+                         "This object is returned invisible."))
+    }
+    invisible(`[[`(obj_x, i))
+  }
+}
+
 
 # TODO: Make function work with the first and last element `.f` (and or `.else`) was applied to:
 first_and_last <- function(x) {
@@ -46,6 +90,35 @@ first_and_last <- function(x) {
   } else {
     stop("Object must have 1 or more elements.")
   }
+}
+
+inspect <- function(x) {
+
+  print("structure level 1:")
+  print(str(x, max.level = 1))
+
+  tibble::tibble(length = length(x),
+                 class  = class(x),
+                 type   = typeof(x))
+}
+
+first_error <- function() {
+  # add error that first_error cannot be called outside of ping
+  first_error
+}
+
+first_error_imp <- function(.expr) {
+  res <- wrap(.expr,
+              .f = safely,
+              `.__impl__.` = TRUE)
+  error <- purrr::transpose(res)$error
+  idx <- !purrr::map_lgl(error, is.null)
+
+  if (any(idx)) {
+    which(idx)[1]
+  } else (
+    NULL
+  )
 }
 
 index_fn <- function(j) {
@@ -61,9 +134,13 @@ index_each_fn <- function(j) {
 wrap <- function(.expr, ..., silent = FALSE) {
 
   dots <- rlang::list2(...)
+
+  # checks if wrap is used to implement another function
   implement <- !is.null(dots[[".__impl__."]])
+  # when `ping` calls `wrap` names have to be checked once the calls is standardized (see below)
   i_names <- dots[[".__check__."]]
   check_names <- !is.null(i_names)
+  # the hidden args should not be part of the dots
   dots <- dots[-which(names(dots) %in% c(".__impl__.", ".__check__."))]
 
   if (!rlang::is_named(dots)) {
@@ -72,7 +149,7 @@ wrap <- function(.expr, ..., silent = FALSE) {
 
   # `.__impl__.` is a hidden arg used when other functions call `wrap`
   # in this case .expr is already a preprocessed quosure
-  # Tje arg it isn't needed when the user calls `wrap()` directly
+  # The arg it isn't needed when the user calls `wrap()` directly
   if (implement) {
     q <- .expr
   } else {
