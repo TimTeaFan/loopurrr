@@ -37,8 +37,61 @@ ping <- function(.expr, i = 1L, simplify = TRUE) {
 
 }
 
+get_first_el <- function(x) {
+  if (depth(x) > 1) {
+    get_first_el(x[[1]])
+  } else {
+    return(x[[1]])
+  }
+}
+
+depth <- function(this, thisdepth=0){
+  if(!is.list(this)){
+    return(thisdepth)
+  }else{
+    return(max(unlist(lapply(this,depth,thisdepth=thisdepth+1))))
+  }
+}
+
+check_last_call <- function(calls, fn) {
+
+  call_ls <- call_to_list(calls)
+  # cl_depth <- depth(call_ls)
+  first_sym <- get_first_el(call_ls)
+  out <- FALSE
+
+  if (as.character(first_sym) == fn) {
+    out <- TRUE
+  } else if (as.character(first_sym) == "%>%") {
+    first_call <- call_ls[[1]]
+    first_cl_ln <- length(first_call)
+    end_of_ls_call <- first_call[[first_cl_ln]][[1]]
+    if (as.character(end_of_ls_call) == fn) {
+      out <- TRUE
+    }
+  }
+  out
+}
+
+# Transform a list of call into a nested list of symbols
+call_to_list <- function(call) {
+
+  call_ls <- as.list(call)
+
+  if (all(purrr::map_lgl(call_ls, is.symbol))) {
+    return(call_ls)
+  } else if (length(call_ls) == 1L && is.symbol(call_ls[[1]])) {
+    return(call_ls)
+  } else {
+    for (i in seq_along(call_ls)) {
+    call_ls[[i]] <- Recall(call_ls[[i]])
+    }
+    return(call_ls)
+  }
+}
+
 probe <- function(.expr) {
-  browser()
+
   q <- rlang::enquo(.expr)
 
   # check and unpipe
@@ -69,7 +122,8 @@ probe <- function(.expr) {
 
     obj_x <- eval(expr_ls[[".x"]], envir = q_env)
 
-    last_call <- as.character(as.list(as.list(sys.calls())[length(sys.calls())][[1]])[[1]]) == "probe"
+    # FIXME: Only print `inform` If last call on the stack:
+    last_call <- check_last_call(sys.calls(), "probe")
 
     if (last_call) {
       rlang::inform(paste0("The first error is thrown by element no. ", i, ".\n",
@@ -94,8 +148,8 @@ first_and_last <- function(x) {
 
 inspect <- function(x) {
 
-  print("structure level 1:")
-  print(str(x, max.level = 1))
+  cat("structure:\n")
+  cat(str(x))
 
   tibble::tibble(length = length(x),
                  class  = class(x),
