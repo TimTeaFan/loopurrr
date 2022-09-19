@@ -66,12 +66,12 @@ get_first_el <- function(x) {
   }
 }
 
-
-depth <- function(this, thisdepth=0){
-  if(!is.list(this)){
+# Copied from https://stackoverflow.com/a/13433689/9349302
+depth <- function(this, thisdepth = 0){
+  if (!is.list(this)){
     return(thisdepth)
-  }else{
-    return(max(unlist(lapply(this,depth,thisdepth=thisdepth+1))))
+  } else {
+    max(unlist(lapply(this, depth, thisdepth = thisdepth + 1)))
   }
 }
 
@@ -137,15 +137,10 @@ inspect <- function(x) {
                  type   = typeof(x))
 }
 
-first_error <- function() {
-  # add error that first_error cannot be called outside of ping
-  first_error
-}
-
 first_error_imp <- function(.expr) {
 
   res <- wrap(.expr,
-              .f = safely,
+              .f = purrr::safely,
               `.__impl__.` = TRUE)
 
   error <- purrr::transpose(res)$error
@@ -205,6 +200,8 @@ screen <- function(.expr, ...) {
   map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
   q_ex_std <- match.call(definition = map_fn, call = q_expr)
 
+  cl_chr <- call_as_chr(q_expr)
+
   expr_ls <- as.list(q_ex_std)
 
   obj_x <- eval(expr_ls[[".x"]], envir = q_env)
@@ -214,7 +211,6 @@ screen <- function(.expr, ...) {
               silent = TRUE,
               `.__impl__.` = TRUE
   )
-
 
   results_ls  <- map(res, c("result", "result"), .default = NA)
   errors_ls   <- map(res, c("result", "error"), .default = NA)
@@ -227,6 +223,7 @@ screen <- function(.expr, ...) {
   out <- tibble::tibble(input = obj_x,
                         inp_class = purrr::map(obj_x, class),
                         result = results_ls,
+                        res_class = purrr::map(results_ls, class),
                         error = errors_ls,
                         output = output_ls,
                         warnings = warnings_ls,
@@ -237,8 +234,39 @@ screen <- function(.expr, ...) {
                                unlist_if_all_length_one)
                         )
 
+  class(out2) <- c("screen_tbl", class(out2))
+  attr(out2, "call") <- cl_chr
   out2
 }
+
+print.screen_tbl <- function(x) {
+  ln <- nrow(x)
+  no_err  <- length(na.omit(x$error))
+  no_warn <- length(na.omit(x$warnings))
+  res_classes <- na.omit(unique(x$res_class[!is.na(x$result)]))
+  no_of_classes <- length(res_classes)
+
+  if ( no_of_classes > 0) {
+    class_res    <- purrr::imap(res_classes, ~ paste0("[", .y, "] ", .x))
+    class_output <- paste(class_res, collapse = ", ")
+    if (nchar(class_output) > 72) {
+      class_output <- paste0(substr(class_output, 1, 75), " ...")
+    }
+  }
+
+  cat(paste0("# No. of errors: ",   no_err,  " (", round((no_err/ln)  * 100, 0), "%)", "\n"))
+  cat(paste0("# No. of warnings: ", no_warn, " (", round((no_warn/ln) * 100, 0), "%)", "\n"))
+  cat(paste0("# No. of result classes: ", no_of_classes), "\n")
+  if (no_of_classes > 0) {
+    cat(paste0("# ", trimws(class_output, "right"), ".\n"))
+  }
+  NextMethod()
+}
+
+
+# compress <- function(x) {
+#
+# }
 
 length_zero_to_na <- function(obj){
   if(length(obj)==0){
@@ -261,7 +289,8 @@ unlist_if_all_length_one <- function(x) {
 get_error_msg <- function(x) {
   tryCatch(conditionMessage(x),
            error = function(e) {
-             ""
+             NA
            }
   )
 }
+
