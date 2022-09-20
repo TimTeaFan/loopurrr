@@ -65,9 +65,6 @@ screen <- function(.expr, ...) {
   )
 
   attach_screen_attr(out2, cl_chr)
-  # class(out2) <- c("screen_tbl", class(out2))
-  # attr(out2, "call") <- cl_chr
-  # out2
 }
 
 attach_screen_attr <- function(x, cl_chr) {
@@ -105,7 +102,13 @@ summary.screen_tbl <- function(x) {
   attr_x <- attributes(test_screen)[screen_attr]
 
   grp_dat <- dplyr::group_by(x, inp_class, res_class, error, warning)
-  res     <- dplyr::summarise(grp_dat, input = list(input))
+
+  res     <- dplyr::summarise(grp_dat,
+                              idx_ls = list(input) ,
+                              idx = paste(input, collapse = ", ")
+                              )
+
+  # add names to input list: error, warning result1, result2
 
   attributes(res) <- c(attributes(res), attr_x)
   class(res) <- c("screen_tbl", class(res))
