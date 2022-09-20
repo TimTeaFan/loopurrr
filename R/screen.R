@@ -56,7 +56,7 @@ screen <- function(.expr, ...) {
                         res_class = purrr::map(results_ls, class),
                         error = errors_ls,
                         output = output_ls,
-                        warnings = warnings_ls,
+                        warning = warnings_ls,
                         message = message_ls)
 
   out2 <- dplyr::mutate(out,
@@ -64,17 +64,27 @@ screen <- function(.expr, ...) {
                                unlist_if_all_length_one)
   )
 
-  class(out2) <- c("screen_tbl", class(out2))
-  attr(out2, "call") <- cl_chr
-  out2
+  attach_screen_attr(out2, cl_chr)
+  # class(out2) <- c("screen_tbl", class(out2))
+  # attr(out2, "call") <- cl_chr
+  # out2
 }
 
-print.screen_tbl <- function(x) {
+attach_screen_attr <- function(x, cl_chr) {
+
   ln <- nrow(x)
-  no_err  <- length(na.omit(x$error))
-  no_warn <- length(na.omit(x$warnings))
+
+  attr(x, "class") <- c("screen_tbl", attr(x, "class"))
+  attr(x, "call") <- cl_chr
+
+  attr(x, "no_err")  <- no_err <- length(na.omit(x$error))
+  attr(x, "perc_err") <- round((no_err/ln)  * 100, 0)
+
+  attr(x, "no_warn") <- no_warn <- length(na.omit(x$warning))
+  attr(x, "perc_warn") <- round((no_warn/ln)  * 100, 0)
+
   res_classes <- na.omit(unique(x$res_class[!is.na(x$result)]))
-  no_of_classes <- length(res_classes)
+  attr(x, "no_of_classes") <- no_of_classes <- length(res_classes)
 
   if ( no_of_classes > 0) {
     class_res    <- purrr::imap(res_classes, ~ paste0("[", .y, "] ", .x))
@@ -82,13 +92,43 @@ print.screen_tbl <- function(x) {
     if (nchar(class_output) > 72) {
       class_output <- paste0(substr(class_output, 1, 75), " ...")
     }
+    attr(x, "class_output") <- class_output
   }
+  x
+}
 
-  cat(paste0("# No. of errors: ",   no_err,  " (", round((no_err/ln)  * 100, 0), "%)", "\n"))
-  cat(paste0("# No. of warnings: ", no_warn, " (", round((no_warn/ln) * 100, 0), "%)", "\n"))
-  cat(paste0("# No. of result classes: ", no_of_classes), "\n")
+
+summary.screen_tbl <- function(x) {
+
+  screen_attr <- c("call", "no_err", "perc_err", "no_warn", "perc_warn",
+                   "no_of_classes", "class_output")
+  attr_x <- attributes(test_screen)[screen_attr]
+
+  grp_dat <- dplyr::group_by(x, inp_class, res_class, error, warning)
+  res     <- dplyr::summarise(grp_dat, input = list(input))
+
+  attributes(res) <- c(attributes(res), attr_x)
+  class(res) <- c("screen_tbl", class(res))
+
+  res
+}
+
+print.screen_tbl <- function(x) {
+  cl_chr <- attr(x, "call")
+  no_err  <- attr(x, "no_err")
+  perc_err <- attr(x, "perc_err")
+  no_warn <- attr(x, "no_warn")
+  perc_warn <- attr(x, "perc_warn")
+  res_classes <-  attr(x, "res_classes")
+  no_of_classes <-  attr(x, "no_of_classes")
+  class_output <- attr(x, "class_output")
+
+  cat(paste_subtle("# Screen call: ", cl_chr, "\n"))
+  cat(paste_subtle("# No. of errors: ",   no_err,  " (", perc_err, "%)", " || "))
+  cat(paste_subtle("# No. of warnings: ", no_warn, " (", perc_warn, "%)", "\n"))
+  cat(paste_subtle("# No. of result classes: ", no_of_classes), "\n")
   if (no_of_classes > 0) {
-    cat(paste0("# ", trimws(class_output, "right"), ".\n"))
+    cat(paste_subtle("# └─ ", trimws(class_output, "right"), ".\n"))
   }
   NextMethod()
 }
@@ -101,11 +141,14 @@ unlist_if_all_length_one <- function(x) {
   }
 }
 
-
 get_error_msg <- function(x) {
   tryCatch(conditionMessage(x),
            error = function(e) {
              NA
            }
   )
+}
+
+paste_subtle <- function(...) {
+  pillar::style_subtle(paste0(...))
 }
