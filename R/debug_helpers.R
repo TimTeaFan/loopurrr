@@ -1,33 +1,21 @@
-wrap <- function(.expr, ..., silent = FALSE) {
+wrap <- function(..expr, ..., ..silent = FALSE) {
 
   dots <- rlang::list2(...)
 
-  # checks if wrap is used to implement another function
-  implement <- !is.null(dots[[".__impl__."]])
-  # when `ping` calls `wrap` names have to be checked once the calls is standardized (see below)
-  i_names <- dots[[".__check__."]]
-  check_names <- !is.null(i_names)
-  # the hidden args should not be part of the dots
-  dots <- dots[-which(names(dots) %in% c(".__impl__.", ".__check__."))]
+  # strip NULL args
+  dots <- compact(dots)
 
   if (!rlang::is_named(dots)) {
     stop("All arguments in the ellipsis `...` must be named.")
   }
 
-  # `.__impl__.` is a hidden arg used when other functions call `wrap`
-  # in this case .expr is already a preprocessed quosure
-  # The arg it isn't needed when the user calls `wrap()` directly
-  if (implement) {
-    q <- .expr
-  } else {
-    q <- rlang::enquo(.expr)
+  q <- rlang::enquo(..expr)
 
-    # check and unpipe
-    q <- unpipe_expr(q,
+  # check and unpipe
+  q <- unpipe_expr(q,
                      sc = sys.calls(),
-                     is_dot = match.call()$`.expr` == ".",
+                     is_dot = match.call()$`..expr` == ".",
                      calling_fn = "wrap")
-  }
 
   q_expr <- rlang::quo_get_expr(q)
   q_env <- rlang::quo_get_env(q)
@@ -43,20 +31,42 @@ wrap <- function(.expr, ..., silent = FALSE) {
 
   expr_ls <- as.list(q_ex_std)
 
-  if (check_names && !all(i_names %in% names(eval(expr_ls[[".x"]], envir = q_env)))) {
-    stop("Problem with ping(). Not all names in object `.x`")
-  }
-
   for (arg in names(dots)) {
     if (!arg %in% names(expr_ls)) {
-      if(silent) next else stop(paste0("Argument `", arg, "` doesn't exist in `.expr`."))
+      if (..silent) next else stop(paste0("Argument `", arg, "` doesn't exist in `..expr`."))
     }
-    expr_ls[[arg]] <- rlang::call2(dots[[arg]], expr_ls[[arg]])
+    expr_ls[[arg]] <- rlang::call2(dots[[arg]], expr_ls[[arg]]) # function_to_call(dots[[arg]], expr_ls[[arg]])
   }
 
-  eval(as.call(expr_ls))
+  eval(as.call(expr_ls), envir = q_env)
 }
 
+function_to_call <- function(fn, sym) {
+
+  fn_bdy <- body(fn)
+  fn_env <- environment(fn)
+  fn_frml_nms <- rlang::fn_fmls_names(fn)
+
+  key_val_pairs <- create_key_val_pairs(sym, fn_frml_nms, fn_env)
+
+  replace_vars(fn_bdy, key_val_pairs)
+
+}
+
+create_key_val_pairs <- function(sym, fn_frml_nms, fn_env) {
+
+  # TODO: check if formals contain dots and if so throw error
+
+  out <- imap(fn_frml_nms, ~ {
+    if (.y == 1) {
+      sym
+    } else {
+      get(.x, envir = fn_env)
+    }
+  })
+
+  set_names(out, fn_frml_nms)
+}
 
 get_first_el <- function(x) {
   if (depth(x) > 1) {
@@ -66,7 +76,7 @@ get_first_el <- function(x) {
   }
 }
 
-# Copied from https://stackoverflow.com/a/13433689/9349302
+# from https://stackoverflow.com/a/13433689/9349302
 depth <- function(this, thisdepth = 0){
   if (!is.list(this)){
     return(thisdepth)
@@ -75,11 +85,9 @@ depth <- function(this, thisdepth = 0){
   }
 }
 
-
 check_last_call <- function(calls, fn) {
 
   call_ls <- call_to_list(calls)
-  # cl_depth <- depth(call_ls)
   first_sym <- get_first_el(call_ls)
   out <- FALSE
 
@@ -115,31 +123,19 @@ call_to_list <- function(call) {
 }
 
 
-# TODO: Make function work with the first and last element `.f` (and or `.else`) was applied to:
-first_and_last <- function(x) {
-  ln_x <- length(x)
-  if (ln_x > 1) {
-    c(1, ln_x)
-  } else if (ln_x == 1L) {
-    1L
-  } else {
-    stop("Object must have 1 or more elements.")
-  }
-}
+# inspect <- function(x) {
+#
+#   cat("structure:\n")
+#   cat(str(x))
+#
+#   tibble::tibble(length = length(x),
+#                  class  = class(x),
+#                  type   = typeof(x))
+# }
 
-inspect <- function(x) {
+first_error_imp <- function(expr) {
 
-  cat("structure:\n")
-  cat(str(x))
-
-  tibble::tibble(length = length(x),
-                 class  = class(x),
-                 type   = typeof(x))
-}
-
-first_error_imp <- function(.expr) {
-
-  res <- wrap(.expr,
+  res <- wrap(expr,
               .f = purrr::safely,
               `.__impl__.` = TRUE)
 
@@ -153,12 +149,4 @@ first_error_imp <- function(.expr) {
   )
 }
 
-index_fn <- function(j) {
-  function(x, i = j) `[`(x, i)
-}
 
-index_each_fn <- function(j) {
-  function(x, i = j) {
-    purrr::map(x, function(y) `[`(y, i))
-  }
-}
