@@ -1,7 +1,7 @@
 # TODO: document and export this function
 # TODO: add better error messages
 # TODO: add tests
-# FIXME: make it work with map_at and map2_at
+
 
 ping <- function(expr, i = 1L, simplify = TRUE, ...) {
 
@@ -24,11 +24,13 @@ ping <- function(expr, i = 1L, simplify = TRUE, ...) {
   is_walk <- grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE)
   is_redu <- grepl("reduce", map_fn_chr, perl = TRUE)
   is_accu <- grepl("^accumulate", map_fn_chr, perl = TRUE)
+  is_accu_redu2 <- grepl("^(accumulate|reduce)2", map_fn_chr, perl = TRUE)
 
-  map_fn <- mabye_check_map_fn(map_fn_chr, "ping", checks = FALSE)
+  map_fn  <- mabye_check_map_fn(map_fn_chr, "ping", checks = FALSE)
 
-  expr_ls <- reformat_expr_ls(q_expr = q_expr,
-                              fn = map_fn)
+  expr_ls <- reformat_expr_ls(q_expr = q_expr, fn = map_fn)
+
+  has_init <- !is.null(expr_ls[[".init"]])
 
   # get object .x or .l[[1]]
   obj <- get_obj(expr_ls, q_env)
@@ -36,7 +38,8 @@ ping <- function(expr, i = 1L, simplify = TRUE, ...) {
   # preserve original i
   old_i <- i
   # perform checks and convert, adjust i if necessary
-  i <- check_and_convert_i(i, obj, calling_fn = "ping", is_redu = is_redu, is_accu = is_accu)
+  i <- check_and_convert_i(i, obj, calling_fn = "ping",
+                           is_redu = is_redu, is_accu = is_accu, has_init = has_init)
 
   if (!identical(old_i, i)) {
     rlang::inform(i = paste0("ping()` applied `.f` to all elements up to index ",
@@ -47,7 +50,7 @@ ping <- function(expr, i = 1L, simplify = TRUE, ...) {
 
   drop_names <- FALSE
   if (is_redu && length(old_i) > 1L) {
-    expr_ls[[1]] <- rlang::expr(accumulate)
+    expr_ls[[1]] <- if (is_accu_redu2) rlang::expr(accumulate2) else rlang::expr(accumulate)
     is_accu <- TRUE
     q <- rlang::quo_set_expr(q, as.call(expr_ls))
     # when changing reduce to accumulate we have to make sure it drops names
@@ -66,8 +69,8 @@ ping <- function(expr, i = 1L, simplify = TRUE, ...) {
   if (is_walk) {
     return(
       wrap("..expr" = !! q,
-         .x = index_fn(i), # function(x, i) x[i],
-         .y = index_fn(i), # function(x, i) x[i],
+         .x = index_fn(i),      # function(x, i) x[i],
+         .y = index_fn(i),      # function(x, i) x[i],
          .l = index_each_fn(i), # function(x, i) purrr::map(x, function(y) `[`(y, i)),
          .at = at_fun,
          .f = fn,
@@ -76,9 +79,9 @@ ping <- function(expr, i = 1L, simplify = TRUE, ...) {
   }
 
   out <- wrap("..expr" = !! q,
-              .x = index_fn(i), # function(x, i) x[i],
-              .y = index_fn(i), # function(x, i) x[i],
-              .l = index_each_fn(i), # function(x, i) purrr::map(x, function(y) `[`(y, i)),
+              .x = index_fn(i),
+              .y = index_fn(i, is_accu_redu2),
+              .l = index_each_fn(i),
               .at = at_fun,
               .f = fn,
               "..silent" = TRUE
@@ -107,8 +110,8 @@ ping <- function(expr, i = 1L, simplify = TRUE, ...) {
 # ------------------------------ #
 
 # index a vector
-index_fn <- function(j) {
-
+index_fn <- function(j, one_less = FALSE) {
+  j <- j - one_less
   function(x, i = j) `[`(x, i)
 
 }
@@ -146,9 +149,9 @@ maybe_transfrom_fn <- function(i, is_imap, obj_nms) {
 
     # this part is tough:
     # we need to wrap the original function into a function taking two arguments plus dots
-    # we want to transform the index, so that it will reflects ping's i value and not the orginal .y
+    # we want to transform the index, so that it reflects ping's i value and not the original .y
     out <- function(org_fn) {
-      # might be a formular so first turn it into a real function
+      # might be a formula so first turn it into a real function
       org_fn <- rlang::as_function(org_fn)
       function(x, y, ...) org_fn(x, i[y], ...)
     }
@@ -183,7 +186,7 @@ get_obj <- function(expr_ls, q_env) {
 }
 
 # checks i argument in ping and converts i to positive integers
-check_and_convert_i <- function(i, obj, calling_fn, is_redu, is_accu) {
+check_and_convert_i <- function(i, obj, calling_fn, is_redu, is_accu, has_init) {
 
   # check class
   if (!is.numeric(i) && ! is.character(i)) {
@@ -196,7 +199,7 @@ check_and_convert_i <- function(i, obj, calling_fn, is_redu, is_accu) {
   }
 
   # checks against obj: names in obj, idx in obj?
-  if (is.numeric(i) && any(!abs(i) %in% seq_along(obj))) {
+  if (is.numeric(i) && any(!abs(i) %in% seq_len(has_init + length(obj)))) {
     stop(paste0("Problem with `", calling_fn ,"()`. One or more locations don't exist."))
   }
 
@@ -211,12 +214,12 @@ check_and_convert_i <- function(i, obj, calling_fn, is_redu, is_accu) {
 
   # convert negative subscripts to positive subscripts
   if (is.numeric(i) && all(sign(i) == -1L)) {
-    i <- which(!is.element(seq_along(obj), abs(i)))
+    i <- which(!is.element(seq_len(has_init + length(obj)), abs(i)))
   }
 
   # if reduce or accumulate we need all i's from 1 to the max i
   if (is_redu || is_accu) {
-    i <- seq_len(max(i))
+    i <- seq_len(max(i) + has_init)
   }
 
   i
