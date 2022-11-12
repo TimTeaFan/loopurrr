@@ -15,22 +15,22 @@ ping <- function(expr, i = 1L, simplify = TRUE, ...) {
                    is_dot = match.call()$expr == ".",
                    calling_fn = "ping")
 
-  q_expr <- rlang::quo_get_expr(q)
-  q_env  <- rlang::quo_get_env(q)
+  q_expr        <- rlang::quo_get_expr(q)
+  q_env         <- rlang::quo_get_env(q)
 
-  map_fn_chr <- deparse_and_rm_nmspace(q_expr[[1]])
+  map_fn_chr    <- deparse_and_rm_nmspace(q_expr[[1]])
 
-  is_imap <- grepl("(^imap)|(^iwalk)|(^imodify)", map_fn_chr, perl = TRUE)
-  is_walk <- grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE)
-  is_redu <- grepl("reduce", map_fn_chr, perl = TRUE)
-  is_accu <- grepl("^accumulate", map_fn_chr, perl = TRUE)
+  is_imap       <- grepl("(^imap)|(^iwalk)|(^imodify)", map_fn_chr, perl = TRUE)
+  is_walk       <- grepl("^(walk|iwalk|pwalk)", map_fn_chr, perl = TRUE)
+  is_redu       <- grepl("reduce", map_fn_chr, perl = TRUE)
+  is_accu       <- grepl("^accumulate", map_fn_chr, perl = TRUE)
   is_accu_redu2 <- grepl("^(accumulate|reduce)2", map_fn_chr, perl = TRUE)
 
-  map_fn  <- mabye_check_map_fn(map_fn_chr, "ping", checks = FALSE)
+  map_fn        <- mabye_check_map_fn(map_fn_chr, "ping", checks = TRUE)
 
-  expr_ls <- reformat_expr_ls(q_expr = q_expr, fn = map_fn)
+  expr_ls       <- reformat_expr_ls(q_expr = q_expr, fn = map_fn)
 
-  has_init <- !is.null(expr_ls[[".init"]])
+  has_init      <- !is.null(expr_ls[[".init"]])
 
   # get object .x or .l[[1]]
   obj <- get_obj(expr_ls, q_env)
@@ -80,7 +80,7 @@ ping <- function(expr, i = 1L, simplify = TRUE, ...) {
 
   out <- wrap("..expr" = !! q,
               .x = index_fn(i),
-              .y = index_fn(i, is_accu_redu2),
+              .y = index_fn(i, one_less = is_accu_redu2 & !has_init),
               .l = index_each_fn(i),
               .at = at_fun,
               .f = fn,
