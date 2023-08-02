@@ -2,34 +2,34 @@
 # TODO: add better error messages
 # TODO: add tests
 
-probe <- function(.expr) {
+probe <- function(expr) {
 
-  q <- rlang::enquo(.expr)
+  q <- rlang::enquo(expr)
 
   # check and unpipe
   q <- unpipe_expr(q,
                    sc = sys.calls(),
-                   is_dot = match.call()$`.expr` == ".",
+                   is_dot = match.call()$expr == ".",
                    calling_fn = "probe")
 
-  q_expr <- rlang::quo_get_expr(q)
-  q_env <- rlang::quo_get_env(q)
+  q_expr        <- rlang::quo_get_expr(q)
+  q_env         <- rlang::quo_get_env(q)
 
-  map_fn_chr <- deparse(q_expr[[1]])
+  map_fn_chr    <- deparse_and_rm_nmspace(q_expr[[1]])
 
-  if (grepl("^\\w+::", map_fn_chr, perl = TRUE)) {
-    map_fn_chr <- gsub("^\\w+::", "", map_fn_chr)
-  }
+  map_fn        <- mabye_check_map_fn(map_fn_chr, "probe", checks = TRUE)
 
-  map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
-  q_ex_std <- match.call(definition = map_fn, call = q_expr)
+  expr_ls       <- reformat_expr_ls(q_expr = q_expr, fn = map_fn)
 
-  expr_ls <- as.list(q_ex_std)
+  main_obj      <- get_obj(expr_ls, q_env)
 
-  obj_x <- eval(expr_ls[[".x"]], envir = q_env)
   has_fn <- !is.null(expr_ls[[".f"]])
 
-  i <- if (has_fn) first_error_imp(q) else NULL
+  is_accu_redu  <- grepl("^(accumulate|reduce)", map_fn_chr, perl = TRUE)
+  has_init      <- !is.null(expr_ls[[".init"]])
+  is_back       <- !is.null(expr_ls[[".dir"]]) && expr_ls[[".dir"]] == "backward"
+
+  i <- if (has_fn) first_error_imp(!! q, is_back) else NULL
 
   cl_chr <- call_as_chr(q_expr)
 
@@ -37,29 +37,68 @@ probe <- function(.expr) {
   if (!has_fn) {
     rlang::inform(c(paste0("Probing call: ", cl_chr),
                     i = "`.f` argument not supplied.",
-                    i = "The first element of `.x` is returned as is: `.x[[1]]."))
+                    i = "Returning input at first iteration with:",
+                    paste0("\033[32m", "\u2714", "\033[39m", " ",
+                           deparse(q_expr), " |> peel(1)")
+                    )
+                  )
 
-    return(`[[`(obj_x, 1L))
+    return(peel(!! q, 1L))
   }
 
   # has function and no error
   if (has_fn && is.null(i)) {
     rlang::inform(c(paste0("Probing call: ", cl_chr),
                     i = "No error detected.",
-                    i = "Function `.f` applied to the first element in `.x` is returned: `.f(.x[[1]])`."))
+                    i = "Returning output of first iteration with:",
+                    paste0("\033[32m", "\u2714", "\033[39m", " ",
+                           deparse(q_expr), " |> peek(1)")
+                    )
+                  )
 
-    return(ping(q, 1L, simplify = TRUE, `.__impl__.` = TRUE))
+
+    return(peek(!! q, 1L))
 
   }
 
-  # has_fn and error (!is.null(i)):
-  last_call <- check_last_call(sys.calls(), "probe")
+  adjusted_i <- adjust_i(i, is_accu_redu, has_init) - has_init
 
-  if (last_call) {
-    rlang::inform(c(paste0("Probing call: ", cl_chr),
-                    i = paste0("The first error is thrown by element no. ", i, "."),
-                    i = paste0("This object is returned as is: `.x[[", i, "]]`.")))
+  rlang::inform(c(paste0("Probing call: ", cl_chr),
+                  i = paste0("The first error is thrown at iteration no. ", adjusted_i, "."),
+                  i = paste0("Returning input at iteration ", adjusted_i, " with:"),
+                  paste0("\033[32m", "\u2714", "\033[39m", " ",
+                         deparse(q_expr), " |> peel(", adjusted_i,")")
+                  )
+                )
+
+  peel(!! q, adjusted_i)
+}
+
+
+
+# ------------------------------ #
+# probe()'s helper functions ----
+# ------------------------------ #
+
+first_error_imp <- function(expr, is_back) {
+
+  try_fn <- function(.f) {
+    function(...) try(.f(...), silent = TRUE)
   }
 
-  `[[`(obj_x, i)
+  res <- wrap({{ expr }},
+              .f = try_fn)
+
+  if (is_back) {
+    res <- rev(res)
+  }
+
+  idx <- map_lgl(res, \(x) inherits(x, "try-error"))
+
+  if (any(idx)) {
+    which(idx)[1]
+  } else (
+    NULL
+  )
+
 }

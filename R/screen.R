@@ -6,6 +6,9 @@ screen <- function(.expr, ...) {
   # checks if screen is used to implement another function
   implement <- !is.null(dots[[".__impl__."]])
 
+  # the hidden args should not be part of the dots
+  dots <- dots[-which(names(dots) %in% c(".__impl__."))]
+
   if (implement) {
     q <- .expr
   } else {
@@ -59,6 +62,9 @@ screen <- function(.expr, ...) {
                         warning = warnings_ls,
                         message = message_ls)
 
+  # TODO: add rows based on `...` with following arguments:
+  # .x, .y,
+
   out2 <- dplyr::mutate(out,
                         across(everything(),
                                unlist_if_all_length_one)
@@ -99,16 +105,26 @@ summary.screen_tbl <- function(x) {
 
   screen_attr <- c("call", "no_err", "perc_err", "no_warn", "perc_warn",
                    "no_of_classes", "class_output")
-  attr_x <- attributes(test_screen)[screen_attr]
+
+  attr_x <- attributes(x)[screen_attr]
 
   grp_dat <- dplyr::group_by(x, inp_class, res_class, error, warning)
 
-  res     <- dplyr::summarise(grp_dat,
-                              idx_ls = list(input) ,
-                              idx = paste(input, collapse = ", ")
-                              )
+  res <- dplyr::summarise(grp_dat,
+                          idx_ls = list(input),
+                          idx = paste(input, collapse = ", ")
+                          )
 
-  # add names to input list: error, warning result1, result2
+  res2 <- dplyr::mutate(res,
+                        type = dplyr::case_when(
+                          is.na(error) & is.na(warning) ~ "result",
+                          !is.na(error) ~ "error",
+                          !is.na(warning) ~ "warning"
+                          ),
+                        .before = 1L)
+
+  nms <- make.names(res2$type, unique = TRUE)
+  res$idx_ls <- set_names(res$idx_ls, nms)
 
   attributes(res) <- c(attributes(res), attr_x)
   class(res) <- c("screen_tbl", class(res))
@@ -130,6 +146,7 @@ print.screen_tbl <- function(x) {
   cat(paste_subtle("# No. of errors: ",   no_err,  " (", perc_err, "%)", " || "))
   cat(paste_subtle("# No. of warnings: ", no_warn, " (", perc_warn, "%)", "\n"))
   cat(paste_subtle("# No. of result classes: ", no_of_classes), "\n")
+
   if (no_of_classes > 0) {
     cat(paste_subtle("# └─ ", trimws(class_output, "right"), ".\n"))
   }
