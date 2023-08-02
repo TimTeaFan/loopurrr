@@ -37,7 +37,9 @@ specified, it will default to \code{c("rstudio", "clipboard", "console")}. If \c
 among the output options it will be automatically included as last option.
 }
 \section{Examples}{
-\if{html}{\out{<div class="r">}}\preformatted{set_output_opt(c("clipboard", "rstudio"))
+
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{set_output_opt(c("clipboard", "rstudio"))
 
 get_ouptut_opt()
 #> [1] "clipboard" "rstudio"

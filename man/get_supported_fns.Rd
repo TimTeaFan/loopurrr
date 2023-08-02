@@ -17,7 +17,9 @@ A list of supported function names as named character vectors.
 Currently, only works on \code{as_loop()}.
 }
 \section{Examples}{
-\if{html}{\out{<div class="r">}}\preformatted{options(width = 60)
+
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{options(width = 60)
 get_supported_fns("as_loop")
 #> $map
 #>  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df" 
@@ -28,7 +30,7 @@ get_supported_fns("as_loop")
 #> [1] "imap"     "imap_chr" "imap_dbl" "imap_dfc" "imap_dfr"
 #> [6] "imap_int" "imap_lgl" "imap_raw"
 #> 
-#> $map
+#> $map2
 #> [1] "map2"     "map2_chr" "map2_dbl" "map2_df"  "map2_dfc"
 #> [6] "map2_dfr" "map2_int" "map2_lgl" "map2_raw"
 #> 

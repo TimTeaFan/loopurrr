@@ -6,7 +6,9 @@
 \usage{
 as_loop(
   .expr,
-  simplify = TRUE,
+  checks = TRUE,
+  force = c("auto", "yes", "no"),
+  null = c("auto", "yes", "no"),
   output_nm = "out",
   idx = "i",
   output_context = default_context(),
@@ -16,14 +18,6 @@ as_loop(
 \arguments{
 \item{.expr}{A function call to a \code{{purrr}} iterator function. See the "Supported functions"
 section below for an overview of which \code{{purrr}} iterator functions are currently supported.}
-
-\item{simplify}{When TRUE, the default, \code{as_loop()} will run the function call in \code{.expr} to
-check two things: (1) Whether the call is valid. If not, an error will be thrown, pointing out
-that the underlying function call is invalid. (2) Whether the resulting return value contains
-\code{NULL}. In this case the \code{for} loop needs to be more verbose. When \code{simplify} is set \code{FALSE}
-the function call in \code{.expr} is not checked for errors and the resulting for loop will be more
-verbose even if \code{NULL} is not among the return values. It is recommended to set \code{simplify} to
-\code{FALSE} for calculation-heavy function calls.}
 
 \item{output_nm}{sets the name of the resulting output object. The default name is \code{out}.}
 
@@ -52,6 +46,14 @@ character strings to the location specified in \code{output_context}. When set t
 translated code will be evaluated in a dedicated environment and the output object will be
 returned. This option is especially for testing whether \code{as_loop()} works as expected. It should
 be irrelevant for most users.}
+
+\item{simplify}{When TRUE, the default, \code{as_loop()} will run the function call in \code{.expr} to
+check two things: (1) Whether the call is valid. If not, an error will be thrown, pointing out
+that the underlying function call is invalid. (2) Whether the resulting return value contains
+\code{NULL}. In this case the \code{for} loop needs to be more verbose. When \code{simplify} is set \code{FALSE}
+the function call in \code{.expr} is not checked for errors and the resulting for loop will be more
+verbose even if \code{NULL} is not among the return values. It is recommended to set \code{simplify} to
+\code{FALSE} for calculation-heavy function calls.}
 }
 \value{
 Depending on the \code{return} argument the return value is:
@@ -77,7 +79,9 @@ The usage is pretty straight-forward: Just wrap a call to a \code{{purrr}} itera
 \section{Supported functions}{
 
 
-The following iterator functions from the \code{{purrr}} package are currently supported:\if{html}{\out{<div class="r">}}\preformatted{options(width = 60)
+The following iterator functions from the \code{{purrr}} package are currently supported:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{options(width = 60)
 get_supported_fns("as_loop")
 #> $map
 #>  [1] "map"     "map_at"  "map_chr" "map_dbl" "map_df" 
@@ -88,7 +92,7 @@ get_supported_fns("as_loop")
 #> [1] "imap"     "imap_chr" "imap_dbl" "imap_dfc" "imap_dfr"
 #> [6] "imap_int" "imap_lgl" "imap_raw"
 #> 
-#> $map
+#> $map2
 #> [1] "map2"     "map2_chr" "map2_dbl" "map2_df"  "map2_dfc"
 #> [6] "map2_dfr" "map2_int" "map2_lgl" "map2_raw"
 #> 
@@ -120,7 +124,9 @@ get_supported_fns("as_loop")
 If we wrap or pipe a call to \code{purrr::map()} into \code{as_loop()} it will be translated into a
 regular for loop. Depending on the output context, the resulting for loop will either be
 (i) inserted directly into a script in RStudio, (ii) copied to the clipboard or (iii)
-printed to the console.\if{html}{\out{<div class="r">}}\preformatted{x <- list(1, c(1:2), c(1:3))
+printed to the console.
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{x <- list(1, c(1:2), c(1:3))
 as_loop(map(x, sum))        # wrap a call in `as_loop()`
 map(x, sum) \%>\% as_loop() # pipe a call into `as_loop()`
 
@@ -135,7 +141,9 @@ for (i in seq_along(x)) \{
 
 The \code{output_nm} argument lets us specify the name of the resulting output object. In the
 example below \code{".res"}. The \code{idx} argument lets us specify the index to be used. In the example
-below \code{"j"}.\if{html}{\out{<div class="r">}}\preformatted{x <- list(1, c(1:2), c(1:3))
+below \code{"j"}.
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{x <- list(1, c(1:2), c(1:3))
 map_dbl(x, sum) \%>\%
   as_loop(., output_nm = ".res", idx = "j")
 
@@ -152,7 +160,9 @@ When \code{simplify} is set \code{FALSE} \code{as_loop} will neither check the v
 nor the expected output. In this case the resulting \code{for} loop is more verbose. This is because we
 need to take the case of \code{NULL} in the return values into account. In the example below we further
 see what happens, when we use an unnamed object, such as \code{1:3}, in the call to \code{purrr::map()}.
-\code{as_loop()} assign unnamed objects an internal name. In the example below \code{.inp1}.\if{html}{\out{<div class="r">}}\preformatted{map(1:3, sum) \%>\% as_loop(., simplify = FALSE)
+\code{as_loop()} assigns unnamed objects an internal name. In the example below \code{.inp1}.
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{map(1:3, sum) \%>\% as_loop(., simplify = FALSE)
 
 # --- convert: `map(1:3, sum)` as loop --- #
 .inp1 <- 1:3
