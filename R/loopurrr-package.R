@@ -8,5 +8,6 @@
 ## usethis namespace: start
 #' @import purrr
 #' @importFrom methods findFunction
+#' @importFrom rlang %||%
 ## usethis namespace: end
 NULL
