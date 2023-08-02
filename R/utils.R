@@ -19,32 +19,40 @@
 #' @export
 get_supported_fns <- function(fn) {
 
+  all_basic_iterators <- list(
+
+    map = c("map", "map_at", "map_chr", "map_dbl", "map_df", "map_dfc", "map_dfr", "map_if",
+            "map_int", "map_lgl", "map_raw"),
+
+    imap = c("imap", "imap_chr", "imap_dbl", "imap_dfc", "imap_dfr", "imap_int", "imap_lgl",
+             "imap_raw"),
+
+    map2 = c("map2", "map2_chr", "map2_dbl", "map2_df", "map2_dfc", "map2_dfr", "map2_int",
+             "map2_lgl",  "map2_raw"),
+
+    pmap = c("pmap", "pmap_chr", "pmap_dbl", "pmap_df", "pmap_dfc", "pmap_dfr", "pmap_int",
+             "pmap_lgl", "pmap_raw"),
+
+    lmap = c("lmap", "lmap_at"),
+
+    modify = c("modify", "modify_at", "modify_if", "modify2", "imodify"),
+
+    walk = c("iwalk", "pwalk", "walk", "walk2"),
+
+    accumulate = c("accumulate", "accumulate2"),
+
+    reduce = c("reduce", "reduce2")
+  )
+
   supported_fns <- list(
 
-    as_loop = list(
+    as_loop = all_basic_iterators,
 
-      map = c("map", "map_at", "map_chr", "map_dbl", "map_df", "map_dfc", "map_dfr", "map_if",
-              "map_int", "map_lgl", "map_raw"),
+    peek = all_basic_iterators,
 
-      imap = c("imap", "imap_chr", "imap_dbl", "imap_dfc", "imap_dfr", "imap_int", "imap_lgl",
-               "imap_raw"),
+    probe = all_basic_iterators,
 
-      map2 = c("map2", "map2_chr", "map2_dbl", "map2_df", "map2_dfc", "map2_dfr", "map2_int",
-              "map2_lgl",  "map2_raw"),
-
-      pmap = c("pmap", "pmap_chr", "pmap_dbl", "pmap_df", "pmap_dfc", "pmap_dfr", "pmap_int",
-               "pmap_lgl", "pmap_raw"),
-
-      lmap = c("lmap", "lmap_at"),
-
-      modify = c("modify", "modify_at", "modify_if", "modify2", "imodify"),
-
-      walk = c("iwalk", "pwalk", "walk", "walk2"),
-
-      accumulate = c("accumulate", "accumulate2"),
-
-      reduce = c("reduce", "reduce2")
-    )
+    peel = all_basic_iterators
   )
 
   if (is.null(supported_fns[[fn]])) {
@@ -53,7 +61,6 @@ get_supported_fns <- function(fn) {
   } else {
     supported_fns[[fn]]
   }
-
 }
 
 
@@ -85,7 +92,11 @@ call_as_chr <- function(expr) {
   cl_ticks
 }
 
-try_purr_call <- function(x, map_fn_chr) {
+try_purr_call <- function(x, map_fn, map_fn_chr, par_frame) {
+
+  # tmp <- rlang::eval_tidy(x)
+  # map(tmp, )
+
   tryCatch({
     sink(nullfile())
     on.exit(sink(), add = TRUE)
@@ -179,23 +190,27 @@ is_supported <- function(map_fn, loopurrr_fn, silent = FALSE) {
   if (map_fn %in% not_supported_fns) {
     if (!silent) {
     rlang::abort(
-      c("Problem with `as_loop()` input `.expr`.",
-        i = "Currently `as_loop` doesn't support functions from base R's apply family.",
+      c(paste0("Problem with `", loopurrr_fn, "` input `.expr`."),
+        i = paste0("Currently `", loopurrr_fn, "` doesn't support functions from base R's apply family."),
         x = paste0("`", map_fn, "` is a function from base R's apply family."),
-        i = "For an overview of all currently supported {purrr} functions see the documentation `?as_loop`.")
+        i = paste0('For an overview of all currently supported {purrr} functions see the documentation `?', loopurrr_fn, '` or ',
+                   'run `get_supported_fns("', loopurrr_fn, '")`')
+        )
     )
     } else {
       FALSE
     }
   }
 
-  if (!any(purrr::map_lgl(findFunction(map_fn), ~rlang::env_name(.x) == "package:purrr"))) {
+  if (!any(purrr::map_lgl(findFunction(map_fn), ~ rlang::env_name(.x) == "package:purrr"))) {
     if (!silent) {
       rlang::abort(
-        c("Problem with `as_loop()` input `.expr`.",
-          i = "`as_loop` only works with `map` and similar functions from the purrr package.",
+        c(paste0("Problem with `", loopurrr_fn, "` input `.expr`."),
+          i = paste0("`", loopurrr_fn, "` only works with `map` and similar functions from the purrr package."),
           x = paste0("`", map_fn, "` is not located in the namespace of `package:purrr`."),
-          i = "For an overview of all currently supported {purrr} functions see the documentation `?as_loop`.")
+          i = paste0('For an overview of all currently supported {purrr} functions see the documentation `?', loopurrr_fn, '` or ',
+                     'run `get_supported_fns("', loopurrr_fn, '")`')
+          )
       )
     } else {
       FALSE
@@ -205,11 +220,12 @@ is_supported <- function(map_fn, loopurrr_fn, silent = FALSE) {
   if (!map_fn %in% supported_fns) {
     if (!silent) {
       rlang::abort(
-        c("Problem with `as_loop()` input `.expr`.",
-          i = "Currently `as_loop` does only support certain {purrr} functions.",
+        c(paste0("Problem with `", loopurrr_fn, "` input `.expr`."),
+          i = paste0("Currently `", loopurrr_fn ,"` does only support certain {purrr} functions."),
           x = paste0("`", map_fn, "` is not supported yet."),
-          i = paste0('For an overview of all currently supported {purrr} functions see the documentation `?as_loop` or ',
-                     'run `get_supported_fns("as_loop")`'))
+          i = paste0('For an overview of all currently supported {purrr} functions see the documentation `?', loopurrr_fn, '` or ',
+                     'run `get_supported_fns("', loopurrr_fn, '")`')
+          )
       )
     } else {
       FALSE
@@ -218,6 +234,7 @@ is_supported <- function(map_fn, loopurrr_fn, silent = FALSE) {
   map_fn %in% supported_fns
 }
 
+# adapted from https://stackoverflow.com/a/57417926/9349302
 check_syntactical_nm <- function(x) {
   grepl("(^(\\p{L}|(\\.(\\p{L}|\\.|\\_)))(\\d|\\p{L}|\\.|\\_)*$)|(^\\.$)", x, perl = TRUE)
 }
@@ -257,6 +274,11 @@ mabye_check_map_fn <- function(fn, calling_fn, checks) {
     fn <- NULL
   }
   fn
+}
+
+#
+get_main_obj <- function(q_expr, q_env, map_fn_chr) {
+  expr_ls <- reformat_expr_ls(q_expr = q_expr, fn = map_fn)
 }
 
 # deparse and remove namespace
@@ -317,19 +339,22 @@ extract_is_args <- function(map_fn_chr, dir, fn_expr, q_env) {
                 "accu"    = grepl("accumulate", map_fn_chr, perl = TRUE),
                 "accu2"   = grepl("^accumulate2$", map_fn_chr, perl = TRUE),
                 "redu"    = grepl("reduce", map_fn_chr, perl = TRUE),
-                "extr_fn" = check_extr_fn(fn_expr, q_env)
+                "extr_fn" = check_extr_fn(fn_expr, q_env),
+                "pmap"    = grepl("(pmap)|(pwalk)", map_fn_chr, perl = TRUE)
                )
 
   fn_ls
 
 }
 
-check_and_try_call <- function(checks, null, force, q, map_fn_chr, q_env, args_ls) {
+check_and_try_call <- function(checks, null, force, q, map_fn, map_fn_chr, q_env, args_ls) {
 
   par_frame <- parent.frame()
 
   if (checks) {
-    res <- try_purr_call(q, map_fn_chr)
+    res <- try_purr_call(q, map_fn, map_fn_chr, par_frame)
+
+
 
     if (inherits(res, "purrr-error")) {
       assign("yields_error", TRUE, envir = par_frame)
@@ -344,10 +369,13 @@ check_and_try_call <- function(checks, null, force, q, map_fn_chr, q_env, args_l
     }
 
     if (force == "auto") {
-      # TODO: replace this expression with something faster:
-
+      ln_res <- length(res)
+      # for performance reasons, only test first and last element
+      if(ln_res > 1) {
+        res <- res[c(1, ln_res)]
+      }
       assign("force_eval",
-             any(purrr::map_lgl(res[1:2], ~ check_lazy(.x, q_env))),
+             any(purrr::map_lgl(res, ~ check_lazy(.x, q_env))),
              envir = par_frame)
     }
   } else {
@@ -363,3 +391,25 @@ check_and_try_call <- function(checks, null, force, q, map_fn_chr, q_env, args_l
   }
 
 }
+
+# sequence greater than one
+# seq_gt_1 <- function(x) {
+#   res <- seq_len(x)
+#   if (length(res) > 1) res else ""
+# }
+#
+# # number duplicate names
+# number_names <- function(x) {
+#   rle_x_ln <- rle(x)$length
+#   res <- lapply(rle_x_ln, seq_gt_1)
+#   numbers <- unlist(res)
+#   paste0(x, numbers)
+# }
+#
+# x <- c("result", "error", "result", "warning", "error")
+# res <- make.names(c(x, "Best"), unique = TRUE)
+# nms_series <- grep("\\.1", res, value = TRUE)
+# nms_stem <- gsub("\\.1$", "", nms_series)
+# res2 <- stringr::str_replace(res, paste0("^", nms_stem, "$"), paste0(nms_stem,"1"))
+# res3 <- stringr::str_replace(res2, "\\.\\d+", function(x) )
+
