@@ -184,8 +184,11 @@ as_loop <- function(.expr,
   dir       <- expr_ls[[".dir"]]
   def       <- expr_ls[[".default"]]
   l_arg     <- expr_ls[[".l"]]
+  l_nms     <- if (!is.null(l_arg)) names(eval(l_arg, envir = q_env))
 
-  is <- extract_is_args(map_fn_chr, dir, fn_expr, q_env)
+  is        <- extract_is_args(map_fn_chr, dir, fn_expr, q_env)
+
+  brk <- set_brackets(is$lmap)
 
   returns_null <- if (is$extr_fn || null == "yes") TRUE else FALSE
 
@@ -197,10 +200,12 @@ as_loop <- function(.expr,
   yields_error <- NULL # reassigned in check_and_try_call()
 
   # try purrr call, hide print output, check if result contains NULL:
+  # reassigns `force_eval` and `yields_error` if needed
   check_and_try_call(checks,
                      null,
                      force,
                      q,
+                     map_fn,
                      map_fn_chr,
                      q_env,
                      args_ls = expr_ls[-1])
@@ -208,7 +213,8 @@ as_loop <- function(.expr,
   # call dependent setup ---
 
   # define input list
-  inp_ls <- create_inp_ls(fn_expr, l_arg, x_arg, y_arg, is$extr_fn)
+  l_arg_is_call <- NULL # reassigned create_inp_ls()
+  inp_ls <- create_inp_ls(fn_expr, l_arg, x_arg, y_arg, is$extr_fn, q_env, brk, idx)
 
   # function and arguments
   map_fn_fmls <- if (checks) rlang::fn_fmls_names(map_fn) else names(expr_ls)
@@ -218,9 +224,10 @@ as_loop <- function(.expr,
   dot_args <- all_args[!names(all_args) %in% non_dot_args]
 
   # object and input calls and names
-  obj_nms <- NULL # reassigned in create_inp_objs()
-  obj <- NULL # reassigned in create_inp_objs()
+  obj_nms <- NULL      # reassigned in create_inp_objs()
+  obj <- NULL          # reassigned in create_inp_objs()
   bare_inp_nms <- NULL # reassigned in create_inp_objs()
+
   inp_objs <- create_inp_objs(inp_ls,
                               output_nm,
                               idx,
@@ -229,13 +236,18 @@ as_loop <- function(.expr,
                               is_accu = is$accu,
                               is_redu = is$redu,
                               is_back = is$back,
-                              q_env = q_env)
+                              q_env = q_env,
+                              is_pmap = is$pmap,
+                              l_arg = l_arg,
+                              l_arg_is_call = l_arg_is_call)
 
-  var_nms <- create_var_nms(has$at, has$p, has$tmp, bare_inp_nms, is$lmap, is$i, cl_chr, output_nm)
+  var_nms <- create_var_nms(has$at, has$p, has$tmp, bare_inp_nms, is$lmap, is$i, cl_chr, output_nm,
+                            is$pmap, l_arg, l_arg_is_call)
 
-  maybe_custom_inpts <- create_custom_inpts(inp_objs)
-
-  brk <- set_brackets(is$lmap)
+  maybe_custom_inpts <- create_custom_inpts(inp_objs,
+                                            is_pmap = is$pmap,
+                                            l_arg = l_arg,
+                                            l_arg_is_call = l_arg_is_call)
 
   # rewrite function for use in for loop
   apply_fn <- rewrite_fn(fn_expr,
@@ -252,7 +264,9 @@ as_loop <- function(.expr,
                          is_back = is$back,
                          is_redu = is$redu,
                          has_sel = has$p,
-                         has_at = has$at)
+                         has_at = has$at,
+                         is_pmap = is$pmap,
+                         l_nms = l_nms)
 
   maybe_at <- add_at(map_fn  = map_fn_chr,
                      obj     = obj,

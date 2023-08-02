@@ -6,11 +6,24 @@ names_or_idx <- function(obj, obj_nms) {
   }
 }
 
-create_inp_ls <- function(fn_expr, l_arg, x_arg, y_arg, is_extr_fn) {
+create_inp_ls <- function(fn_expr, l_arg, x_arg, y_arg, is_extr_fn, q_env, brk, idx) {
 
-  # if pmap
+  par_frame <- parent.frame()
+
+  # TODO: account for cases where l_arg is named and controls the argument names:
   if (!is.null(l_arg)) {
-    inp_ls <- as.list(l_arg[-1])
+    if (is.call(l_arg)) {
+      obj_nm <- ".inp0"
+      assign("l_arg_is_call", TRUE, envir = par_frame)
+    } else {
+      obj_nm <- as.character(l_arg)
+      assign("l_arg_is_call", FALSE, envir = par_frame)
+    }
+    l_ln <- length(rlang::eval_tidy(l_arg, env = q_env))
+    inp_obj <- paste0(obj_nm, brk$o, seq_len(l_ln), brk$c)
+    inp_obj_nms <- map(inp_obj, as.name)
+    inp_ls <- set_names(inp_obj_nms, inp_obj)
+
   # if extractor function
   } else if (is_extr_fn) {
     inp_ls <- list(.x = x_arg,
@@ -23,7 +36,8 @@ create_inp_ls <- function(fn_expr, l_arg, x_arg, y_arg, is_extr_fn) {
   inp_ls
 }
 
-create_inp_objs <- function(obj_ls, output_nm, idx, is_modify, is_i, is_accu, is_redu, is_back, q_env) {
+create_inp_objs <- function(obj_ls, output_nm, idx, is_modify, is_i, is_accu, is_redu, is_back,
+                            q_env, is_pmap, l_arg, l_arg_is_call) {
 
   par_frame <- parent.frame()
   comp_obj_ls <- purrr::compact(obj_ls)
@@ -35,6 +49,7 @@ create_inp_objs <- function(obj_ls, output_nm, idx, is_modify, is_i, is_accu, is
   k <- 1L
 
   for (i in seq_len(ln)) {
+    # TODO: add condition that not `is$pmap`
     if (!is.name(obj_ls[[i]])) {
       while (paste0(".inp", k) %in% symb_chr_ls) {
         k <- k + 1
@@ -48,6 +63,8 @@ create_inp_objs <- function(obj_ls, output_nm, idx, is_modify, is_i, is_accu, is
   }
 
   inp_ls <- purrr::set_names(res, res_nm)
+
+  # TODO: for all checks account for pmap which has [[...]] in names
 
   # check if output name in input list
   if (output_nm %in% names(inp_ls)) {
@@ -67,7 +84,7 @@ create_inp_objs <- function(obj_ls, output_nm, idx, is_modify, is_i, is_accu, is
     )
   }
 
-  # assign bare input names to parent enviroment before changing them
+  # assign bare input names to parent environment before changing them
   assign("bare_inp_nms",
          names(inp_ls),
          par_frame)
@@ -77,7 +94,7 @@ create_inp_objs <- function(obj_ls, output_nm, idx, is_modify, is_i, is_accu, is
   }
 
   # create object names and assign to parent environment
-  obj_nms <- get_obj_names(inp_ls[1], q_env)
+  obj_nms <- get_obj_names(inp_ls[1], q_env, is_pmap, l_arg, l_arg_is_call)
   assign("obj_nms",
          obj_nms,
          par_frame)
@@ -96,32 +113,45 @@ create_inp_objs <- function(obj_ls, output_nm, idx, is_modify, is_i, is_accu, is
   # if accumlate or reduce
   if (is_accu || is_redu) {
     inp_ls <- if (!is_back) {
-      purrr::prepend(inp_ls,
-                     rlang::list2("{output_nm}" := output_nm))
+      prepend(inp_ls,
+              rlang::list2("{output_nm}" := output_nm))
     } else {
       append(inp_ls,
              rlang::list2("{output_nm}" := output_nm),
              after = 1)
     }
   }
+
   inp_ls
 }
 
-create_custom_inpts <- function(obs_ls) {
-  obs_ls <- obs_ls[names(obs_ls) != obs_ls]
+create_custom_inpts <- function(obs_ls, is_pmap, l_arg, l_arg_is_call) {
+
+  out <- obs_ls[names(obs_ls) != obs_ls]
 
   if (length(obs_ls) == 0) {
     return(NULL)
   } else {
-    out <- purrr::imap(obs_ls, ~ paste0(.y, ' <- ', .x, "\n"))
-    paste0(out, collapse = "")
+    out <- purrr::imap(out, ~ paste0(.y, ' <- ', .x, "\n"))
   }
+
+  if (is_pmap && l_arg_is_call) {
+    out <- prepend(out,
+                   paste0(".inp0 <- ", deparse_expr(l_arg), "\n")
+                   )
+  }
+
+  paste0(out, collapse = "")
 }
 
-get_obj_names <- function(obj, fn_env) {
+get_obj_names <- function(obj, fn_env, is_pmap, l_arg, l_arg_is_call) {
+
   obj_vec <- unlist(obj)
-  if (names(obj) == obj) {
-    return(names(get(obj_vec, envir = fn_env)))
+  # TODO: do we really need `get` here or is `eval(parse())` enough?
+  if (names(obj) == obj & !is_pmap) {
+    return(names(eval(parse(text = obj_vec), envir = fn_env)))
+  } else if (is_pmap && l_arg_is_call) {
+    return(names(eval(l_arg, envir = fn_env)[[1]]))
   } else {
     return(names(eval(parse(text = obj_vec), envir = fn_env)))
   }
@@ -478,12 +508,15 @@ maybe_add_forced_eval <- function(fn_str, force_eval, idx) {
 }
 
 # create vector with names of variables used in for loop
-create_var_nms <- function(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, is_i, cl_chr, output_nm) {
+create_var_nms <- function(has_at, has_p, has_tmp, bare_inp_nms, is_lmap, is_i, cl_chr, output_nm,
+                           is_pmap, l_arg, l_arg_is_call) {
 
   var_nms <- c(if (has_at && !is_lmap) ".at",
                if (has_p || has_at) ".sel",
                if (has_tmp) ".tmp",
                if (is_i) ".idx",
+               if (is_pmap && l_arg_is_call) ".inp0",
+               if (is_pmap && !l_arg_is_call) deparse(l_arg),
                bare_inp_nms)
 
   if (length(var_nms) != length(unique(var_nms))) {
