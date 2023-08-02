@@ -306,7 +306,7 @@ test_that("as_loop works with imap and iwalk", {
                        return = "eval")
   )
 
-  # iwalk
+  # iwalk print output
   output_asloop <- capture.output(
     as_loop(iwalk(c(a = 1, b = 2, c = 3), ~ print(c(.x, .y))),
             return = "eval")
@@ -317,6 +317,14 @@ test_that("as_loop works with imap and iwalk", {
   )
 
   expect_equal(output_asloop, output_iwalk)
+
+  # iwalk return value
+  return_asloop <- as_loop(iwalk(c(a = 1, b = 2, c = 3), ~ print(c(.x, .y))),
+            return = "eval")
+
+  return_iwalk <- iwalk(c(a = 1, b = 2, c = 3), ~ print(c(.x, .y)))
+
+  expect_equal(return_asloop, return_iwalk)
 
 })
 
@@ -420,6 +428,13 @@ test_that("as_loop works with pmap", {
                        return = "eval")
   )
 
+  x <- list(a, b, c)
+
+  expect_equal(pmap(x, sum),
+               as_loop(pmap(x, sum),
+                       return = "eval")
+  )
+
   d <- set_names(1:10, letters[1:10])
 
   expect_equal(pmap(list(d, b, c), sum),
@@ -429,6 +444,22 @@ test_that("as_loop works with pmap", {
 
 })
 
+# advanced pmap use .l's names as arguments
+test_that("as_loop uses `.l`s names as arguments", {
+
+  df <- data.frame(
+    x = c("apple", "banana", "cherry"),
+    pattern = c("p", "n", "h"),
+    replacement = c("P", "N", "H"),
+    stringsAsFactors = FALSE
+  )
+
+  expect_equal(pmap(df, gsub),
+               as_loop(pmap(df, gsub),
+                       return = "eval")
+  )
+
+})
 
 # pwalk
 test_that("as_loop works with pwalk", {
