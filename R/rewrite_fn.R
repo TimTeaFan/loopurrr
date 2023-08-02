@@ -52,17 +52,17 @@ replace_vars <- function(expr, keyvals) {
     if (is.call(expr[[i]])) expr[[i]][-1L] <- Recall(expr[[i]][-1L], keyvals)
     if (is.name(expr[[i]]) && deparse(expr[[i]]) %in% names(keyvals)) {
       key_vl <- keyvals[[deparse(expr[[i]])]]
-      is_call <- is.call(key_vl)
-      expr[[i]] <- if (is_call) {
+      expr[[i]] <- if (is.call(key_vl)) {
         key_vl
-      } else {
+      } else if (is.name(key_vl)) {
         as.name(key_vl)
+      } else {
+        key_vl
       }
     }
   }
   return(expr)
 }
-
 
 replace_all_vars <- function(fn, arg_df, idx, brk_o) {
 
@@ -71,7 +71,7 @@ replace_all_vars <- function(fn, arg_df, idx, brk_o) {
   for (r in seq_len(nrow(arg_df))) {
 
     r_sub <- arg_df[r, ]$subset
-    rep_var <- as.name(arg_df[r, ]$inp_nm)
+    rep_var <- str2lang(arg_df[r, ]$inp_nm)
     arg_nm <- arg_df[r, ]$arg
 
     if (!is.na(r_sub)) {
@@ -93,7 +93,7 @@ replace_all_vars <- function(fn, arg_df, idx, brk_o) {
 rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, cl_chr,
                        .brk = NULL, .dot_args = NULL, is_accu = FALSE, has_init = FALSE,
                        is_back = FALSE, is_redu = FALSE, has_sel = FALSE, has_at = FALSE,
-                       add_if = FALSE, add_else = FALSE) {
+                       add_if = FALSE, add_else = FALSE, is_pmap = FALSE, l_nms = NULL) {
 
   if (is.null(.brk)) {
     .brk <- list(o = '[[',
@@ -191,6 +191,7 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, cl_
     return(out)
 
   } else if (is_fun) {
+
     if (!length(.dot_args) == 0) {
       dots <- paste0(', ',
                      paste(
@@ -206,16 +207,23 @@ rewrite_fn <- function(fn_expr, .inp_objs, .idx, output_nm, var_nms, fn_env, cl_
     objs_vec <- vector("character", length = length(.inp_objs))
 
     for (i in seq_along(.inp_objs)) {
-      objs_vec[i] <- paste0(.inp_objs[[i]],
-                            if(!(is_redu && !is_back && i == 1L) && !(is_redu && is_back && i == 2L)) {
-                              paste0(.brk$o, .idx,
-                                     if (is_accu && is_back && i == 2L) {
-                                       "+1"
-                                     } else if (i != 2L && (is_accu || is_redu) && !has_init && !is_back) {
-                                       "-1"
-                                     },
-                                     .brk$c)
-                            })
+      objs_vec[i] <- paste0(
+        # argument naming for pmap and friends
+        if (is_pmap && !is.null(l_nms) && nchar(l_nms[[i]]) > 0) {
+          paste0(l_nms[[i]], " = ")
+          },
+        # object
+        .inp_objs[[i]],
+        # here happens the subsetting
+        if(!(is_redu && !is_back && i == 1L) && !(is_redu && is_back && i == 2L)) {
+          paste0(.brk$o, .idx,
+                 if (is_accu && is_back && i == 2L) {
+                   "+1"
+                 } else if (i != 2L && (is_accu || is_redu) && !has_init && !is_back) {
+                   "-1"
+                 },
+                 .brk$c)
+        })
     }
 
     objs <- paste0(objs_vec, collapse = ", ")
