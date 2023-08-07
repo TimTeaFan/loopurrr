@@ -20,13 +20,10 @@ wrap <- function(..expr, ..., ..silent = FALSE) {
   q_expr <- rlang::quo_get_expr(q)
   q_env <- rlang::quo_get_env(q)
 
-  map_fn_chr <- deparse(q_expr[[1]])
+  map_fn_chr <- deparse_and_rm_nmspace(q_expr[[1]])
 
-  if (grepl("^\\w+::", map_fn_chr, perl = TRUE)) {
-    map_fn_chr <- gsub("^\\w+::", "", map_fn_chr)
-  }
+  map_fn <- mabye_check_map_fn(map_fn_chr, "screen", checks = TRUE)
 
-  map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
   q_ex_std <- match.call(definition = map_fn, call = q_expr)
 
   expr_ls <- as.list(q_ex_std)
