@@ -102,3 +102,33 @@ first_error_imp <- function(expr, is_back) {
   )
 
 }
+
+
+first_error <- function(expr, is_back) {
+
+  try_fn <- function(.f) {
+    function(...) {
+      tryCatch({
+        .f(...)
+      }, error = function(e) {
+        e
+      })
+      }
+  }
+
+  res <- wrap({{ expr }},
+              .f = try_fn)
+
+  if (is_back) {
+    res <- rev(res)
+  }
+
+  idx <- map_lgl(res, rlang::is_error)
+
+  if (any(idx)) {
+    which(idx)[1]
+  } else (
+    NULL
+  )
+
+}
