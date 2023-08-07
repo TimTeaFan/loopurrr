@@ -2,7 +2,11 @@
 # TODO: add better error messages
 # TODO: add tests
 
-probe <- function(expr) {
+probe <- function(expr, stop_at = rlang::is_error) {
+
+  # TODO: use rlang::abort instead of `stopifnot`
+  stopifnot(rlang::is_function(stop_at))
+  is_error <- identical(rlang::is_error, stop_at)
 
   q <- rlang::enquo(expr)
 
@@ -29,9 +33,11 @@ probe <- function(expr) {
   has_init      <- !is.null(expr_ls[[".init"]])
   is_back       <- !is.null(expr_ls[[".dir"]]) && expr_ls[[".dir"]] == "backward"
 
-  i <- if (has_fn) first_error(!! q, is_back) else NULL
+  i <- if (has_fn) first_error(!! q, is_back, stop_at) else NULL
 
   cl_chr <- call_as_chr(q_expr)
+
+  expr_ls[[1]] <- if (is_accu_redu) rlang::expr(accumulate2) else rlang::expr(accumulate)
 
   # doesn't have fn
   if (!has_fn) {
@@ -48,8 +54,15 @@ probe <- function(expr) {
 
   # has function and no error
   if (has_fn && is.null(i)) {
+
+    i_msg <- if (is_error) {
+      "No error detected."
+    } else {
+      "No iteration detected where function in `stop_at` returned `TRUE`."
+    }
+
     rlang::inform(c(paste0("Probing call: ", cl_chr),
-                    i = "No error detected.",
+                    i = i_msg,
                     i = "Returning output of first iteration with:",
                     paste0("\033[32m", "\u2714", "\033[39m", " ",
                            deparse(q_expr), " |> peek(1)")
@@ -63,9 +76,16 @@ probe <- function(expr) {
 
   adjusted_i <- adjust_i(i, is_accu_redu, has_init) - has_init
 
+  i_msg <- if (is_error) {
+    paste0("The first error is thrown at iteration no. ", adjusted_i, ".")
+  } else {
+    paste0("The first iteration where the function in `stop_at` returned `TRUE` is no. ",
+           adjusted_i, ".")
+  }
+
   rlang::inform(c(paste0("Probing call: ", cl_chr),
-                  i = paste0("The first error is thrown at iteration no. ", adjusted_i, "."),
-                  i = paste0("Returning input at iteration ", adjusted_i, " with:"),
+                  i = i_msg,
+                  i = paste0("Returning input at iteration no. ", adjusted_i, " with:"),
                   paste0("\033[32m", "\u2714", "\033[39m", " ",
                          deparse(q_expr), " |> peel(", adjusted_i,")")
                   )
@@ -104,7 +124,7 @@ first_error_imp <- function(expr, is_back) {
 }
 
 
-first_error <- function(expr, is_back) {
+first_error <- function(expr, is_back, stop_at) {
 
   try_fn <- function(.f) {
     function(...) {
@@ -123,7 +143,7 @@ first_error <- function(expr, is_back) {
     res <- rev(res)
   }
 
-  idx <- map_lgl(res, rlang::is_error)
+  idx <- map_lgl(res, stop_at)
 
   if (any(idx)) {
     which(idx)[1]
