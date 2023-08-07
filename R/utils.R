@@ -50,9 +50,11 @@ get_supported_fns <- function(fn) {
 
     peek = all_basic_iterators,
 
+    peel = all_basic_iterators,
+
     probe = all_basic_iterators,
 
-    peel = all_basic_iterators
+    screen = all_basic_iterators
   )
 
   if (is.null(supported_fns[[fn]])) {

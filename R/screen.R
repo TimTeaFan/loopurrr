@@ -1,55 +1,40 @@
-screen <- function(.expr, ...) {
+#' @export
+screen <- function(expr, ...) {
 
-  # browser()
+  q <- rlang::enquo(expr)
+
   dots <- rlang::list2(...)
 
-  # checks if screen is used to implement another function
-  implement <- !is.null(dots[[".__impl__."]])
-
-  # the hidden args should not be part of the dots
-  dots <- dots[-which(names(dots) %in% c(".__impl__."))]
-
-  if (implement) {
-    q <- .expr
-  } else {
-    q <- rlang::enquo(.expr)
-
-    # check and unpipe
-    q <- unpipe_expr(q,
-                     sc = sys.calls(),
-                     is_dot = match.call()$`.expr` == ".",
-                     calling_fn = "screen")
-  }
+  q <- unpipe_expr(q,
+                   sc = sys.calls(),
+                   is_dot = match.call()$`expr` == ".",
+                   calling_fn = "screen")
 
   q_expr <- rlang::quo_get_expr(q)
   q_env <- rlang::quo_get_env(q)
 
-  map_fn_chr <- deparse(q_expr[[1]])
+  map_fn_chr <- deparse_and_rm_nmspace(q_expr[[1]])
 
-  if (grepl("^\\w+::", map_fn_chr, perl = TRUE)) {
-    map_fn_chr <- gsub("^\\w+::", "", map_fn_chr)
-  }
+  map_fn <- mabye_check_map_fn(map_fn_chr, "screen", checks = TRUE)
 
-  map_fn <- get(map_fn_chr, envir = rlang::as_environment("purrr"))
   q_ex_std <- match.call(definition = map_fn, call = q_expr)
 
   cl_chr <- call_as_chr(q_expr)
 
-  expr_ls <- as.list(q_ex_std)
+  expr_ls <- reformat_expr_ls(q_expr = q_expr, fn = map_fn)
 
   obj_x <- eval(expr_ls[[".x"]], envir = q_env)
 
-  res <- wrap(.expr = q,
+  res <- wrap(..expr = !! q,
               .f = function(x) quietly(safely(x)),
-              silent = TRUE,
-              `.__impl__.` = TRUE
+              ..silent = TRUE
   )
 
-  results_ls  <- map(res, c("result", "result"), .default = NA)
+  results_ls  <- map(res, c("result", "result"), .default = NULL)
   errors_ls   <- map(res, c("result", "error"), .default = NA)
   output_ls   <- map(res, c("output"), .default = NA)
-  warnings_ls <- map(res, c("messages"), .default = NA)
-  message_ls  <- map(res, c("warnings"), .default = NA)
+  warnings_ls <- map(res, c("warnings"), .default = NA)
+  message_ls  <- map(res, c("messages"), .default = NA)
 
   errors_ls <- map(errors_ls, .f = get_error_msg)
 
@@ -66,8 +51,9 @@ screen <- function(.expr, ...) {
   # .x, .y,
 
   out2 <- dplyr::mutate(out,
-                        across(everything(),
-                               unlist_if_all_length_one)
+                        dplyr::across(tidyselect::everything(),
+                                      \(col) unlist_if_all_length_one(col, dplyr::cur_column())
+                        )
   )
 
   attach_screen_attr(out2, cl_chr)
@@ -86,11 +72,11 @@ attach_screen_attr <- function(x, cl_chr) {
   attr(x, "no_warn") <- no_warn <- length(na.omit(x$warning))
   attr(x, "perc_warn") <- round((no_warn/ln)  * 100, 0)
 
-  res_classes <- na.omit(unique(x$res_class[!is.na(x$result)]))
+  res_classes <- na.omit(unique(x$res_class[is.na(x$error)]))
   attr(x, "no_of_classes") <- no_of_classes <- length(res_classes)
 
   if ( no_of_classes > 0) {
-    class_res    <- purrr::imap(res_classes, ~ paste0("[", .y, "] ", .x))
+    class_res    <- purrr::imap(res_classes, ~ paste0("[", .y, "] ", paste(.x, collapse = ", ")))
     class_output <- paste(class_res, collapse = ", ")
     if (nchar(class_output) > 72) {
       class_output <- paste0(substr(class_output, 1, 75), " ...")
@@ -100,7 +86,7 @@ attach_screen_attr <- function(x, cl_chr) {
   x
 }
 
-
+#' @export
 summary.screen_tbl <- function(x) {
 
   screen_attr <- c("call", "no_err", "perc_err", "no_warn", "perc_warn",
@@ -108,11 +94,12 @@ summary.screen_tbl <- function(x) {
 
   attr_x <- attributes(x)[screen_attr]
 
-  grp_dat <- dplyr::group_by(x, inp_class, res_class, error, warning)
+  idx_dat <- dplyr::mutate(x, idx = dplyr::row_number(), .before = 1L)
+  grp_dat <- dplyr::group_by(idx_dat, inp_class, res_class, error, warning)
 
   res <- dplyr::summarise(grp_dat,
-                          idx_ls = list(input),
-                          idx = paste(input, collapse = ", ")
+                          idx_ls = list(idx),
+                          idx = paste(idx, collapse = ", ")
                           )
 
   res2 <- dplyr::mutate(res,
@@ -132,6 +119,7 @@ summary.screen_tbl <- function(x) {
   res
 }
 
+#' @export
 print.screen_tbl <- function(x) {
   cl_chr <- attr(x, "call")
   no_err  <- attr(x, "no_err")
@@ -153,7 +141,12 @@ print.screen_tbl <- function(x) {
   NextMethod()
 }
 
-unlist_if_all_length_one <- function(x) {
+unlist_if_all_length_one <- function(x, col_nm) {
+
+  if (! col_nm %in% c("result", "input")) {
+    x <- ifelse(lengths(x) == 0, NA, x)
+  }
+
   if( all(lengths(x) == 1L)) {
     unlist(x, recursive = FALSE)
   } else {
