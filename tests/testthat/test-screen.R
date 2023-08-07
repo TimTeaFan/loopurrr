@@ -1,17 +1,20 @@
 test_that("screen works with map", {
 
   myf <- function(a){
-    if (a %% 5 == 0){
+    if (a == 1){
       return(a)
-    } else if (a %% 5 == 1){
+    } else if (a == 2){
       warning("a warning")
       return(a)
-    } else if (a %% 5 == 2){
+    } else if (a == 3){
       stop("an error")
-    } else if (a %% 5 == 3){
+    } else if (a == 4){
       rlang::inform("this is a message")
+    } else if (a == 5){
+      out <- dplyr::tibble(id = 1:5, letter = letters[1:5])
+      return(out)
     } else {
-      print("5")
+      print("6")
     }
   }
 
