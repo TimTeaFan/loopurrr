@@ -29,7 +29,7 @@ probe <- function(expr) {
   has_init      <- !is.null(expr_ls[[".init"]])
   is_back       <- !is.null(expr_ls[[".dir"]]) && expr_ls[[".dir"]] == "backward"
 
-  i <- if (has_fn) first_error_imp(!! q, is_back) else NULL
+  i <- if (has_fn) first_error(!! q, is_back) else NULL
 
   cl_chr <- call_as_chr(q_expr)
 
