@@ -404,6 +404,8 @@ reduce2accumulate <- function(expr) {
   is_call    <- !is_quosure && is.call(expr)
   is_list    <- is.list(expr)
 
+  stopifnot(is_quosure || is_call || is_list)
+
   if (is_quosure) initial_quo <- expr
 
   if (is_quosure) {
@@ -419,11 +421,25 @@ reduce2accumulate <- function(expr) {
   is_redu     <- grepl("^reduce$",  map_fn_chr, perl = TRUE)
   is_redu2    <- grepl("^reduce2$", map_fn_chr, perl = TRUE)
 
-  expr[[1]] <- if (is_redu) rlang::expr(accumulate)
-  expr[[1]] <- if (is_redu2) rlang::expr(accumulate2)
+  # 3. update expression and finalize as call or quosure if needed
+  if (is_redu) {
+    expr[[1]] <- rlang::expr(accumulate)
+  } else if (is_redu2) {
+    expr[[1]] <- rlang::expr(accumulate2)
+  }
 
+  if (is_list) {
+    return(expr)
+  }
 
+  expr <- as.call(expr)
 
+  if (is_call) {
+    return(expr)
+  }
+
+  new_quo <- rlang::quo_set_expr(initial_quo, expr)
+  new_quo
 }
 
 # sequence greater than one

@@ -33,7 +33,7 @@ probe <- function(expr, stop_at = rlang::is_error) {
   has_init      <- !is.null(expr_ls[[".init"]])
   is_back       <- !is.null(expr_ls[[".dir"]]) && expr_ls[[".dir"]] == "backward"
 
-  i <- if (has_fn) first_error(!! q, is_back, stop_at) else NULL
+  i <- if (has_fn) first_error(!! q, is_back, is_accu_redu, stop_at) else NULL
 
   cl_chr <- call_as_chr(q_expr)
 
@@ -98,7 +98,7 @@ probe <- function(expr, stop_at = rlang::is_error) {
 # probe()'s helper functions ----
 # ------------------------------ #
 
-first_error <- function(expr, is_back, stop_at) {
+first_error <- function(expr, is_back, is_accu_redu, stop_at) {
 
   try_fn <- function(.f) {
     function(...) {
@@ -110,7 +110,10 @@ first_error <- function(expr, is_back, stop_at) {
       }
   }
 
-  res <- wrap({{ expr }},
+  q <- rlang::enquo(expr)
+  q <- reduce2accumulate(q)
+
+  res <- wrap(!! q,
               .f = try_fn)
 
   if (is_back) {
