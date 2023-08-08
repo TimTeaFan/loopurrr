@@ -37,8 +37,6 @@ probe <- function(expr, stop_at = rlang::is_error) {
 
   cl_chr <- call_as_chr(q_expr)
 
-  expr_ls[[1]] <- if (is_accu_redu) rlang::expr(accumulate2) else rlang::expr(accumulate)
-
   # doesn't have fn
   if (!has_fn) {
     rlang::inform(c(paste0("Probing call: ", cl_chr),
@@ -100,30 +98,6 @@ probe <- function(expr, stop_at = rlang::is_error) {
 # probe()'s helper functions ----
 # ------------------------------ #
 
-first_error_imp <- function(expr, is_back) {
-
-  try_fn <- function(.f) {
-    function(...) try(.f(...), silent = TRUE)
-  }
-
-  res <- wrap({{ expr }},
-              .f = try_fn)
-
-  if (is_back) {
-    res <- rev(res)
-  }
-
-  idx <- map_lgl(res, \(x) inherits(x, "try-error"))
-
-  if (any(idx)) {
-    which(idx)[1]
-  } else (
-    NULL
-  )
-
-}
-
-
 first_error <- function(expr, is_back, stop_at) {
 
   try_fn <- function(.f) {
@@ -152,3 +126,7 @@ first_error <- function(expr, is_back, stop_at) {
   )
 
 }
+
+
+
+
