@@ -393,6 +393,39 @@ check_and_try_call <- function(checks, null, force, q, map_fn, map_fn_chr, q_env
 
 }
 
+quooo <- function(x) {
+  rlang::enquo(x)
+}
+
+reduce2accumulate <- function(expr) {
+
+  # 1. Turn expression or quosure into list
+  is_quosure <- rlang::is_quosure(expr)
+  is_call    <- !is_quosure && is.call(expr)
+  is_list    <- is.list(expr)
+
+  if (is_quosure) initial_quo <- expr
+
+  if (is_quosure) {
+    expr <- rlang::get_expr(expr)
+  }
+
+  if (is.call(expr)) {
+    expr <- as.list(expr)
+  }
+
+  # 2. Test if reduce or reduce2
+  map_fn_chr  <- deparse_and_rm_nmspace(expr[[1]])
+  is_redu     <- grepl("^reduce$",  map_fn_chr, perl = TRUE)
+  is_redu2    <- grepl("^reduce2$", map_fn_chr, perl = TRUE)
+
+  expr[[1]] <- if (is_redu) rlang::expr(accumulate)
+  expr[[1]] <- if (is_redu2) rlang::expr(accumulate2)
+
+
+
+}
+
 # sequence greater than one
 # seq_gt_1 <- function(x) {
 #   res <- seq_len(x)
