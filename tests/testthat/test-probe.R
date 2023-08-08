@@ -54,9 +54,21 @@ test_that("with error: works with map", {
   )
 
   expect_equal(
+    list(.x = 115,
+         .y = "a"),
+    reduce(b, sum, .init = 100) %>% probe()
+  )
+
+  expect_equal(
     list(.x = 140,
          .y = "a"),
     accumulate(b, sum, .init = 100, .dir = "backward") %>% probe()
+  )
+
+  expect_equal(
+    list(.x = 140,
+         .y = "a"),
+    reduce(b, sum, .init = 100, .dir = "backward") %>% probe()
   )
 
 })
@@ -90,12 +102,14 @@ test_that("without error and stop_at: works with map", {
   )
 
   expect_equal(
-    3,
+    list(.x = 15,
+         .y = 6),
     reduce(1:10, sum) %>% probe(stop_at = \(x) x > 20)
   )
 
   expect_equal(
-    101,
-    reduce(1:10, sum, .init = 100) %>% probe()
+    list(.x = 103,
+         .y = 3),
+    reduce(1:10, sum, .init = 100) %>% probe(stop_at = \(x) x > 105)
   )
 })
