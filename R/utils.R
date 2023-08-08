@@ -59,7 +59,6 @@ get_supported_fns <- function(fn) {
 
   if (is.null(supported_fns[[fn]])) {
     rlang::inform("No supported functions. Did you specify the function name correctly?")
-    return(invisible(NULL))
   } else {
     supported_fns[[fn]]
   }
