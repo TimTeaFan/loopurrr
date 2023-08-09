@@ -1,9 +1,11 @@
 #' @export
-screen <- function(expr, ...) {
+screen <- function(expr, res_fns = list(class = class), inp_fns = list(class = class), max_inp_no = 2) {
 
   q <- rlang::enquo(expr)
 
-  dots <- rlang::list2(...)
+  # FIXME: rewrite input and result function so that they are executed via map:
+  res_fns <- map(res_fns, rlang::as_function)
+  inp_fns <- map(inp_fns, rlang::as_function)
 
   q <- unpipe_expr(q,
                    sc = sys.calls(),
@@ -38,14 +40,27 @@ screen <- function(expr, ...) {
 
   errors_ls <- map(errors_ls, .f = get_error_msg)
 
-  out <- tibble::tibble(input = obj_x,
-                        inp_class = purrr::map(obj_x, class),
-                        result = results_ls,
-                        res_class = purrr::map(results_ls, class),
-                        error = errors_ls,
-                        output = output_ls,
-                        warning = warnings_ls,
-                        message = message_ls)
+  init_res <- tibble::tibble(input = obj_x,
+                             # inp_class = purrr::map(obj_x, class),
+                             result = results_ls,
+                             # res_class = purrr::map(results_ls, class),
+                             error = errors_ls,
+                             output = output_ls,
+                             warning = warnings_ls,
+                             message = message_ls)
+
+  init_res <- dplyr::rowwise(init_res)
+
+  inp_res <- dplyr::mutate(init_res,
+                           dplyr::across(tidyselect::starts_with("input"), inp_fns),
+                           .before = result,
+                           .by = )
+
+  out     <- dplyr::mutate(inp_res,
+                           dplyr::across(tidyselect::starts_with("result"), res_fns),
+                           .before = error)
+
+  out <- dplyr::ungroup(out)
 
   # TODO: add rows based on `...` with following arguments:
   # .x, .y,
