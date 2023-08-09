@@ -56,7 +56,7 @@ infer_possible_i <- function(main_obj, is_redu_accu, has_init) {
 
 
 
-# unused funcitons
+# unused functions
 
 # function_to_call <- function(fn, sym) {
 #
