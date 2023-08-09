@@ -2,11 +2,20 @@
 # TODO: add better error messages
 # TODO: add tests
 
-probe <- function(expr, stop_at = rlang::is_error) {
+probe <- function(expr, cond = rlang::is_error) {
 
-  # TODO: use rlang::abort instead of `stopifnot`
-  stopifnot(rlang::is_function(stop_at))
-  is_error <- identical(rlang::is_error, stop_at)
+  is_error <- identical(rlang::is_error, cond)
+
+  if(!rlang::is_function(
+    try(cond <- rlang::as_function(cond),
+        silent = TRUE))) {
+    rlang::abort(
+      c(paste0("Problem with `probe()` input `cond`."),
+        i = paste0("`cond` must be either a function name, an anonymous function or a formula that can be coerced to function with `rlang::as_function()`."),
+        x = paste0("The input in `cond` doesn't fullful this condition.")
+      )
+    )
+  }
 
   q <- rlang::enquo(expr)
 
@@ -27,13 +36,13 @@ probe <- function(expr, stop_at = rlang::is_error) {
 
   main_obj      <- get_obj(expr_ls, q_env)
 
-  has_fn <- !is.null(expr_ls[[".f"]])
+  has_fn        <- !is.null(expr_ls[[".f"]])
 
   is_accu_redu  <- grepl("^(accumulate|reduce)", map_fn_chr, perl = TRUE)
   has_init      <- !is.null(expr_ls[[".init"]])
   is_back       <- !is.null(expr_ls[[".dir"]]) && expr_ls[[".dir"]] == "backward"
 
-  i <- if (has_fn) first_error(!! q, is_back, is_accu_redu, stop_at) else NULL
+  i <- if (has_fn) first_error(!! q, is_back, is_accu_redu, cond) else NULL
 
   cl_chr <- call_as_chr(q_expr)
 
@@ -56,7 +65,7 @@ probe <- function(expr, stop_at = rlang::is_error) {
     i_msg <- if (is_error) {
       "No error detected."
     } else {
-      "No iteration detected where function in `stop_at` returned `TRUE`."
+      "No iteration detected where function in `cond` returned `TRUE`."
     }
 
     rlang::inform(c(paste0("Probing call: ", cl_chr),
@@ -77,7 +86,7 @@ probe <- function(expr, stop_at = rlang::is_error) {
   i_msg <- if (is_error) {
     paste0("The first error is thrown at iteration no. ", adjusted_i, ".")
   } else {
-    paste0("The first iteration where the function in `stop_at` returned `TRUE` is no. ",
+    paste0("The first iteration where the function in `cond` returned `TRUE` is no. ",
            adjusted_i, ".")
   }
 
@@ -98,7 +107,7 @@ probe <- function(expr, stop_at = rlang::is_error) {
 # probe()'s helper functions ----
 # ------------------------------ #
 
-first_error <- function(expr, is_back, is_accu_redu, stop_at) {
+first_error <- function(expr, is_back, is_accu_redu, cond) {
 
   try_fn <- function(.f) {
     function(...) {
@@ -120,7 +129,18 @@ first_error <- function(expr, is_back, is_accu_redu, stop_at) {
     res <- rev(res)
   }
 
-  idx <- map_lgl(res, stop_at)
+  idx <- tryCatch(vapply(res, cond, FUN.VALUE = logical(1)),
+                  error = function(e) e)
+
+  if (rlang::is_error(idx)) {
+    msg <- gsub(".*(result is.*)", "\\1", idx$message)
+    rlang::abort(
+      c(paste0("Problem with `probe()` input `cond`."),
+        i = paste0("The function in `cond` must return either `TRUE` or `FALSE`."),
+        x = paste0("The ", msg, ".")
+      )
+    )
+  }
 
   if (any(idx)) {
     which(idx)[1]
