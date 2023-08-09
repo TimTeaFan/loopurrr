@@ -393,10 +393,6 @@ check_and_try_call <- function(checks, null, force, q, map_fn, map_fn_chr, q_env
 
 }
 
-quooo <- function(x) {
-  rlang::enquo(x)
-}
-
 reduce2accumulate <- function(expr) {
 
   # 1. Turn expression or quosure into list
