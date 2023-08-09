@@ -18,7 +18,7 @@ test_that("screen works with map", {
     }
   }
 
-  a = 1:5
+  a = 1:6
 
   output_tbl <- structure(
     list(input = 1:5,
