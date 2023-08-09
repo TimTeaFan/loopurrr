@@ -94,22 +94,22 @@ test_that("without error: works with map", {
   )
 })
 
-test_that("without error and stop_at: works with map", {
+test_that("without error and cond: works with map", {
 
   expect_equal(
     7:9,
-    map(list(1:3, 4:6, 7:9), sum) %>% probe(stop_at = \(x) x > 20)
+    map(list(1:3, 4:6, 7:9), sum) %>% probe(cond = \(x) x > 20)
   )
 
   expect_equal(
     list(.x = 15,
          .y = 6),
-    reduce(1:10, sum) %>% probe(stop_at = \(x) x > 20)
+    reduce(1:10, sum) %>% probe(cond = \(x) x > 20)
   )
 
   expect_equal(
     list(.x = 103,
          .y = 3),
-    reduce(1:10, sum, .init = 100) %>% probe(stop_at = \(x) x > 105)
+    reduce(1:10, sum, .init = 100) %>% probe(cond = \(x) x > 105)
   )
 })
