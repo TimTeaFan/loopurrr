@@ -1,5 +1,4 @@
 # TODO: document and export this function
-# TODO: add better error messages
 # TODO: add tests
 
 probe <- function(expr, cond = rlang::is_error) {

@@ -28,6 +28,10 @@ wrap <- function(..expr, ..., ..silent = FALSE) {
 
   expr_ls <- as.list(q_ex_std)
 
+  if (is.numeric(expr_ls[[".f"]]) | is.character(expr_ls[[".f"]]) | is.list(expr_ls[[".f"]])) {
+    expr_ls[[".f"]] <- as_mapper(expr_ls[[".f"]])
+  }
+
   for (arg in names(dots)) {
     if (!arg %in% names(expr_ls)) {
       if (..silent) next else stop(paste0("Argument `", arg, "` doesn't exist in `..expr`."))
