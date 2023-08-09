@@ -47,6 +47,26 @@ test_that("peek works with the pipe", {
 
 })
 
+test_that("peek works with extractor function in .f:", {
+
+  l <- list(
+    set_names(1:3, letters[1:3]),
+    set_names(4:6, letters[1:3]),
+    set_names(7:9, letters[1:3])
+  )
+
+  expect_equal(
+    1,
+    map(l, "a") %>% peek()
+  )
+
+  expect_equal(
+    list(4, 7),
+    map(l, "a") %>% peek(2:3)
+  )
+
+})
+
 test_that("peek works with map_at", {
 
   c <- list(1, 1:2, 1:3, 1:4, 1:5, 1:6, 1:7, 1:8, 1:9, 1:10)

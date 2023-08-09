@@ -47,6 +47,30 @@ test_that("peel works with the pipe", {
 
 })
 
+test_that("peel works with extractor function in .f:", {
+
+  l <- list(
+    set_names(1:3, letters[1:3]),
+    set_names(4:6, letters[1:3]),
+    set_names(7:9, letters[1:3])
+  )
+
+  expect_equal(
+    set_names(1:3, letters[1:3]),
+    map(l, "a") %>% peel()
+  )
+
+  expect_equal(
+    list(
+      set_names(4:6, letters[1:3]),
+      set_names(7:9, letters[1:3])
+    ),
+    map(l, "a") %>% peel(2:3)
+  )
+
+})
+
+
 test_that("peel works with map_at", {
 
   c <- list(1, 1:2, 1:3, 1:4, 1:5, 1:6, 1:7, 1:8, 1:9, 1:10)

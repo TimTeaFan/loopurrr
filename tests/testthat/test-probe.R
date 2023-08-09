@@ -22,6 +22,18 @@ test_that("without .f: works with map & friends", {
 
 })
 
+test_that("with extractor function in .f: probe work with map", {
+
+  l <- list(
+    set_names(1:3, letters[1:3]),
+    set_names(4:6, letters[1:3]),
+    set_names(7:9, letters[1:3])
+    )
+
+  map(l, "a") |> probe()
+
+})
+
 # probe() works with errors
 
 test_that("with error: works with map", {
