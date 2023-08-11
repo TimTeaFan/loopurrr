@@ -30,7 +30,15 @@ test_that("with extractor function in .f: probe work with map", {
     set_names(7:9, letters[1:3])
     )
 
-  map(l, "a") |> probe()
+  expect_equal(
+    map(l, "a") %>% peek(1),
+    map(l, "a") %>% probe()
+  )
+
+  expect_equal(
+    map(l, "a") %>% peel(3),
+    map(l, "a") %>% probe(cond = \(x) x > 5)
+  )
 
 })
 
