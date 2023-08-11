@@ -278,9 +278,9 @@ mabye_check_map_fn <- function(fn, calling_fn, checks) {
 }
 
 #
-get_main_obj <- function(q_expr, q_env, map_fn_chr) {
-  expr_ls <- reformat_expr_ls(q_expr = q_expr, fn = map_fn)
-}
+# get_main_obj <- function(q_expr, q_env, map_fn_chr) {
+#   expr_ls <- reformat_expr_ls(q_expr = q_expr, fn = map_fn)
+# }
 
 # deparse and remove namespace
 deparse_and_rm_nmspace <- function(x) {
@@ -436,6 +436,62 @@ reduce2accumulate <- function(expr) {
 
   new_quo <- rlang::quo_set_expr(initial_quo, expr)
   new_quo
+}
+
+check_functionable <- function(x, fn_call, arg) {
+
+  is_functionable <- rlang::is_function(try(rlang::as_function(x),
+                                            silent = TRUE))
+
+  if (fn_call == "screen") {
+    msg <- c(i = paste0("`", arg, "` must be a list of:"),
+       paste0("\033[32m", "\u23F5", "\033[39m", " function names"),
+       paste0("\033[32m", "\u23F5", "\033[39m", " anonymous functions and/or"),
+       paste0("\033[32m", "\u23F5", "\033[39m", " formulas that can be coerced with `rlang::as_function()`.")
+       )
+  } else {
+    msg <- c(i = paste0("`", arg,"` must be either:"),
+      paste0("\033[32m", "\u23F5", "\033[39m", " a function name"),
+      paste0("\033[32m", "\u23F5", "\033[39m", " an anonymous function or"),
+      paste0("\033[32m", "\u23F5", "\033[39m", " a formula that can be coerced with `rlang::as_function()`.")
+    )
+  }
+
+  if(! is_functionable) {
+    rlang::abort(
+      c(paste0("Problem with `", fn_call, "()` input `", arg, "`."),
+        msg,
+        x = paste0("The input in `", arg, "` doesn't fullful this condition.")
+      )
+    )
+  }
+}
+
+check_pos_integer <- function(x, cl, inp) {
+
+  if (length(x) != 1L) {
+    rlang::abort(c(paste0("Problem with `", cl, "()` input `", inp, "`."),
+                   i = paste0("`", inp ,"` only accepts numeric vectors of length 1."),
+                   x = paste0("`", inp, "` is of length ", length(x), ".")
+    )
+    )
+  }
+
+  if (!is.numeric(x)) {
+    rlang::abort(c(paste0("Problem with `", cl, "()` input `", inp, "`."),
+                    i = paste0("`", inp ,"` only accepts numeric values."),
+                    x = paste0("`", inp, "` is of class ", toString(class(x)), ".")
+    )
+    )
+  }
+
+  if (sign(x) == -1L) {
+    rlang::abort(c(paste0("Problem with `", cl, "()` input `", inp, "`."),
+                   i = paste0("`", inp ,"` only accepts non-negative values."),
+                   x = paste0("`", inp, "` is ", x, ".")
+    )
+    )
+  }
 }
 
 # sequence greater than one
