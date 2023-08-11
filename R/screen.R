@@ -1,5 +1,5 @@
 # TODO: make work with no function in map => then just screen input (fix .print method)
-# TODO: make work with more than one input (map2, pmap => ok, accu and redu)
+# TODO: make work with more than one input (map2, pmap accu => ok, redu & redu2 & accu2)
 # TODO: include `.p` and `.at`
 #' @export
 screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_no = 2) {
@@ -44,30 +44,48 @@ screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_n
   is_accu_redu2  <- grepl("^(accumulate|reduce)2$", map_fn_chr, perl = TRUE)
   has_init       <- !is.null(expr_ls[[".init"]])
 
-  inp_objs       <- get_inp_objs(expr_ls, q_env, max_inp_no)
+  inp_objs       <- get_inp_objs(expr_ls, q_env, max_inp_no, is_accu_redu2, has_init)
 
   has_fn         <- !is.null(expr_ls[[".f"]])
 
-  if (has_fn) {
+  if (has_fn || is_accu_redu || is_accu_redu2) {
 
-    res <- wrap(..expr = !! q,
-                .f = function(x) quietly(safely(x)),
+    # res <- wrap(..expr   = !! q,
+    #             .f       = function(x) quietly(safely(x)),
+    #             ..silent = TRUE)
+
+    res <- wrap(..expr   = !! q,
+                .f       = function(x) quietly2(safely2(x)),
                 ..silent = TRUE)
 
+    res <- restore_all(res)
     results_ls  <- map(res, c("result", "result"), .default = NULL)
+
+    if (is_accu_redu) {
+      if(!has_init) {
+        inp_objs[["input_y"]] <- append(list(NULL), results_ls[-length(results_ls)])
+      } else {
+        init    <- eval(expr_ls[[".init"]], envir = q_env)
+        inp_objs[["input_y"]] <- append(init, results_ls[-length(results_ls)])
+      }
+    }
+  }
+
+  if (has_fn) {
+
     errors_ls   <- map(res, c("result", "error"), .default = NA)
     output_ls   <- map(res, c("output"), .default = NA)
     warnings_ls <- map(res, c("warnings"), .default = NA)
     message_ls  <- map(res, c("messages"), .default = NA)
 
-    errors_ls <- map(errors_ls, .f = get_error_msg)
+    errors_ls   <- map(errors_ls, .f = get_error_msg)
 
-    init_res <- tibble::tibble(inp_objs,
-                               result  = results_ls,
-                               error   = errors_ls,
-                               output  = output_ls,
-                               warning = warnings_ls,
-                               message = message_ls)
+    init_res    <- tibble::tibble(inp_objs,
+                                  result  = results_ls,
+                                  error   = errors_ls,
+                                  output  = output_ls,
+                                  warning = warnings_ls,
+                                  message = message_ls)
 
     # if redu_accu
 
@@ -77,7 +95,7 @@ screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_n
     init_res <- tibble::tibble(inp_objs)
 
     if (is.null(init_res)) {
-      rlang::warn(c(paste0("`screen()` returning `NULL`, because:"),
+      rlang::warn(c(i = paste0("`screen()` returning `NULL`, because:"),
                     paste0("\033[32m", "\u23F5", "\033[39m", " `max_inp_no` is set to `0` AND"),
                     paste0("\033[32m", "\u23F5", "\033[39m", " `expr` doesn't contain an `.f` argument.")
                     )
@@ -107,7 +125,7 @@ screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_n
 
   out2 <- dplyr::mutate(out,
                         dplyr::across(everything(),
-                                      \(col) unlist_if_all_length_one(col, dplyr::cur_column())
+                                      ~ unlist_if_all_length_one(.x, dplyr::cur_column())
                         )
   )
 
@@ -208,7 +226,7 @@ print.screen_tbl <- function(x) {
 
 unlist_if_all_length_one <- function(x, col_nm) {
 
-  if (! col_nm %in% c("result", "input")) {
+  if (!col_nm == "result" & !startsWith(col_nm, "input")) {
     x <- ifelse(lengths(x) == 0, NA, x)
   }
 
@@ -262,19 +280,18 @@ as_listwraped_fn <- function(f) {
   purrr::compose(list, rlang::as_function(f))
 }
 
-get_inp_objs <- function(expr_ls, q_env, max_inp_no) {
+get_inp_objs <- function(expr_ls, q_env, max_inp_no, is_accu_redu2, has_init) {
 
   if (max_inp_no == 0) {
     return(NULL)
   }
 
-  inp_x <- eval(expr_ls[[".x"]], envir = q_env)
+  out <- eval(expr_ls[[".x"]], envir = q_env)
 
   if (!is.null(expr_ls[[".x"]]) && max_inp_no == 1) {
 
-    out      <- tibble::new_tibble(list(input_x = inp_x), nrow = length(inp_x))
+    out <- tibble::new_tibble(list(input_x = out), nrow = length(out))
     return(out)
-
   }
 
   if (!is.null(expr_ls[[".y"]]) && max_inp_no >= 2) {
@@ -284,7 +301,6 @@ get_inp_objs <- function(expr_ls, q_env, max_inp_no) {
     named_xy <- set_names(tmp, paste0("input_", c("x", "y")))
     out      <- tibble::new_tibble(named_xy, nrow = length(inp_x))
     return(out)
-
   }
 
   if (!is.null(expr_ls[[".l"]]) && max_inp_no > 0) {
@@ -293,9 +309,9 @@ get_inp_objs <- function(expr_ls, q_env, max_inp_no) {
     inp_l    <- tmp[seq_len(max_inp_no)]
     named_l  <- set_names(inp_l, paste0("input_l", seq_len(max_inp_no)))
     out      <- tibble::new_tibble(named_l, nrow = length(inp_l[[1]]))
-
+    return(out)
   }
 
-  out
+  out <- tibble::new_tibble(list(input_x = out), nrow = length(out))
 
 }
