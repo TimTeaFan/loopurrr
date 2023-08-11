@@ -5,16 +5,8 @@ probe <- function(expr, cond = rlang::is_error) {
 
   is_error <- identical(rlang::is_error, cond)
 
-  if(!rlang::is_function(
-    try(cond <- rlang::as_function(cond),
-        silent = TRUE))) {
-    rlang::abort(
-      c(paste0("Problem with `probe()` input `cond`."),
-        i = paste0("`cond` must be either a function name, an anonymous function or a formula that can be coerced to function with `rlang::as_function()`."),
-        x = paste0("The input in `cond` doesn't fullful this condition.")
-      )
-    )
-  }
+  check_functionable(cond, "probe", "cond")
+  cond <- rlang::as_function(cond)
 
   q <- rlang::enquo(expr)
 
