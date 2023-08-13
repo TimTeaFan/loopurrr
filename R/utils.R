@@ -494,6 +494,21 @@ check_pos_integer <- function(x, cl, inp) {
   }
 }
 
+check_bool <- function (x, cl, inp) {
+
+  if (!missing(x) && rlang::is_bool(x)) {
+    return(invisible(NULL))
+  }
+
+  rlang::abort(
+    c(paste0("Problem with `", cl, "` input `", inp, "`."),
+      i = paste0("`", inp, "` must be `TRUE` or `FALSE`."),
+      x = paste0("`", inp, "` is of type `", class(x), "`.")
+    )
+  )
+
+}
+
 # sequence greater than one
 # seq_gt_1 <- function(x) {
 #   res <- seq_len(x)
