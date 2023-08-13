@@ -50,16 +50,12 @@ screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_n
 
   if (has_fn || is_accu_redu || is_accu_redu2) {
 
-    # res <- wrap(..expr   = !! q,
-    #             .f       = function(x) quietly(safely(x)),
-    #             ..silent = TRUE)
-
     res <- wrap(..expr   = !! q,
-                .f       = function(x) quietly2(safely2(x)),
+                .f       = function(x) capture(x),
                 ..silent = TRUE)
 
-    res <- restore_all(res)
-    results_ls  <- map(res, c("result", "result"), .default = NULL)
+    res <- restore(res)
+    results_ls  <- map(res, c("result"), .default = NULL)
 
     if (is_accu_redu) {
       if(!has_init) {
@@ -73,7 +69,7 @@ screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_n
 
   if (has_fn) {
 
-    errors_ls   <- map(res, c("result", "error"), .default = NA)
+    errors_ls   <- map(res, c("error"), .default = NA)
     output_ls   <- map(res, c("output"), .default = NA)
     warnings_ls <- map(res, c("warnings"), .default = NA)
     message_ls  <- map(res, c("messages"), .default = NA)
@@ -129,27 +125,31 @@ screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_n
                         )
   )
 
-  attach_screen_attr(out2, cl_chr)
+  attach_screen_attr(out2, cl_chr, has_fn)
 }
 
-attach_screen_attr <- function(x, cl_chr) {
+attach_screen_attr <- function(x, cl_chr, has_fn) {
 
   ln <- nrow(x)
 
   attr(x, "class")       <- c("screen_tbl", attr(x, "class"))
   attr(x, "call")        <- cl_chr
+  attr(x, "has_fn")      <- has_fn
 
-  attr(x, "no_err")      <- no_err <- length(na.omit(x$error))
-  attr(x, "perc_err")    <- round((no_err/ln) * 100, 0)
+  if (has_fn) {
+    attr(x, "no_err")      <- no_err <- length(na.omit(x[["error"]]))
+    attr(x, "perc_err")    <- round((no_err/ln) * 100, 0)
 
-  attr(x, "no_warn")     <- no_warn <- length(na.omit(x$warning))
-  attr(x, "perc_warn")   <- round((no_warn/ln) * 100, 0)
+    attr(x, "no_warn")     <- no_warn <- length(na.omit(x[["warning"]]))
+    attr(x, "perc_warn")   <- round((no_warn/ln) * 100, 0)
+  }
 
   if (!is.null(x[["result_class"]])) {
     res_classes          <- na.omit(unique(x[["result_class"]][is.na(x[["error"]])]))
   } else {
     res_classes          <- NULL
   }
+
   attr(x, "no_of_classes") <- no_of_classes <- length(res_classes)
 
   if ( no_of_classes > 0) {
@@ -170,7 +170,7 @@ attach_screen_attr <- function(x, cl_chr) {
 summary.screen_tbl <- function(x) {
 
   screen_attr <- c("call", "no_err", "perc_err", "no_warn", "perc_warn",
-                   "no_of_classes", "class_output")
+                   "no_of_classes", "class_output", "has_fn")
 
   attr_x <- attributes(x)[screen_attr]
 
@@ -204,18 +204,27 @@ summary.screen_tbl <- function(x) {
 
 #' @export
 print.screen_tbl <- function(x) {
-  cl_chr <- attr(x, "call")
-  no_err  <- attr(x, "no_err")
-  perc_err <- attr(x, "perc_err")
-  no_warn <- attr(x, "no_warn")
-  perc_warn <- attr(x, "perc_warn")
-  # res_classes <-  attr(x, "res_classes")
-  no_of_classes <-  attr(x, "no_of_classes")
-  class_output <- attr(x, "class_output")
+  cl_chr        <- attr(x, "call")
+  no_err        <- attr(x, "no_err")
+  perc_err      <- attr(x, "perc_err")
+  no_warn       <- attr(x, "no_warn")
+  perc_warn     <- attr(x, "perc_warn")
+  # res_classes <- attr(x, "res_classes")
+  no_of_classes <- attr(x, "no_of_classes")
+  class_output  <- attr(x, "class_output")
+  has_fn        <- attr(x, "has_fn")
 
   cat(paste_subtle("# Screen call: ", cl_chr, "\n"))
-  cat(paste_subtle("# No. of errors: ",   no_err,  " (", perc_err, "%)", " || "))
-  cat(paste_subtle("# No. of warnings: ", no_warn, " (", perc_warn, "%)", "\n"))
+  if(!has_fn) {
+    cat(paste_subtle("# Call doesn't contain function in `.f`. Screening input:\n"))
+  }
+  if (!is.null(no_err)) {
+    cat(paste_subtle("# No. of errors: ",   no_err,  " (", perc_err, "%)", " || "))
+  }
+
+  if (!is.null(no_warn)){
+    cat(paste_subtle("# No. of warnings: ", no_warn, " (", perc_warn, "%)", "\n"))
+  }
 
   if (no_of_classes > 0) {
     cat(paste_subtle("# No. of result classes: ", no_of_classes), "\n")
