@@ -122,7 +122,7 @@ first_error <- function(expr, is_back, is_accu_redu, cond) {
 
   idx <- tryCatch(vapply(res, cond, FUN.VALUE = logical(1)),
                   error = function(e) e)
-
+  # FIXME: Above we catch any error not necesarily only type errors:
   if (rlang::is_error(idx)) {
     msg <- gsub(".*(result is.*)", "\\1", idx$message)
     rlang::abort(
