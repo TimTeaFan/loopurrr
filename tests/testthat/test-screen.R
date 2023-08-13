@@ -7,6 +7,9 @@ test_that("screen works with map", {
       warning("a warning")
       return(a)
     } else if (a == 3){
+      print("I'm here")
+      message("This is a message")
+      warning("A warning followed by ...")
       stop("an error")
     } else if (a == 4){
       rlang::inform("this is a message")
