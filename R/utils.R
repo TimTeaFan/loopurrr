@@ -506,7 +506,16 @@ check_bool <- function (x, cl, inp) {
       x = paste0("`", inp, "` is of type `", class(x), "`.")
     )
   )
+}
 
+check_list <- function(x, cl, inp) {
+  if (!is.list(x)) {
+    rlang::abort(c(paste0("Problem with `", cl, "()` input `", inp, "`."),
+                   i = paste0("`", inp ,"` has to be of type `list`."),
+                   x = paste0("`", inp, "` is type ", typeof(x), ".")
+    )
+    )
+  }
 }
 
 # sequence greater than one
