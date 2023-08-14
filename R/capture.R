@@ -68,8 +68,19 @@ restore_result <- function(x) {
   if (!rlang::is_error(x)) x else NULL
 }
 
+# restore <- function(x) {
+#   map(x, restore_imp)
+# }
+
 restore <- function(x) {
-  map(x, restore_imp)
+  was_captured <- function(x) !is.null(attr(x, "capture_unlist"))
+
+  if (was_captured(x)) {
+    return(restore_imp(x))
+  } else if (any(map_lgl(x, was_captured))) {
+    return(map(x, restore_imp))
+  }
+  stop("Can't apply `restore` to input that has not been captured.")
 }
 
 restore_imp <- function(x) {
@@ -85,9 +96,9 @@ restore_imp <- function(x) {
 
   result <- if (unlist) {
     unlist(restore_result(x), recursive = FALSE)
-    } else {
+   } else {
     restore_result(x)
-    }
+   }
 
   error <- if (unlist) {
     unlist(restore_error(x), recursive = FALSE)
@@ -110,7 +121,6 @@ restore_imp <- function(x) {
 #   map(safely(log))
 #
 # list("a", 10, 100) |>
-#   map(safelier(log)) -> x
+#   map(capture(log)) -> x
 #
-# list(1, 1:3, 1:10) |>
-#   accumulate(safelier(sum))
+# capture(log)("a") |> restore()

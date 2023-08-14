@@ -11,13 +11,13 @@ screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_n
   q_inp_fns <- rlang::enquo(inp_fns)
 
   if (!is.null(res_fns)) {
-    if (!is.list(res_fns)) res_fns <- list(res_fns)
+    check_list(res_fns, "screen", "res_fns")
     map(res_fns, ~ check_functionable(.x, "screen", "res_fns"))
     res_fns <- transform_fn(res_fns, q_res_fns, "res_fns")
   }
 
   if (!is.null(inp_fns)) {
-    if (!is.list(inp_fns)) res_fns <- list(inp_fns)
+    check_list(inp_fns, "screen", "inp_fns")
     map(inp_fns, ~ check_functionable(.x, "screen", "inp_fns"))
     inp_fns <- transform_fn(inp_fns, q_inp_fns, "inp_fns")
   }
@@ -42,23 +42,44 @@ screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_n
 
   is_accu_redu   <- grepl("^(accumulate|reduce)$", map_fn_chr, perl = TRUE)
   is_accu_redu2  <- grepl("^(accumulate|reduce)2$", map_fn_chr, perl = TRUE)
+  is_redu        <- grepl("^reduce", map_fn_chr, perl = TRUE)
   has_init       <- !is.null(expr_ls[[".init"]])
 
   inp_objs       <- get_inp_objs(expr_ls, q_env, max_inp_no, is_accu_redu2, has_init)
-
   has_fn         <- !is.null(expr_ls[[".f"]])
+  adjust_q       <- FALSE
 
+  # change to accumulate if reduce
+  if (is_redu) {
+    expr_ls      <- reduce2accumulate(expr_ls)
+    adjust_q     <- TRUE
+  }
+
+  # add ´.simplify` FALSE is not yet set so
+  if ((is_accu_redu || is_accu_redu2) &&
+      (is.null(expr_ls[[".simplify"]]) || is.na(expr_ls[[".simplify"]]) || expr_ls[[".simplify"]] )
+      )  {
+    expr_ls[[".simplify"]] <- FALSE
+    adjust_q     <- TRUE
+  }
+
+  # update original quosure if needed
+  if(adjust_q) {
+    q <- rlang::quo_set_expr(q, as.call(expr_ls))
+  }
+
+  #
   if (has_fn || is_accu_redu || is_accu_redu2) {
 
-    res <- wrap(..expr   = !! q,
-                .f       = function(x) capture(x),
-                ..silent = TRUE)
+    res <- wrap(..expr    = !! q,
+                .f        = function(x) capture(x),
+                ..silent  = TRUE)
 
     res <- restore(res)
     results_ls  <- map(res, c("result"), .default = NULL)
 
     if (is_accu_redu) {
-      if(!has_init) {
+      if (!has_init) {
         inp_objs[["input_y"]] <- append(list(NULL), results_ls[-length(results_ls)])
       } else {
         init    <- eval(expr_ls[[".init"]], envir = q_env)
@@ -258,28 +279,31 @@ paste_subtle <- function(...) {
   pillar::style_subtle(paste0(...))
 }
 
-as_listwraped_fn <- function(f) {
-  purrr::compose(list, rlang::as_function(f))
-}
-
 name_if_symbol <- function(x, arg) {
-  x1 <- x[[1]]
-  if (is.symbol(x1)) {
-    nm <- deparse(x1)
-  } else if (is.character(x1)) {
-    nm <- x1
-  } else {
-    rlang::abort(c(paste0("Problem with `screen()` input `", arg, "`."),
-                   i = "Anonymous functions in `", arg, "` must be named.",
-                   x = "Unnamed function in `", arg, "` detected.")
-                 )
+
+  nm <- names(x)
+
+  if (is.null(nm)) {
+    x1 <- x[[1]]
+    if (is.symbol(x1)) {
+      nm <- deparse(x1)
+    } else if (is.character(x1)) {
+      nm <- x1
+    } else {
+      rlang::abort(c(paste0("Problem with `screen()` input `", arg, "`."),
+                     i = paste0("Anonymous functions in `", arg, "` must be named."),
+                     x = paste0("Unnamed function in `", arg, "` detected.")
+                     )
+      )
+    }
   }
+
   list(nm)
 }
 
 transform_fn <- function(fns, q_fns, arg) {
   expr_ls    <- rlang::quo_get_expr(q_fns)
-  fns_nm_ls  <- lmap(expr_ls[-1], ~ name_if_symbol(.x, arg))
+  fns_nm_ls  <- lmap(as.list(expr_ls)[-1], ~ name_if_symbol(.x, arg))
   new_fns    <- set_names(fns, fns_nm_ls)
 
   map(new_fns, as_listwraped_fn)
