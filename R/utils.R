@@ -438,10 +438,12 @@ reduce2accumulate <- function(expr) {
   new_quo
 }
 
-check_functionable <- function(x, fn_call, arg) {
+is_functionable <- function(x) {
+  rlang::is_function(try(rlang::as_function(x),
+                         silent = TRUE))
+}
 
-  is_functionable <- rlang::is_function(try(rlang::as_function(x),
-                                            silent = TRUE))
+check_functionable <- function(x, fn_call, arg) {
 
   if (fn_call == "screen") {
     msg <- c(i = paste0("`", arg, "` must be a list of:"),
@@ -457,7 +459,7 @@ check_functionable <- function(x, fn_call, arg) {
     )
   }
 
-  if(! is_functionable) {
+  if(! is_functionable(x)) {
     rlang::abort(
       c(paste0("Problem with `", fn_call, "()` input `", arg, "`."),
         msg,
@@ -516,6 +518,18 @@ check_list <- function(x, cl, inp) {
     )
     )
   }
+}
+
+eval_as_fn <- function(f, env) {
+  f <- eval(f, envir = env)
+  if (!is.null(f)) {
+    if (!is_functionable(f)) {
+      stop("`.p` must be a function or formula.")
+    } else {
+      return(rlang::as_function(f))
+    }
+  }
+  NULL
 }
 
 # sequence greater than one
