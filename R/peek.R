@@ -209,17 +209,17 @@ peek <- function(expr, i = 1L, simplify = TRUE) {
 
   fn <- maybe_transfrom_fn(i, is_imap, names(obj))
 
-  if (is_walk) {
-    return(
-      wrap("..expr" = !! q,
-         .x = index_fn(i),      # function(x, i) x[i],
-         .y = index_fn(i),      # function(x, i) x[i],
-         .l = index_each_fn(i), # function(x, i) purrr::map(x, function(y) `[`(y, i)),
-         .at = at_fun,
-         .f = fn,
-         "..silent" = TRUE)
-    )
-  }
+  # if (is_walk) {
+  #   return(
+  #     wrap("..expr" = !! q,
+  #        .x = index_fn(i),
+  #        .y = index_fn(i),
+  #        .l = index_each_fn(i),
+  #        .at = at_fun,
+  #        .f = fn,
+  #        "..silent" = TRUE)
+  #   )
+  # }
 
   out <- wrap("..expr" = !! q,
               .x = index_fn(i),
@@ -229,6 +229,10 @@ peek <- function(expr, i = 1L, simplify = TRUE) {
               .f = fn,
               "..silent" = TRUE
   )
+
+  if (is_walk) {
+    return(out)
+  }
 
   # return only the original i's
   if (is_accu) {
