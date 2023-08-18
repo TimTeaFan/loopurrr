@@ -2,32 +2,41 @@ capture <- function(.f, otherwise = NULL, quiet = TRUE) {
   quietly2(safely2(.f, otherwise = otherwise, quiet = quiet))
 }
 
+# adapted from purrr::safely
 safely2 <- function(.f, otherwise = NULL, quiet = TRUE) {
-    .f <- purrr::as_mapper(.f)
-    force(otherwise)
-    function(...) attach_error(.f(...), otherwise, quiet)
+  .f <- purrr::as_mapper(.f)
+  force(otherwise)
+  function(...) attach_error(.f(...), otherwise, quiet)
 }
 
-attach_error <- function(code, otherwise = NULL, quiet = TRUE) {
+# adapted from purrr:::capture_error
+attach_error <- function(code, otherwise = NULL, quiet = TRUE) { #
 
-  tryCatch(
-    code,
+  tryCatch({
+    code
+  },
     error = function(e) {
       if (!quiet) {
         message("Error: ", conditionMessage(e))
       }
-      e
-    }
+      i <- capture_env[["i"]]
+      capture_env[["out"]][["error_msg"]][[i]] <- conditionMessage(e)
+      capture_env[["out"]][["errors"]][[i]]    <- e
+      otherwise
+      }
   )
 
 }
 
+# adapted from purrr::quietly
 quietly2 <- function (.f) {
   .f <- as_mapper(.f)
   function(...) attach_output(.f(...))
 }
 
+# adapted from purrr:::capture_output
 attach_output <- function (code) {
+
   warnings <- character()
   wHandler <- function(w) {
     warnings <<- c(warnings, conditionMessage(w))
@@ -44,83 +53,49 @@ attach_output <- function (code) {
     sink()
     close(temp)
   })
-  result <- withCallingHandlers(code, warning = wHandler, message = mHandler)
+  result <- withCallingHandlers(code,
+                                warning = wHandler,
+                                message = mHandler)
   output <- paste0(readLines(temp, warn = FALSE), collapse = "\n")
 
-  if (is.null(result)) {
-    out <- list(result)
-    attr(out, "capture_unlist") <- TRUE
-  } else {
-    out <- result
-    attr(out, "capture_unlist") <- FALSE
+  i <- capture_env$i
+  capture_env[["out"]][["output"]][[i]]   <- output
+  capture_env[["out"]][["warnings"]][[i]] <- warnings
+  capture_env[["out"]][["messages"]][[i]] <- messages
+
+  if (length(capture_env[["out"]][["errors"]]) > i) {
+    capture_env[["i"]] <- i + 1L
   }
-  attr(out, "capture_output")   <- output
-  attr(out, "capture_warnings") <- warnings
-  attr(out, "capture_messages") <- messages
-  out
+
+  result
 }
 
-restore_error <- function(x) {
-  if (rlang::is_error(x)) x else NULL
+capture_env <- rlang::new_environment(data = list(i = 1L))
+
+prepare_capture_env <- function(i) {
+  capture_env[["i"]]                   <- 1L
+  capture_env[["out"]]                 <- list()
+  capture_env[["out"]][["errors"]]     <- vector(mode = "list", length = i)
+  capture_env[["out"]][["error_msg"]]  <- vector(mode = "list", length = i)
+  capture_env[["out"]][["output"]]     <- character(i)
+  capture_env[["out"]][["warnings"]]   <- vector(mode = "list", length = i)
+  capture_env[["out"]][["messages"]]   <- vector(mode = "list", length = i)
 }
 
-restore_result <- function(x) {
-  if (!rlang::is_error(x)) x else NULL
+reset_capture_env <- function() {
+  capture_env[["i"]] <- 1L
+  rm(out, envir = capture_env)
 }
-
-# restore <- function(x) {
-#   map(x, restore_imp)
-# }
 
 restore <- function(x) {
-  was_captured <- function(x) !is.null(attr(x, "capture_unlist"))
 
-  if (was_captured(x)) {
-    return(restore_imp(x))
-  } else if (any(map_lgl(x, was_captured))) {
-    return(map(x, restore_imp))
-  }
-  stop("Can't apply `restore` to input that has not been captured.")
+  out <- tibble::tibble(
+    result = x,
+    tibble::new_tibble(capture_env[["out"]],
+                       nrow = length(capture_env[["out"]][["errors"]]))
+    )
+
+  on.exit(reset_capture_env(), add = TRUE)
+
+  return(out)
 }
-
-restore_imp <- function(x) {
-  output   <- attr(x, "capture_output")
-  warnings <- attr(x, "capture_warnings")
-  messages <- attr(x, "capture_messages")
-  unlist   <- attr(x, "capture_unlist") %||% FALSE
-
-  attributes(x)["capture_output"] <-
-    attributes(x)["capture_warnings"] <-
-    attributes(x)["capture_messages"] <-
-    attributes(x)["capture_unlist"] <- NULL
-
-  result <- if (unlist) {
-    unlist(restore_result(x), recursive = FALSE)
-   } else {
-    restore_result(x)
-   }
-
-  error <- if (unlist) {
-    unlist(restore_error(x), recursive = FALSE)
-  } else {
-    restore_error(x)
-  }
-
-  list(result   = result,
-       error    = error,
-       output   = output,
-       warnings = warnings,
-       messages = messages
-  )
-}
-
-# list("a", 10, 100) |>
-#   map(log)
-#
-# list("a", 10, 100) |>
-#   map(safely(log))
-#
-# list("a", 10, 100) |>
-#   map(capture(log)) -> x
-#
-# capture(log)("a") |> restore()
