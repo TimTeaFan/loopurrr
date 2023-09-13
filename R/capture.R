@@ -1,5 +1,11 @@
-capture <- function(.f, otherwise = NULL, quiet = TRUE) {
-  quietly2(safely2(.f, otherwise = otherwise, quiet = quiet))
+capture <- function(.f, otherwise = NULL, quiet = TRUE, env = FALSE) {
+
+  if(env) {
+    return(quietly2(safely2(.f, otherwise = otherwise, quiet = quiet)))
+  } else {
+    return(quietly(safely(.f, otherwise = otherwise, quiet = quiet)))
+  }
+
 }
 
 # adapted from purrr::safely
@@ -21,7 +27,7 @@ attach_error <- function(code, otherwise = NULL, quiet = TRUE) { #
       }
       i <- capture_env[["i"]]
       capture_env[["out"]][["error_msg"]][[i]] <- conditionMessage(e)
-      capture_env[["out"]][["errors"]][[i]]    <- e
+      capture_env[["out"]][["error"]][[i]]     <- e
       otherwise
       }
   )
@@ -63,7 +69,7 @@ attach_output <- function (code) {
   capture_env[["out"]][["warnings"]][[i]] <- warnings
   capture_env[["out"]][["messages"]][[i]] <- messages
 
-  if (length(capture_env[["out"]][["errors"]]) > i) {
+  if (length(capture_env[["out"]][["error"]]) > i) {
     capture_env[["i"]] <- i + 1L
   }
 
@@ -75,7 +81,7 @@ capture_env <- rlang::new_environment(data = list(i = 1L))
 prepare_capture_env <- function(i) {
   capture_env[["i"]]                   <- 1L
   capture_env[["out"]]                 <- list()
-  capture_env[["out"]][["errors"]]     <- vector(mode = "list", length = i)
+  capture_env[["out"]][["error"]]      <- vector(mode = "list", length = i)
   capture_env[["out"]][["error_msg"]]  <- vector(mode = "list", length = i)
   capture_env[["out"]][["output"]]     <- character(i)
   capture_env[["out"]][["warnings"]]   <- vector(mode = "list", length = i)
@@ -87,15 +93,49 @@ reset_capture_env <- function() {
   rm(out, envir = capture_env)
 }
 
-restore <- function(x) {
+restore <- function(x, has_init, is_back, env = FALSE) {
 
-  out <- tibble::tibble(
-    result = x,
-    tibble::new_tibble(capture_env[["out"]],
-                       nrow = length(capture_env[["out"]][["errors"]]))
-    )
+  if (env) {
+    on.exit(reset_capture_env(), add = TRUE)
 
-  on.exit(reset_capture_env(), add = TRUE)
+    cap_res <- tibble::new_tibble(capture_env[["out"]],
+                                  nrow = length(capture_env[["out"]][["error"]]))
+
+    if(!has_init) {
+      if (is_back) {
+        cap_res <- dplyr::bind_rows(cap_res, empty_row)
+      } else {
+        cap_res <- dplyr::bind_rows(empty_row, cap_res)
+      }
+    }
+
+    out <- tibble::tibble(
+      result = x,
+      cap_res
+      )
+
+    return(out)
+  }
+
+  new_x <- transpose(x)
+
+  safely_res <- transpose(transpose(x)[["result"]])
+
+  new_x[["result"]]     <- safely_res[["result"]]
+  new_x[["error"]]      <- safely_res[["error"]]
+  new_x[["error_msg"]]  <- map(safely_res[["error"]], "message")
+
+  out <- tibble::new_tibble(new_x,
+                            nrow = length(new_x[["result"]])
+                            )
 
   return(out)
 }
+
+empty_row <- tibble::tibble(
+  error     = list(NULL),
+  error_msg = list(NULL),
+  output    = "",
+  warnings  = list(character(0)),
+  messages  = list(character(0))
+  )
