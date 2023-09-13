@@ -47,8 +47,9 @@ screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_n
   p_fn           <- eval_as_fn(expr_ls[[".p"]], env = q_env)
   else_fn        <- eval_as_fn(expr_ls[[".else"]], env = q_env)
 
-  is_accu_redu   <- grepl("^(accumulate|reduce)$", map_fn_chr, perl = TRUE)
+  is_accu_redu   <- grepl("^(accumulate|reduce)", map_fn_chr, perl = TRUE)
   is_accu_redu2  <- grepl("^(accumulate|reduce)2$", map_fn_chr, perl = TRUE)
+  is_back        <- !is.null(expr_ls[[".dir"]]) && expr_ls[[".dir"]] == "backward"
   is_redu        <- grepl("^reduce", map_fn_chr, perl = TRUE)
   has_init       <- !is.null(expr_ls[[".init"]])
 
@@ -67,12 +68,12 @@ screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_n
     prepare_capture_env(no_i)
 
     res <- wrap(..expr    = !! q,
-                .f        = function(x) capture(x),
+                .f        = function(x) capture(x, env = is_accu_redu),
                 ..silent  = TRUE)
 
-    res <- restore(res)
+    res <- restore(res, has_init, is_back, env = is_accu_redu)
 
-    inp_objs    <- finalize_inp_obj(inp_objs, results_ls, is_accu_redu, has_init, is_back)
+    inp_objs    <- finalize_inp_obj(inp_objs, res, is_accu_redu, has_init, is_back)
 
     init_res    <- tibble::tibble(inp_objs,
                                   res)
@@ -118,7 +119,7 @@ screen <- function(expr, res_fns = list(class), inp_fns = list(class), max_inp_n
   if (has_fn && !is.null(res_fns)) {
     out <- dplyr::mutate(out,
                          dplyr::across(tidyselect::starts_with("result"), res_fns),
-                         .before = errors)
+                         .before = error)
   }
 
   out <- dplyr::ungroup(out)
@@ -240,7 +241,7 @@ print.screen_tbl <- function(x) {
 
 unlist_if_all_length_one <- function(x, col_nm) {
 
-  if (!col_nm %in% c("result", "errors")) {
+  if (!col_nm %in% c("result", "error")) {
     x <- ifelse(lengths(x) == 0, NA, x)
   }
 
@@ -336,16 +337,17 @@ get_inp_objs <- function(expr_ls, q_env, max_inp_no, is_accu_redu2, has_init) {
 }
 
 # accounts for accumulate and reduce and turns input list into tibble
-finalize_inp_obj <- function(inp_objs, results_ls, is_accu_redu, has_init, is_back) {
+finalize_inp_obj <- function(inp_objs, res, is_accu_redu, has_init, is_back) {
+
   if (is_accu_redu) {
     if (has_init) {
       inp_objs <- as.list(inp_objs)
       inp_objs[["input_y"]] <- append(list(NULL), inp_objs[["input_x"]])
     } else {
-      inp_objs[["input_y"]] <- append(list(NULL), inp_objs[["input_x"]][-1L])
+      inp_objs[["input_y"]] <- inp_objs[["input_x"]] # append(list(NULL), inp_objs[["input_x"]][-1L])
     }
 
-    inp_objs[["input_x"]] <- append(results_ls[[1]], results_ls[-length(results_ls)])
+    inp_objs[["input_x"]] <- append(list(NULL), res$result[-nrow(res)]) # res$result[[1]],
     # if(!tibble::is_tibble(inp_objs)) inp_objs <- tibble::as_tibble(inp_objs)
   }
 
