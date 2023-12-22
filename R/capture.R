@@ -1,6 +1,6 @@
 capture <- function(.f, otherwise = NULL, quiet = TRUE, env = FALSE) {
 
-  if(env) {
+  if (env) {
     return(quietly2(safely2(.f, otherwise = otherwise, quiet = quiet)))
   } else {
     return(quietly(safely(.f, otherwise = otherwise, quiet = quiet)))
@@ -79,6 +79,9 @@ attach_output <- function (code) {
 capture_env <- rlang::new_environment(data = list(i = 1L))
 
 prepare_capture_env <- function(i) {
+
+  reset_capture_env()
+
   capture_env[["i"]]                   <- 1L
   capture_env[["out"]]                 <- list()
   capture_env[["out"]][["error"]]      <- vector(mode = "list", length = i)
@@ -90,7 +93,10 @@ prepare_capture_env <- function(i) {
 
 reset_capture_env <- function() {
   capture_env[["i"]] <- 1L
-  rm(out, envir = capture_env)
+
+  if (exists("out", envir = capture_env)) {
+    rm(out, envir = capture_env)
+  }
 }
 
 restore <- function(x, has_init, is_back, env = FALSE) {
@@ -101,12 +107,15 @@ restore <- function(x, has_init, is_back, env = FALSE) {
     cap_res <- tibble::new_tibble(capture_env[["out"]],
                                   nrow = length(capture_env[["out"]][["error"]]))
 
-    if(!has_init) {
-      if (is_back) {
-        cap_res <- dplyr::bind_rows(cap_res, empty_row)
-      } else {
-        cap_res <- dplyr::bind_rows(empty_row, cap_res)
-      }
+    if (is_back) {
+      cap_res <- dplyr::mutate(cap_res,
+                               dplyr::across(everything(),
+                                             rev)
+                               )
+
+      cap_res <- dplyr::bind_rows(cap_res, empty_row)
+    } else {
+      cap_res <- dplyr::bind_rows(empty_row, cap_res)
     }
 
     out <- tibble::tibble(
@@ -116,6 +125,8 @@ restore <- function(x, has_init, is_back, env = FALSE) {
 
     return(out)
   }
+
+  x <- check_and_amend(x)
 
   new_x <- transpose(x)
 
@@ -128,7 +139,6 @@ restore <- function(x, has_init, is_back, env = FALSE) {
   out <- tibble::new_tibble(new_x,
                             nrow = length(new_x[["result"]])
                             )
-
   return(out)
 }
 
@@ -139,3 +149,22 @@ empty_row <- tibble::tibble(
   warnings  = list(character(0)),
   messages  = list(character(0))
   )
+
+check_capture_output <- function(x) {
+  !identical(names(x), c("result", "output", "warnings", "messages"))
+}
+
+empty_capture_output <- function(x) {
+  list(result   = list(result = x,
+                       error  = NULL),
+       output   = "",
+       warnings = character(0),
+       messages = character(0))
+}
+
+check_and_amend <- function(x) {
+
+  map_if(x,
+         .p = check_capture_output,
+         .f = empty_capture_output)
+}
