@@ -46,7 +46,7 @@ test_that("screen works with map", {
   )
 
   expect_equal(output_tbl,
-               screen(map(a, myf))
+               map(a, myf) %>% screen()
                )
 })
 
