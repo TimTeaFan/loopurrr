@@ -184,7 +184,7 @@ create_out_obj <- function(map_fn, obj, output_nm, has_init, init, is_back) {
     return(paste0(output_nm, ' <- ', vec, idx, '\n'))
   }
 
-  map_fn <- gsub("^p{0,1}map2{0,1}_{0,1}", "", map_fn, perl = TRUE)
+  map_fn <- get_output_type(map_fn)
 
   mde <- switch(map_fn,
                 "chr" = "character",

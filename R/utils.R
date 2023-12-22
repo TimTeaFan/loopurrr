@@ -532,6 +532,21 @@ eval_as_fn <- function(f, env) {
   NULL
 }
 
+add_i <- function(is_back, is_accu_redu) {
+  x <- dplyr::row_number()
+  x <- x - is_accu_redu
+  if(is_back) {
+    return(rev(x))
+  }
+  x
+}
+
+get_output_type <- function(map_fn) {
+
+  gsub("^p{0,1}map2{0,1}_{0,1}", "", map_fn, perl = TRUE)
+
+}
+
 # sequence greater than one
 # seq_gt_1 <- function(x) {
 #   res <- seq_len(x)
