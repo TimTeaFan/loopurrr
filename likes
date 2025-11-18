@@ -1,6 +1,1 @@
-{
-  "title": "Unauthorized",
-  "type": "about:blank",
-  "status": 401,
-  "detail": "Unauthorized"
-}
+error code: 500
